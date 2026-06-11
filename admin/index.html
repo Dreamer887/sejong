@@ -48,7 +48,10 @@
   .pv-tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:#eef0ff;color:var(--indigo)}
   .pv h1{font-size:23px;font-weight:800;line-height:1.35;margin:11px 0 6px}
   .pv .pv-meta{color:#aab2c5;font-size:12.5px;font-weight:600}
-  .pv .pv-lede{font-size:15px;color:#46506a;margin:14px 0 18px;line-height:1.7}
+  .pv .pv-lede{background:#f6f7ff;border:1px solid #e3e6ff;border-left:5px solid var(--indigo);border-radius:12px;padding:14px 16px;margin:14px 0 18px}
+  .pv .pv-lede .a-cap{font-size:12px;font-weight:800;color:var(--indigo);margin-bottom:5px}
+  .pv .pv-lede p{font-size:14px;color:#2b3550;line-height:1.7;margin:0 0 7px}
+  .pv .pv-lede p:last-child{margin-bottom:0}
   .pv h2{font-size:18px;font-weight:800;margin:22px 0 9px;padding-left:11px;border-left:5px solid var(--indigo)}
   .pv h3{font-size:15px;font-weight:700;margin:16px 0 6px}
   .pv p{font-size:14.5px;color:#2b3550;margin:10px 0}
@@ -146,7 +149,7 @@
 <script>
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function inline(t){return t.replace(/\+\+(.+?)\+\+/g,'<span class="big">$1</span>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/__(.+?)__/g,'<u>$1</u>');}
-function richLines(text){return String(text||"").replace(/\r/g,"").split("\n").filter(function(l){return l.trim()!=="";}).map(function(l){return "<p>"+inline(esc(l.trim()))+"</p>";}).join("");}
+function richLines(text){return String(text||"").replace(/\r/g,"").split("\n").map(function(l){var t=l.trim();return t===""?'<div class="a-gap"></div>':"<p>"+inline(esc(t))+"</p>";}).join("");}
 function bodyToHtml(text){
   const lines=String(text||"").replace(/\r/g,"").split("\n");const out=[];let buf=[];let center=false;
   function add(el){out.push(center?'<div class="a-center">'+el+'</div>':el);}
@@ -171,9 +174,9 @@ function fmtDate(iso){if(!iso)return"";const p=iso.split("-");return p[0]+". "+(
 function render(){
   const tag=$("tag").value,title=$("title").value||"제목을 입력하세요",lede=$("lede").value,body=$("body").value,summary=$("summary").value,date=fmtDate($("date").value);
   let h='<span class="pv-tag">'+esc(tag)+'</span><h1>'+esc(title)+'</h1><div class="pv-meta">'+esc(date)+' · 작성: 투자되지</div>';
-  if(lede)h+='<div class="pv-lede">'+richLines(lede)+'</div>';
+  if(lede)h+='<div class="pv-lede"><div class="a-cap">들어가며</div>'+richLines(lede)+'</div>';
   h+=bodyToHtml(body);
-  if(summary)h+='<div class="pv-summary"><b>요약</b>'+richLines(summary)+'</div>';
+  if(summary)h+='<div class="pv-summary"><b>한 줄 요약</b>'+richLines(summary)+'</div>';
   $("preview").innerHTML=h;
 }
 const now=new Date(Date.now()+9*3600*1000);

@@ -33,7 +33,7 @@ function inline(t){
     .replace(/__(.+?)__/g,'<u>$1</u>');
 }
 function richLines(text){
-  return String(text||"").replace(/\r/g,"").split("\n").filter(function(l){return l.trim()!=="";}).map(function(l){return "<p>"+inline(esc(l.trim()))+"</p>";}).join("");
+  return String(text||"").replace(/\r/g,"").split("\n").map(function(l){var t=l.trim();return t===""?'<div class="a-gap"></div>':"<p>"+inline(esc(t))+"</p>";}).join("");
 }
 function bodyToHtml(text){
   const lines = String(text||"").replace(/\r/g,"").split("\n");
@@ -60,8 +60,8 @@ function bodyToHtml(text){
 }
 function buildPostHtml(f, BASE){
   const url = BASE+"/blog/"+f.id;
-  const lede = f.lede ? '<div class="a-lede">'+richLines(f.lede)+'</div>' : "";
-  const summary = f.summary ? '<div class="a-summary"><b>요약</b>'+richLines(f.summary)+'</div>' : "";
+  const lede = f.lede ? '<div class="a-lede"><div class="a-cap">들어가며</div>'+richLines(f.lede)+'</div>' : "";
+  const summary = f.summary ? '<div class="a-summary"><b>한 줄 요약</b>'+richLines(f.summary)+'</div>' : "";
   return `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -96,8 +96,9 @@ function buildPostHtml(f, BASE){
   .a-tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 11px;border-radius:99px;background:#eef0ff;color:var(--indigo)}
   article h1{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1.35;margin:14px 0 10px}
   .a-meta{color:#aab2c5;font-size:13px;font-weight:600;margin-bottom:8px}
-  .a-lede{margin:18px 0 26px}
-  .a-lede p{font-size:16px;color:#46506a;line-height:1.75;margin:0 0 10px}
+  .a-lede{background:#f6f7ff;border:1px solid #e3e6ff;border-left:5px solid var(--indigo);border-radius:14px;padding:18px 22px;margin:18px 0 26px}
+  .a-lede .a-cap{font-size:12.5px;font-weight:800;color:var(--indigo);margin-bottom:6px}
+  .a-lede p{font-size:15.5px;color:#2b3550;line-height:1.75;margin:0 0 8px}
   .a-lede p:last-child{margin-bottom:0}
   article h2{font-size:20px;font-weight:800;letter-spacing:-.3px;margin:34px 0 12px;padding-left:12px;border-left:5px solid var(--indigo)}
   article h3{font-size:16px;font-weight:700;margin:22px 0 8px}
