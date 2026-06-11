@@ -1,7 +1,6 @@
-// 세종 부동산 인사이트 — 블로그 글 발행 함수 (Netlify Function)
-// /admin 글쓰기 페이지에서 호출. 패스코드 확인 후 GitHub에 글 파일 생성 + 목록 갱신.
-// 필요한 환경변수: GITHUB_TOKEN, BLOG_PASSCODE
-// 선택 환경변수: GH_OWNER(기본 Dreamer887), GH_REPO(기본 sejong), GH_BRANCH(기본 main), SITE_BASE
+// 세종 부동산 인사이트 — 블로그 글 관리 함수 (create / update / delete / list)
+// 원본 데이터는 blog/posts.json 에 저장하고, 그것을 기준으로 글 HTML과 목록(index.html)을 생성한다.
+// 환경변수: GITHUB_TOKEN, BLOG_PASSCODE / 선택: GH_OWNER, GH_REPO, GH_BRANCH, SITE_BASE
 
 const GH_OWNER = process.env.GH_OWNER || "Dreamer887";
 const GH_REPO  = process.env.GH_REPO  || "sejong";
@@ -13,7 +12,6 @@ function esc(s){
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
-// 본문 텍스트 → HTML (빈 줄로 문단 구분, "## " 소제목, "### " 소소제목, "- " 목록)
 function bodyToHtml(text){
   const blocks = String(text||"").replace(/\r/g,"").split(/\n{2,}/);
   const out = [];
@@ -21,28 +19,22 @@ function bodyToHtml(text){
     const block = raw.trim();
     if(!block) continue;
     const lines = block.split("\n");
-    if(block.startsWith("## ")){
-      out.push(`<h2>${esc(block.slice(3).trim())}</h2>`);
-    } else if(block.startsWith("### ")){
-      out.push(`<h3>${esc(block.slice(4).trim())}</h3>`);
-    } else if(lines.every(l=>l.trim().startsWith("- "))){
-      out.push("<ul>"+lines.map(l=>`<li>${esc(l.trim().slice(2).trim())}</li>`).join("")+"</ul>");
-    } else {
-      out.push(`<p>${lines.map(l=>esc(l.trim())).join("<br>")}</p>`);
+    const img = block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if(img){
+      const cap = esc(img[1].trim()), src = esc(img[2].trim());
+      out.push(`<figure class="a-fig"><img src="${src}" alt="${cap}">${cap?`<figcaption>${cap}</figcaption>`:""}</figure>`);
+      continue;
     }
+    if(block.startsWith("## ")){ out.push(`<h2>${esc(block.slice(3).trim())}</h2>`); }
+    else if(block.startsWith("### ")){ out.push(`<h3>${esc(block.slice(4).trim())}</h3>`); }
+    else if(lines.every(l=>l.trim().startsWith("- "))){ out.push("<ul>"+lines.map(l=>`<li>${esc(l.trim().slice(2).trim())}</li>`).join("")+"</ul>"); }
+    else { out.push(`<p>${lines.map(l=>esc(l.trim())).join("<br>")}</p>`); }
   }
   return out.join("\n    ");
 }
 
-function tagClass(tag){
-  const t = String(tag||"");
-  if(t.includes("시세")) return "t-price";
-  if(t.includes("정책")||t.includes("공급")) return "t-policy";
-  return "t-trade";
-}
-
 function buildPostHtml(f){
-  const url = `${SITE_BASE}/blog/${f.filename}`;
+  const url = `${SITE_BASE}/blog/${f.id}`;
   const lede = f.lede ? `<p class="a-lede">${esc(f.lede)}</p>` : "";
   const summary = f.summary ? `<div class="a-summary"><b>한 줄 요약</b><br>${esc(f.summary)}</div>` : "";
   return `<!DOCTYPE html>
@@ -85,6 +77,10 @@ function buildPostHtml(f){
   article p{font-size:15.5px;color:#2b3550;margin:12px 0}
   article ul{margin:12px 0 12px 22px;color:#2b3550;font-size:15.5px}
   article li{margin:6px 0}
+  article img{max-width:100%;height:auto;display:block;border-radius:12px}
+  .a-fig{margin:22px 0}
+  .a-fig img{border:1px solid var(--line)}
+  .a-fig figcaption{font-size:12.5px;color:var(--sub);margin-top:8px;text-align:center}
   .a-summary{background:#f6f7ff;border:1px solid #e3e6ff;border-left:5px solid var(--indigo);border-radius:14px;padding:20px 22px;margin:28px 0}
   .a-summary b{color:var(--indigo)}
   .a-source{margin-top:30px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--sub)}
@@ -115,14 +111,15 @@ function buildPostHtml(f){
 `;
 }
 
-function buildCard(f){
-  const excerpt = (f.lede || "").slice(0, 95);
-  return `<a class="postcard" href="./${f.filename}">
+function renderCards(posts){
+  const sorted = posts.slice().sort((a,b)=> (b.dateISO||"").localeCompare(a.dateISO||"") || (b.id||"").localeCompare(a.id||""));
+  if(!sorted.length) return "\n    <p style=\"color:#aab2c5;font-size:14px;grid-column:1/-1\">아직 발행된 글이 없습니다.</p>\n  ";
+  return "\n" + sorted.map(f=>`    <a class="postcard" data-id="${esc(f.id)}" href="./${esc(f.id)}">
       <span class="tag">${esc(f.tag)}</span>
       <h2>${esc(f.title)}</h2>
-      <p class="excerpt">${esc(excerpt)}</p>
+      <p class="excerpt">${esc((f.lede||"").slice(0,95))}</p>
       <span class="meta">${esc(f.dateText)} · ${esc(f.tag)}</span>
-    </a>`;
+    </a>`).join("\n") + "\n  ";
 }
 
 async function gh(path, opts={}){
@@ -137,58 +134,106 @@ async function gh(path, opts={}){
   });
   const text = await r.text();
   let json; try{ json = text ? JSON.parse(text) : {}; }catch(e){ json = {raw:text}; }
-  if(!r.ok) throw new Error(`GitHub ${path} ${r.status}: ${json.message || text}`);
-  return json;
+  return { ok:r.ok, status:r.status, json, text };
 }
 
-function putFile(path, contentStr, message, sha){
-  const body = {
-    message,
-    content: Buffer.from(contentStr, "utf-8").toString("base64"),
-    branch: GH_BRANCH
-  };
+async function getContent(path){
+  const r = await gh(`/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}`);
+  if(r.status===404) return null;
+  if(!r.ok) throw new Error(`GET ${path} ${r.status}: ${r.json.message||r.text}`);
+  return { sha:r.json.sha, content: Buffer.from(r.json.content,"base64").toString("utf-8") };
+}
+
+async function putFile(path, contentStr, message, sha){
+  const body = { message, content: Buffer.from(contentStr,"utf-8").toString("base64"), branch: GH_BRANCH };
   if(sha) body.sha = sha;
-  return gh(`/repos/${GH_OWNER}/${GH_REPO}/contents/${encodeURIComponent(path).replace(/%2F/g,"/")}`, {
-    method: "PUT", body: JSON.stringify(body)
-  });
+  const r = await gh(`/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, { method:"PUT", body:JSON.stringify(body) });
+  if(!r.ok) throw new Error(`PUT ${path} ${r.status}: ${r.json.message||r.text}`);
+  return r.json;
+}
+
+async function deleteFile(path, message, sha){
+  const r = await gh(`/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, { method:"DELETE", body:JSON.stringify({message, sha, branch:GH_BRANCH}) });
+  if(!r.ok) throw new Error(`DELETE ${path} ${r.status}: ${r.json.message||r.text}`);
+  return r.json;
+}
+
+async function readPosts(){
+  const c = await getContent("blog/posts.json");
+  if(!c) return { posts:[], sha:null };
+  let posts; try{ posts = JSON.parse(c.content); }catch(e){ posts = []; }
+  if(!Array.isArray(posts)) posts = [];
+  return { posts, sha:c.sha };
+}
+
+async function writePostsAndIndex(posts, postsSha){
+  await putFile("blog/posts.json", JSON.stringify(posts,null,2), "data: posts.json 갱신", postsSha);
+  const idx = await getContent("blog/index.html");
+  if(idx){
+    const re = /<!--POSTS_START-->[\s\S]*?<!--POSTS_END-->/;
+    if(re.test(idx.content)){
+      const newIdx = idx.content.replace(re, "<!--POSTS_START-->"+renderCards(posts)+"<!--POSTS_END-->");
+      await putFile("blog/index.html", newIdx, "list: 목록 갱신", idx.sha);
+    }
+  }
 }
 
 exports.handler = async (event) => {
-  const headers = {"Content-Type":"application/json"};
+  const H = {"Content-Type":"application/json"};
   try{
-    if(event.httpMethod !== "POST") return {statusCode:405, headers, body:JSON.stringify({error:"POST only"})};
+    if(event.httpMethod !== "POST") return {statusCode:405, headers:H, body:JSON.stringify({error:"POST only"})};
     if(!process.env.GITHUB_TOKEN || !process.env.BLOG_PASSCODE)
-      return {statusCode:500, headers, body:JSON.stringify({error:"서버 환경변수(GITHUB_TOKEN/BLOG_PASSCODE)가 설정되지 않았습니다."})};
+      return {statusCode:500, headers:H, body:JSON.stringify({error:"서버 환경변수(GITHUB_TOKEN/BLOG_PASSCODE)가 설정되지 않았습니다."})};
 
     const f = JSON.parse(event.body||"{}");
     if(f.passcode !== process.env.BLOG_PASSCODE)
-      return {statusCode:401, headers, body:JSON.stringify({error:"패스코드가 올바르지 않습니다."})};
-    if(!f.title || !f.body)
-      return {statusCode:400, headers, body:JSON.stringify({error:"제목과 본문은 필수입니다."})};
+      return {statusCode:401, headers:H, body:JSON.stringify({error:"패스코드가 올바르지 않습니다."})};
 
-    // 날짜 기본값(KST)
-    const now = new Date(Date.now() + 9*3600*1000);
+    const action = f.action || "create";
+
+    if(action==="list"){
+      const { posts } = await readPosts();
+      return {statusCode:200, headers:H, body:JSON.stringify({ok:true, posts})};
+    }
+
+    if(action==="delete"){
+      if(!f.id) return {statusCode:400, headers:H, body:JSON.stringify({error:"id가 필요합니다."})};
+      const { posts, sha } = await readPosts();
+      const fileC = await getContent(`blog/${f.id}`);
+      if(fileC) await deleteFile(`blog/${f.id}`, `delete: ${f.id}`, fileC.sha);
+      const next = posts.filter(p=>p.id!==f.id);
+      await writePostsAndIndex(next, sha);
+      return {statusCode:200, headers:H, body:JSON.stringify({ok:true, deleted:f.id})};
+    }
+
+    // create / update 공통 필드 검증
+    if(!f.title || !f.body) return {statusCode:400, headers:H, body:JSON.stringify({error:"제목과 본문은 필수입니다."})};
+    const now = new Date(Date.now()+9*3600*1000);
     f.dateISO = f.dateISO || now.toISOString().slice(0,10);
     f.dateText = f.dateText || `${now.getUTCFullYear()}. ${now.getUTCMonth()+1}. ${now.getUTCDate()}.`;
     f.tag = f.tag || "분석";
 
-    // 파일명: 날짜 + 랜덤
+    const entry = { id:f.id, title:f.title, tag:f.tag, lede:f.lede||"", body:f.body, summary:f.summary||"", dateISO:f.dateISO, dateText:f.dateText };
+    const { posts, sha } = await readPosts();
+
+    if(action==="update"){
+      if(!f.id) return {statusCode:400, headers:H, body:JSON.stringify({error:"id가 필요합니다."})};
+      const existing = await getContent(`blog/${f.id}`);
+      await putFile(`blog/${f.id}`, buildPostHtml(entry), `update: ${f.title}`, existing?existing.sha:undefined);
+      const next = posts.map(p=> p.id===f.id ? entry : p);
+      if(!next.some(p=>p.id===f.id)) next.push(entry);
+      await writePostsAndIndex(next, sha);
+      return {statusCode:200, headers:H, body:JSON.stringify({ok:true, url:`${SITE_BASE}/blog/${f.id}`, id:f.id})};
+    }
+
+    // create
     const rand = Math.random().toString(36).slice(2,8);
-    f.filename = `${f.dateISO}-${rand}.html`;
-
-    // 1) 글 파일 생성
-    await putFile(`blog/${f.filename}`, buildPostHtml(f), `post: ${f.title}`);
-
-    // 2) 목록 페이지에 카드 삽입
-    const idx = await gh(`/repos/${GH_OWNER}/${GH_REPO}/contents/blog/index.html?ref=${GH_BRANCH}`);
-    const idxHtml = Buffer.from(idx.content, "base64").toString("utf-8");
-    const anchor = "<!--NEW_POST_ANCHOR-->";
-    if(!idxHtml.includes(anchor)) throw new Error("blog/index.html 에 삽입 지점(NEW_POST_ANCHOR)이 없습니다.");
-    const newIdx = idxHtml.replace(anchor, anchor + "\n    " + buildCard(f));
-    await putFile("blog/index.html", newIdx, `list: ${f.title}`, idx.sha);
-
-    return {statusCode:200, headers, body:JSON.stringify({ok:true, url:`${SITE_BASE}/blog/${f.filename}`, filename:f.filename})};
+    entry.id = `${f.dateISO}-${rand}.html`;
+    await putFile(`blog/${entry.id}`, buildPostHtml(entry), `post: ${f.title}`);
+    posts.unshift(entry);
+    await writePostsAndIndex(posts, sha);
+    return {statusCode:200, headers:H, body:JSON.stringify({ok:true, url:`${SITE_BASE}/blog/${entry.id}`, id:entry.id})};
   }catch(err){
-    return {statusCode:500, headers, body:JSON.stringify({error:String(err.message||err)})};
+    return {statusCode:500, headers:H, body:JSON.stringify({error:String(err.message||err)})};
   }
 };

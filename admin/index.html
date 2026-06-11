@@ -27,10 +27,21 @@
   .row{display:flex;gap:10px}.row>div{flex:1}
   .btn{width:100%;margin-top:18px;font-size:15px;font-weight:800;color:#fff;background:linear-gradient(135deg,#5b6cff,#a06bff);border:none;border-radius:12px;padding:13px;cursor:pointer;box-shadow:0 10px 24px -12px rgba(91,108,255,.85)}
   .btn:disabled{opacity:.55;cursor:default}
+  .linkbtn{background:none;border:none;color:var(--sub);font-size:12.5px;font-weight:700;cursor:pointer;text-decoration:underline;margin-top:10px}
   .msg{margin-top:12px;font-size:13px;font-weight:700;padding:10px 12px;border-radius:10px;display:none}
   .msg.ok{display:block;background:#e1f5ee;color:#0f6e56}
   .msg.err{display:block;background:#fceaea;color:#c0392b}
-  /* preview */
+  .imgbtn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--indigo);background:#eef0ff;border:none;border-radius:9px;padding:8px 13px;cursor:pointer}
+  .imgbtn:disabled{opacity:.55;cursor:default}
+  .editbadge{display:inline-block;font-size:11.5px;font-weight:700;color:#9a6b00;background:#fdf3da;padding:3px 10px;border-radius:99px;margin-left:8px}
+  .manage{margin-top:18px}
+  .mlist{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+  .mrow{display:flex;align-items:center;gap:10px;background:#fbfcfe;border:1px solid var(--line);border-radius:12px;padding:11px 14px}
+  .mrow .mt{flex:1;min-width:0}
+  .mrow .mt b{font-size:14px;font-weight:700;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mrow .mt span{font-size:12px;color:var(--sub)}
+  .mrow button{font-size:12.5px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer}
+  .mrow .edit{color:var(--indigo)} .mrow .del{color:#c0392b}
   .pv-tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:#eef0ff;color:var(--indigo)}
   .pv h1{font-size:23px;font-weight:800;line-height:1.35;margin:11px 0 6px}
   .pv .pv-meta{color:#aab2c5;font-size:12.5px;font-weight:600}
@@ -41,6 +52,9 @@
   .pv ul{margin:10px 0 10px 20px;color:#2b3550;font-size:14.5px}
   .pv .pv-summary{background:#f6f7ff;border:1px solid #e3e6ff;border-left:5px solid var(--indigo);border-radius:12px;padding:16px 18px;margin:18px 0;font-size:14px}
   .pv .pv-summary b{color:var(--indigo)}
+  .pv figure{margin:14px 0}
+  .pv img{max-width:100%;height:auto;display:block;border-radius:10px;border:1px solid var(--line)}
+  .pv figcaption{font-size:12px;color:var(--sub);text-align:center;margin-top:6px}
 </style>
 </head>
 <body>
@@ -53,11 +67,11 @@
 
   <div class="grid">
     <div class="panel">
-      <h2>새 분석 글</h2>
+      <h2 style="display:flex;align-items:center"><span id="formtitle">새 분석 글</span><span class="editbadge" id="editbadge">수정 중</span></h2>
 
       <label>패스코드</label>
       <input id="passcode" type="password" placeholder="발행용 비밀번호" autocomplete="off">
-      <div class="hint">Netlify에 설정한 BLOG_PASSCODE 값. 본인만 발행할 수 있게 보호합니다.</div>
+      <div class="hint">Netlify에 설정한 BLOG_PASSCODE 값. 입력하면 아래 '글 관리' 목록도 불러올 수 있습니다.</div>
 
       <div class="row">
         <div>
@@ -82,13 +96,17 @@
       <textarea id="lede" rows="2" placeholder="이 글에서 무엇을 다루는지 간단히."></textarea>
 
       <label>본문</label>
-      <textarea id="body" rows="14" placeholder="빈 줄로 문단을 나눕니다.&#10;&#10;## 이렇게 쓰면 소제목&#10;&#10;### 작은 소제목&#10;&#10;- 이렇게 시작하면&#10;- 목록이 됩니다"></textarea>
+      <textarea id="body" rows="14" placeholder="빈 줄로 문단을 나눕니다."></textarea>
       <div class="hint">빈 줄 = 문단 구분 · 줄 앞 "## " = 소제목 · "### " = 작은 소제목 · "- " = 목록</div>
+      <button type="button" class="imgbtn" id="imgbtn" style="margin-top:8px">🖼 이미지/그래프 넣기</button>
+      <input type="file" id="imgfile" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none">
+      <div class="hint">사진·그래프 이미지를 고르면 커서 위치에 자동 삽입됩니다(5MB 이하).</div>
 
       <label>한 줄 요약 (선택)</label>
       <input id="summary" placeholder="글의 결론을 한 문장으로. 비워도 됩니다.">
 
       <button class="btn" id="publish">발행하기</button>
+      <button class="linkbtn" id="canceledit" style="display:none">+ 수정 취소하고 새 글 작성</button>
       <div class="msg" id="msg"></div>
     </div>
 
@@ -97,6 +115,14 @@
       <div class="pv" id="preview"></div>
     </div>
   </div>
+
+  <div class="panel manage">
+    <div style="display:flex;align-items:center;gap:10px">
+      <h2 style="margin:0">발행된 글 관리</h2>
+      <button class="imgbtn" id="loadlist">목록 새로고침</button>
+    </div>
+    <div class="mlist" id="mlist"><div style="font-size:13px;color:#aab2c5">패스코드를 입력하고 '목록 새로고침'을 누르세요.</div></div>
+  </div>
 </div>
 
 <script>
@@ -104,6 +130,8 @@ function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").repl
 function bodyToHtml(text){
   const blocks=String(text||"").replace(/\r/g,"").split(/\n{2,}/);const out=[];
   for(const raw of blocks){const block=raw.trim();if(!block)continue;const lines=block.split("\n");
+    const im=block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if(im){const cap=esc(im[1].trim()),src=esc(im[2].trim());out.push('<figure><img src="'+src+'" alt="'+cap+'">'+(cap?'<figcaption>'+cap+'</figcaption>':'')+'</figure>');continue;}
     if(block.startsWith("## "))out.push("<h2>"+esc(block.slice(3).trim())+"</h2>");
     else if(block.startsWith("### "))out.push("<h3>"+esc(block.slice(4).trim())+"</h3>");
     else if(lines.every(l=>l.trim().startsWith("- ")))out.push("<ul>"+lines.map(l=>"<li>"+esc(l.trim().slice(2).trim())+"</li>").join("")+"</ul>");
@@ -111,7 +139,7 @@ function bodyToHtml(text){
   return out.join("\n");
 }
 const $=id=>document.getElementById(id);
-function fmtDate(iso){if(!iso)return"";const[y,m,d]=iso.split("-");return y+". "+(+m)+". "+(+d)+".";}
+function fmtDate(iso){if(!iso)return"";const p=iso.split("-");return p[0]+". "+(+p[1])+". "+(+p[2])+".";}
 function render(){
   const tag=$("tag").value,title=$("title").value||"제목을 입력하세요",lede=$("lede").value,body=$("body").value,summary=$("summary").value,date=fmtDate($("date").value);
   let h='<span class="pv-tag">'+esc(tag)+'</span><h1>'+esc(title)+'</h1><div class="pv-meta">'+esc(date)+' · 작성: 투자되지</div>';
@@ -120,31 +148,103 @@ function render(){
   if(summary)h+='<div class="pv-summary"><b>한 줄 요약</b><br>'+esc(summary)+'</div>';
   $("preview").innerHTML=h;
 }
-// 오늘 날짜 기본값(KST)
 const now=new Date(Date.now()+9*3600*1000);
 $("date").value=now.toISOString().slice(0,10);
 ["tag","title","lede","body","summary","date"].forEach(id=>$(id).addEventListener("input",render));
 render();
 
-$("publish").addEventListener("click",async()=>{
+let POSTS=[],editId=null;
+function setMode(){
+  $("formtitle").textContent=editId?"글 수정 중":"새 분석 글";
+  $("editbadge").style.display=editId?"inline-block":"none";
+  $("publish").textContent=editId?"수정 저장":"발행하기";
+  $("canceledit").style.display=editId?"inline-block":"none";
+}
+function clearForm(){$("title").value="";$("lede").value="";$("body").value="";$("summary").value="";render();}
+$("canceledit").addEventListener("click",function(){editId=null;clearForm();setMode();window.scrollTo(0,0);});
+
+async function api(payload){
+  const r=await fetch("/.netlify/functions/publish-post",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  const j=await r.json();if(!r.ok)throw new Error(j.error||("오류 "+r.status));return j;
+}
+function listInfo(t){$("mlist").innerHTML='<div style="font-size:13px;color:#aab2c5">'+t+'</div>';}
+function renderList(){
+  if(!POSTS.length){listInfo("발행된 글이 없습니다.");return;}
+  const sorted=POSTS.slice().sort((a,b)=>(b.dateISO||"").localeCompare(a.dateISO||""));
+  $("mlist").innerHTML=sorted.map(function(p){
+    return '<div class="mrow"><div class="mt"><b>'+esc(p.title)+'</b><span>'+esc(p.tag||"")+' · '+esc(p.dateText||"")+'</span></div>'+
+      '<button class="edit" data-id="'+esc(p.id)+'">수정</button>'+
+      '<button class="del" data-id="'+esc(p.id)+'">삭제</button></div>';
+  }).join("");
+  Array.prototype.forEach.call($("mlist").querySelectorAll(".edit"),function(b){
+    b.addEventListener("click",function(){
+      const p=POSTS.filter(function(x){return x.id===b.dataset.id;})[0];if(!p)return;
+      editId=p.id;$("tag").value=p.tag||"분석";$("date").value=p.dateISO||"";$("title").value=p.title||"";
+      $("lede").value=p.lede||"";$("body").value=p.body||"";$("summary").value=p.summary||"";
+      render();setMode();window.scrollTo(0,0);
+    });
+  });
+  Array.prototype.forEach.call($("mlist").querySelectorAll(".del"),function(b){
+    b.addEventListener("click",async function(){
+      const p=POSTS.filter(function(x){return x.id===b.dataset.id;})[0];if(!p)return;
+      if(!confirm('"'+p.title+'" 글을 삭제할까요? 되돌릴 수 없습니다.'))return;
+      b.disabled=true;
+      try{await api({action:"delete",passcode:$("passcode").value,id:p.id});
+        if(editId===p.id){editId=null;clearForm();setMode();}
+        await loadList();
+      }catch(e){alert("삭제 실패: "+e.message);b.disabled=false;}
+    });
+  });
+}
+async function loadList(){
+  const pc=$("passcode").value;if(!pc){listInfo("패스코드를 먼저 입력하세요.");return;}
+  const btn=$("loadlist");btn.disabled=true;btn.textContent="불러오는 중…";
+  try{const j=await api({action:"list",passcode:pc});POSTS=j.posts||[];renderList();}
+  catch(e){listInfo("목록 불러오기 실패: "+e.message);}
+  finally{btn.disabled=false;btn.textContent="목록 새로고침";}
+}
+$("loadlist").addEventListener("click",loadList);
+
+$("imgbtn").addEventListener("click",function(){
+  if(!$("passcode").value){const m=$("msg");m.className="msg err";m.textContent="이미지 업로드 전에 패스코드를 먼저 입력하세요.";return;}
+  $("imgfile").click();
+});
+$("imgfile").addEventListener("change",async function(e){
+  const file=e.target.files[0];if(!file)return;
+  const msg=$("msg"),btn=$("imgbtn");
+  if(file.size>5*1024*1024){msg.className="msg err";msg.textContent="이미지는 5MB 이하만 가능합니다.";e.target.value="";return;}
+  btn.disabled=true;btn.textContent="업로드 중…";msg.className="msg";msg.textContent="";
+  try{
+    const dataUrl=await new Promise(function(res,rej){const r=new FileReader();r.onload=function(){res(r.result);};r.onerror=rej;r.readAsDataURL(file);});
+    const j=await fetch("/.netlify/functions/upload-image",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({passcode:$("passcode").value,dataUrl:dataUrl})}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||("오류 "+r.status));return j;});});
+    const ta=$("body"),pos=(ta.selectionStart!=null?ta.selectionStart:ta.value.length);
+    const snippet="\n\n![캡션을 입력하세요]("+j.url+")\n\n";
+    ta.value=ta.value.slice(0,pos)+snippet+ta.value.slice(pos);
+    render();
+    msg.className="msg ok";msg.textContent="이미지 삽입됨! 본문에서 '캡션을 입력하세요'를 원하는 설명으로 바꾸세요.";
+  }catch(err){msg.className="msg err";msg.textContent="이미지 업로드 실패: "+err.message;}
+  finally{btn.disabled=false;btn.textContent="🖼 이미지/그래프 넣기";e.target.value="";}
+});
+
+$("publish").addEventListener("click",async function(){
   const msg=$("msg");msg.className="msg";msg.textContent="";
   const payload={
+    action:editId?"update":"create",id:editId||undefined,
     passcode:$("passcode").value,tag:$("tag").value,title:$("title").value.trim(),
     lede:$("lede").value.trim(),body:$("body").value,summary:$("summary").value.trim(),
     dateISO:$("date").value,dateText:fmtDate($("date").value)
   };
   if(!payload.passcode){msg.className="msg err";msg.textContent="패스코드를 입력하세요.";return;}
   if(!payload.title||!payload.body){msg.className="msg err";msg.textContent="제목과 본문은 필수입니다.";return;}
-  const btn=$("publish");btn.disabled=true;btn.textContent="발행 중…";
+  const btn=$("publish");btn.disabled=true;btn.textContent=editId?"저장 중…":"발행 중…";
   try{
-    const r=await fetch("/.netlify/functions/publish-post",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
-    const j=await r.json();
-    if(!r.ok)throw new Error(j.error||("오류 "+r.status));
-    msg.className="msg ok";msg.innerHTML='발행 완료! 1~2분 뒤 사이트에 반영됩니다. <a href="'+j.url+'" target="_blank">글 보기 ↗</a>';
-    $("title").value="";$("lede").value="";$("body").value="";$("summary").value="";render();
+    const j=await api(payload);
+    msg.className="msg ok";msg.innerHTML=(editId?"수정 저장 완료! ":"발행 완료! ")+'1~2분 뒤 사이트에 반영됩니다. <a href="'+j.url+'" target="_blank">글 보기 ↗</a>';
+    editId=null;clearForm();setMode();
+    loadList();
   }catch(e){
-    msg.className="msg err";msg.textContent="발행 실패: "+e.message;
-  }finally{btn.disabled=false;btn.textContent="발행하기";}
+    msg.className="msg err";msg.textContent=(editId?"저장 실패: ":"발행 실패: ")+e.message;
+  }finally{btn.disabled=false;setMode();}
 });
 </script>
 </body>
