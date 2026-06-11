@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분석 · 인사이트 | 세종 부동산 인사이트</title>
+<meta name="description" content="세종시 아파트 실거래·시세·급지 데이터를 직접 해석한 분석 글 모음. 매달 거래 동향과 급지별 시세 흐름을 정리합니다.">
+<link rel="canonical" href="https://subtle-truffle-16dbff.netlify.app/blog/">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="분석 · 인사이트 | 세종 부동산 인사이트">
+<meta property="og:description" content="세종시 아파트 실거래·시세·급지 데이터를 직접 해석한 분석 글 모음.">
+<meta property="og:url" content="https://subtle-truffle-16dbff.netlify.app/blog/">
+<style>
+  :root{
+    --bg:#f4f6fa; --card:#ffffff; --ink:#16203a; --sub:#727e98;
+    --indigo:#5b6cff; --violet:#a06bff; --line:#e4e8f0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px;position:relative}
+  a{color:inherit}
+  /* ---- nav : segmented pill ---- */
+  .topnav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:rgba(243,245,251,.82);backdrop-filter:blur(12px);padding:14px 2px 12px;margin-bottom:6px}
+  .topnav .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:var(--ink);text-decoration:none}
+  .topnav .brand i{color:#fff;background:linear-gradient(140deg,#5b6cff,#a06bff);width:34px;height:34px;border-radius:11px;
+    display:flex;align-items:center;justify-content:center;font-size:19px;font-style:normal}
+  .topnav .navlinks{display:flex;background:#e7eaf5;border-radius:99px;padding:4px;gap:3px}
+  .topnav .navlinks a{border-radius:99px;padding:8px 15px;font-size:13px;color:#727e98;font-weight:700;text-decoration:none}
+  .topnav .navlinks a:hover{color:#16203a}
+  .topnav .navlinks a.on{background:#fff;color:#5b6cff;box-shadow:0 8px 22px -12px rgba(40,55,110,.55)}
+  @media(max-width:760px){.topnav{flex-wrap:wrap}.topnav .navlinks{flex-wrap:wrap;justify-content:center}}
+  /* ---- blog hero ---- */
+  .bloghero{padding:30px 4px 14px}
+  .bloghero .badge{display:inline-block;background:#eef0ff;color:var(--indigo);font-size:13px;font-weight:700;padding:4px 12px;border-radius:99px;margin-bottom:12px}
+  .bloghero h1{font-size:30px;font-weight:800;letter-spacing:-.5px}
+  .bloghero p{color:var(--sub);margin-top:8px;font-size:15px;max-width:640px}
+  /* ---- ad slot ---- */
+  .ad-slot{margin:18px auto;max-width:970px;min-height:90px;display:flex;align-items:center;justify-content:center;
+    background:#fff;border:1.5px dashed #dde2ef;border-radius:20px;overflow:hidden}
+  .ad-slot .adlabel{font-size:11px;color:#aab2c5;font-weight:600;letter-spacing:.08em}
+  /* ---- post list ---- */
+  .postlist{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+  @media(max-width:760px){.postlist{grid-template-columns:1fr}}
+  .postcard{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:22px 24px;text-decoration:none;transition:transform .12s ease,box-shadow .12s ease}
+  .postcard:hover{transform:translateY(-2px);box-shadow:0 18px 40px -26px rgba(40,55,110,.5)}
+  .postcard .tag{align-self:flex-start;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:99px;background:#eef0ff;color:var(--indigo);margin-bottom:12px}
+  .postcard h2{font-size:18px;font-weight:800;letter-spacing:-.3px;line-height:1.4}
+  .postcard .excerpt{color:var(--sub);font-size:14px;margin-top:8px;flex:1}
+  .postcard .meta{color:#aab2c5;font-size:12.5px;font-weight:600;margin-top:16px}
+  .empty{background:#fff;border:1px dashed var(--line);border-radius:18px;padding:40px;text-align:center;color:var(--sub);font-size:14px}
+  footer{margin-top:46px;color:#aab2c5;font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="topnav">
+    <a class="brand" href="../index.html"><i>🏙</i> 세종 부동산 인사이트</a>
+    <div class="navlinks">
+      <a href="../index.html">대시보드</a>
+      <a href="./index.html" class="on">분석</a>
+    </div>
+  </nav>
+
+  <section class="bloghero">
+    <span class="badge">분석 · 인사이트</span>
+    <h1>데이터로 읽는 세종 부동산</h1>
+    <p>국토교통부 실거래가와 시세 데이터를 직접 해석해, 매달 거래 동향과 급지별 시세 흐름을 정리합니다. 표 너머의 맥락을 함께 봅니다.</p>
+  </section>
+
+  <div class="ad-slot"><span class="adlabel">광고 영역 · Google AdSense</span></div>
+
+  <!-- ===== 글 목록: /admin 에서 발행하면 아래 ANCHOR 바로 다음에 자동 삽입됨 ===== -->
+  <div class="postlist">
+    <!--NEW_POST_ANCHOR-->
+    <a class="postcard" href="./2026-06-sejong-trade-trend.html">
+      <span class="tag">거래 동향</span>
+      <h2>2026년 6월 세종 아파트 거래, 어디가 움직였나</h2>
+      <p class="excerpt">이번 달 신고된 실거래를 동·급지별로 모아 보니 거래의 무게중심이 한 곳으로 쏠리고 있었습니다. 숫자가 말하는 신호를 정리했습니다.</p>
+      <span class="meta">2026. 6. 12. · 거래 동향</span>
+    </a>
+
+    <!-- 두 번째 글부터는 위 <a class="postcard">…</a> 블록을 복제해 내용만 교체하세요 -->
+
+  </div>
+  <!-- ===== /글 목록 ===== -->
+
+  <footer>작성: 투자되지 · 데이터 출처: 국토교통부 실거래가 공개시스템</footer>
+
+</div>
+</body>
+</html>

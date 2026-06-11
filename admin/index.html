@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>글쓰기 · 세종 부동산 인사이트</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{--bg:#f4f6fa;--card:#fff;--ink:#16203a;--sub:#727e98;--indigo:#5b6cff;--violet:#a06bff;--line:#e4e8f0}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px 60px}
+  .topbar{display:flex;align-items:center;gap:10px;padding:16px 2px;margin-bottom:10px}
+  .topbar .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px}
+  .topbar .brand i{color:#fff;background:linear-gradient(140deg,#5b6cff,#a06bff);width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;font-style:normal}
+  .topbar .pill{font-size:12px;font-weight:700;color:#5b6cff;background:#eef0ff;padding:4px 11px;border-radius:99px}
+  .topbar a{margin-left:auto;font-size:13px;font-weight:700;color:var(--sub);text-decoration:none}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 24px}
+  .panel h2{font-size:15px;font-weight:800;margin-bottom:14px;color:var(--ink)}
+  label{display:block;font-size:12.5px;font-weight:700;color:var(--sub);margin:14px 0 5px}
+  input,select,textarea{width:100%;font-family:inherit;font-size:14px;color:var(--ink);background:#fbfcfe;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  textarea{resize:vertical;line-height:1.7}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--indigo);background:#fff}
+  .hint{font-size:11.5px;color:#aab2c5;margin-top:5px}
+  .row{display:flex;gap:10px}.row>div{flex:1}
+  .btn{width:100%;margin-top:18px;font-size:15px;font-weight:800;color:#fff;background:linear-gradient(135deg,#5b6cff,#a06bff);border:none;border-radius:12px;padding:13px;cursor:pointer;box-shadow:0 10px 24px -12px rgba(91,108,255,.85)}
+  .btn:disabled{opacity:.55;cursor:default}
+  .msg{margin-top:12px;font-size:13px;font-weight:700;padding:10px 12px;border-radius:10px;display:none}
+  .msg.ok{display:block;background:#e1f5ee;color:#0f6e56}
+  .msg.err{display:block;background:#fceaea;color:#c0392b}
+  /* preview */
+  .pv-tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:#eef0ff;color:var(--indigo)}
+  .pv h1{font-size:23px;font-weight:800;line-height:1.35;margin:11px 0 6px}
+  .pv .pv-meta{color:#aab2c5;font-size:12.5px;font-weight:600}
+  .pv .pv-lede{font-size:15px;color:#46506a;margin:14px 0 18px;line-height:1.7}
+  .pv h2{font-size:18px;font-weight:800;margin:22px 0 9px;padding-left:11px;border-left:5px solid var(--indigo)}
+  .pv h3{font-size:15px;font-weight:700;margin:16px 0 6px}
+  .pv p{font-size:14.5px;color:#2b3550;margin:10px 0}
+  .pv ul{margin:10px 0 10px 20px;color:#2b3550;font-size:14.5px}
+  .pv .pv-summary{background:#f6f7ff;border:1px solid #e3e6ff;border-left:5px solid var(--indigo);border-radius:12px;padding:16px 18px;margin:18px 0;font-size:14px}
+  .pv .pv-summary b{color:var(--indigo)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span class="brand"><i>🏙</i> 세종 부동산 인사이트</span>
+    <span class="pill">글쓰기</span>
+    <a href="../blog/index.html">← 블로그 목록</a>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>새 분석 글</h2>
+
+      <label>패스코드</label>
+      <input id="passcode" type="password" placeholder="발행용 비밀번호" autocomplete="off">
+      <div class="hint">Netlify에 설정한 BLOG_PASSCODE 값. 본인만 발행할 수 있게 보호합니다.</div>
+
+      <div class="row">
+        <div>
+          <label>카테고리(태그)</label>
+          <select id="tag">
+            <option>거래 동향</option>
+            <option>시세 흐름</option>
+            <option>정책·공급</option>
+            <option>분석</option>
+          </select>
+        </div>
+        <div>
+          <label>날짜</label>
+          <input id="date" type="date">
+        </div>
+      </div>
+
+      <label>제목</label>
+      <input id="title" placeholder="예: 2026년 6월 세종 아파트 거래, 어디가 움직였나">
+
+      <label>도입부 (한두 문장, 검색결과·목록 요약에 사용)</label>
+      <textarea id="lede" rows="2" placeholder="이 글에서 무엇을 다루는지 간단히."></textarea>
+
+      <label>본문</label>
+      <textarea id="body" rows="14" placeholder="빈 줄로 문단을 나눕니다.&#10;&#10;## 이렇게 쓰면 소제목&#10;&#10;### 작은 소제목&#10;&#10;- 이렇게 시작하면&#10;- 목록이 됩니다"></textarea>
+      <div class="hint">빈 줄 = 문단 구분 · 줄 앞 "## " = 소제목 · "### " = 작은 소제목 · "- " = 목록</div>
+
+      <label>한 줄 요약 (선택)</label>
+      <input id="summary" placeholder="글의 결론을 한 문장으로. 비워도 됩니다.">
+
+      <button class="btn" id="publish">발행하기</button>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="panel">
+      <h2>미리보기</h2>
+      <div class="pv" id="preview"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function bodyToHtml(text){
+  const blocks=String(text||"").replace(/\r/g,"").split(/\n{2,}/);const out=[];
+  for(const raw of blocks){const block=raw.trim();if(!block)continue;const lines=block.split("\n");
+    if(block.startsWith("## "))out.push("<h2>"+esc(block.slice(3).trim())+"</h2>");
+    else if(block.startsWith("### "))out.push("<h3>"+esc(block.slice(4).trim())+"</h3>");
+    else if(lines.every(l=>l.trim().startsWith("- ")))out.push("<ul>"+lines.map(l=>"<li>"+esc(l.trim().slice(2).trim())+"</li>").join("")+"</ul>");
+    else out.push("<p>"+lines.map(l=>esc(l.trim())).join("<br>")+"</p>");}
+  return out.join("\n");
+}
+const $=id=>document.getElementById(id);
+function fmtDate(iso){if(!iso)return"";const[y,m,d]=iso.split("-");return y+". "+(+m)+". "+(+d)+".";}
+function render(){
+  const tag=$("tag").value,title=$("title").value||"제목을 입력하세요",lede=$("lede").value,body=$("body").value,summary=$("summary").value,date=fmtDate($("date").value);
+  let h='<span class="pv-tag">'+esc(tag)+'</span><h1>'+esc(title)+'</h1><div class="pv-meta">'+esc(date)+' · 작성: 투자되지</div>';
+  if(lede)h+='<div class="pv-lede">'+esc(lede)+'</div>';
+  h+=bodyToHtml(body);
+  if(summary)h+='<div class="pv-summary"><b>한 줄 요약</b><br>'+esc(summary)+'</div>';
+  $("preview").innerHTML=h;
+}
+// 오늘 날짜 기본값(KST)
+const now=new Date(Date.now()+9*3600*1000);
+$("date").value=now.toISOString().slice(0,10);
+["tag","title","lede","body","summary","date"].forEach(id=>$(id).addEventListener("input",render));
+render();
+
+$("publish").addEventListener("click",async()=>{
+  const msg=$("msg");msg.className="msg";msg.textContent="";
+  const payload={
+    passcode:$("passcode").value,tag:$("tag").value,title:$("title").value.trim(),
+    lede:$("lede").value.trim(),body:$("body").value,summary:$("summary").value.trim(),
+    dateISO:$("date").value,dateText:fmtDate($("date").value)
+  };
+  if(!payload.passcode){msg.className="msg err";msg.textContent="패스코드를 입력하세요.";return;}
+  if(!payload.title||!payload.body){msg.className="msg err";msg.textContent="제목과 본문은 필수입니다.";return;}
+  const btn=$("publish");btn.disabled=true;btn.textContent="발행 중…";
+  try{
+    const r=await fetch("/.netlify/functions/publish-post",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    const j=await r.json();
+    if(!r.ok)throw new Error(j.error||("오류 "+r.status));
+    msg.className="msg ok";msg.innerHTML='발행 완료! 1~2분 뒤 사이트에 반영됩니다. <a href="'+j.url+'" target="_blank">글 보기 ↗</a>';
+    $("title").value="";$("lede").value="";$("body").value="";$("summary").value="";render();
+  }catch(e){
+    msg.className="msg err";msg.textContent="발행 실패: "+e.message;
+  }finally{btn.disabled=false;btn.textContent="발행하기";}
+});
+</script>
+</body>
+</html>

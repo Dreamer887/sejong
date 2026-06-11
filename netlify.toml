@@ -1,0 +1,10 @@
+# Netlify 설정 — 정적 사이트 + 서버 함수
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# /admin 직접 접근 시 글쓰기 페이지로
+[[redirects]]
+  from = "/admin"
+  to = "/admin/index.html"
+  status = 200

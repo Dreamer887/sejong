@@ -156,6 +156,25 @@ body{background:#f3f5fb;
   border:none;border-radius:99px;padding:10px 18px;cursor:pointer;white-space:nowrap;
   box-shadow:0 8px 20px -10px rgba(91,108,255,.85)}
 .topnav .navcta:hover{filter:brightness(1.05)}
+.topnav .navlinks a.navblog{color:#fff;background:linear-gradient(135deg,#5b6cff,#a06bff);box-shadow:0 8px 20px -10px rgba(91,108,255,.85)}
+.topnav .navlinks a.navblog:hover{filter:brightness(1.05);color:#fff}
+.blogteaser{margin-top:34px;padding-top:20px;border-top:2px solid var(--line)}
+.bt-head{display:flex;align-items:center;gap:9px;margin-bottom:14px;flex-wrap:wrap}
+.bt-ic{color:#fff;background:linear-gradient(140deg,#5b6cff,#a06bff);width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.bt-head h2{font-size:19px;font-weight:800;letter-spacing:-.3px;margin:0}
+.bt-chip{font-size:11.5px;font-weight:700;color:#5b6cff;background:#eef0ff;padding:3px 10px;border-radius:99px}
+.bt-all{margin-left:auto;font-size:12.5px;font-weight:700;color:var(--sub);text-decoration:none;display:flex;align-items:center;gap:4px}
+.bt-all:hover{color:#5b6cff}
+.bt-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+@media(max-width:680px){.bt-grid{grid-template-columns:1fr}}
+.bt-card{display:block;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;text-decoration:none;transition:transform .12s,box-shadow .12s}
+.bt-card:hover{transform:translateY(-2px);box-shadow:0 18px 40px -26px rgba(40,55,110,.5)}
+.bt-tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px}
+.bt-tag.t-trade{color:#5b6cff;background:#eef0ff}
+.bt-tag.t-price{color:#0f6e56;background:#e1f5ee}
+.bt-card h3{font-size:15.5px;font-weight:800;color:var(--ink);line-height:1.42;margin:10px 0 0}
+.bt-card p{font-size:12.5px;color:var(--sub);line-height:1.6;margin:7px 0 0}
+.bt-date{font-size:11.5px;color:#aab2c5;font-weight:600;margin-top:13px}
 /* ---- ad slot ---- */
 .ad-slot{border:1.5px dashed #dde2ef;border-radius:20px;background:#fff}
 .ad-slot .adlabel{color:#aab2c5;font-weight:600}
@@ -250,7 +269,7 @@ footer{color:#aab2c5}
 
 <nav class="topnav">
   <div class="brand"><i class="ti ti-building-skyscraper"></i> 세종 부동산 인사이트</div>
-  <div class="navlinks"><a data-tab="trade" class="on">오늘의 실거래</a><a data-tab="trend">동·단지별 매매가 추이</a><a data-tab="market">시장지표</a><a data-tab="position">위상·급지</a></div>
+  <div class="navlinks"><a data-tab="trade" class="on">오늘의 실거래</a><a data-tab="trend">동·단지별 매매가 추이</a><a data-tab="market">시장지표</a><a data-tab="position">위상·급지</a><a class="navblog" href="./blog/">분석 ✦</a></div>
   <button class="navcta">관심단지 ＋</button>
 </nav>
 
@@ -286,6 +305,29 @@ footer{color:#aab2c5}
     <div class="tbl-wrap" id="volTable" style="max-height:420px">불러오는 중…</div>
   </div>
 </section>
+
+<div class="blogteaser">
+  <div class="bt-head">
+    <span class="bt-ic"><i class="ti ti-pencil"></i></span>
+    <h2>최신 분석</h2>
+    <span class="bt-chip">직접 쓴 인사이트</span>
+    <a class="bt-all" href="./blog/">전체 보기 <i class="ti ti-arrow-right"></i></a>
+  </div>
+  <div class="bt-grid">
+    <a class="bt-card" href="./blog/2026-06-sejong-trade-trend.html">
+      <span class="bt-tag t-trade">거래 동향</span>
+      <h3>2026년 6월 세종 아파트 거래, 어디가 움직였나</h3>
+      <p>이번 달 신고된 실거래를 동·급지별로 모아 보니 무게중심이 한 곳으로 쏠렸습니다.</p>
+      <div class="bt-date">2026. 6. 12.</div>
+    </a>
+    <a class="bt-card" href="./blog/">
+      <span class="bt-tag t-price">시세 흐름</span>
+      <h3>급지별 ㎡당 시세, 6개월 격차는 더 벌어졌다</h3>
+      <p>상위 급지와 하위 급지의 단가 차이를 24개월 추이로 따라가 봤습니다.</p>
+      <div class="bt-date">2026. 6. 8.</div>
+    </a>
+  </div>
+</div>
 </div>
 <div class="tabpage" id="page-trend">
 <div class="pagehead"><h2>동·단지별 매매가 추이</h2><span class="gh-badge gh-month">실거래 기반</span></div>
@@ -837,14 +879,14 @@ function render(DATA){
 /* ===== 메뉴 탭 전환 ===== */
 function showTab(name){
   document.querySelectorAll('.tabpage').forEach(p=>p.classList.toggle('active', p.id==='page-'+name));
-  document.querySelectorAll('.topnav .navlinks a').forEach(a=>a.classList.toggle('on', a.dataset.tab===name));
+  document.querySelectorAll('.topnav .navlinks a[data-tab]').forEach(a=>a.classList.toggle('on', a.dataset.tab===name));
   window.scrollTo(0,0);
   setTimeout(()=>{
     window.dispatchEvent(new Event('resize'));
     try{ Object.keys(charts).forEach(k=>{ if(charts[k]) charts[k].resize(); }); }catch(e){}
   }, 70);
 }
-document.querySelectorAll('.topnav .navlinks a').forEach(a=>{
+document.querySelectorAll('.topnav .navlinks a[data-tab]').forEach(a=>{
   a.addEventListener('click', e=>{ e.preventDefault(); showTab(a.dataset.tab); });
 });
 
