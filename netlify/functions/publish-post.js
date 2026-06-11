@@ -12,31 +12,40 @@ function esc(s){
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
+function inline(t){
+  return t
+    .replace(/\+\+(.+?)\+\+/g,'<span class="big">$1</span>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/__(.+?)__/g,'<u>$1</u>');
+}
+function richLines(text){
+  return String(text||"").replace(/\r/g,"").split("\n").filter(function(l){return l.trim()!=="";}).map(function(l){return "<p>"+inline(esc(l.trim()))+"</p>";}).join("");
+}
 function bodyToHtml(text){
-  const blocks = String(text||"").replace(/\r/g,"").split(/\n{2,}/);
-  const out = [];
-  for(const raw of blocks){
-    const block = raw.trim();
-    if(!block) continue;
-    const lines = block.split("\n");
-    const img = block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
-    if(img){
-      const cap = esc(img[1].trim()), src = esc(img[2].trim());
-      out.push(`<figure class="a-fig"><img src="${src}" alt="${cap}">${cap?`<figcaption>${cap}</figcaption>`:""}</figure>`);
-      continue;
-    }
-    if(block.startsWith("## ")){ out.push(`<h2>${esc(block.slice(3).trim())}</h2>`); }
-    else if(block.startsWith("### ")){ out.push(`<h3>${esc(block.slice(4).trim())}</h3>`); }
-    else if(lines.every(l=>l.trim().startsWith("- "))){ out.push("<ul>"+lines.map(l=>`<li>${esc(l.trim().slice(2).trim())}</li>`).join("")+"</ul>"); }
-    else { out.push(`<p>${lines.map(l=>esc(l.trim())).join("<br>")}</p>`); }
+  const lines = String(text||"").replace(/\r/g,"").split("\n");
+  const out = []; let buf = [];
+  function flush(){ if(buf.length){ out.push("<ul>"+buf.map(function(x){return "<li>"+inline(esc(x))+"</li>";}).join("")+"</ul>"); buf=[]; } }
+  for(const raw of lines){
+    const line = raw.trim();
+    if(line.startsWith("- ")){ buf.push(line.slice(2).trim()); continue; }
+    flush();
+    if(line==="") continue;
+    if(line==="---"||line==="***"){ out.push('<hr class="a-hr">'); continue; }
+    const im = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if(im){ const cap=im[1].trim(); out.push('<figure class="a-fig"><img src="'+esc(im[2].trim())+'" alt="'+esc(cap)+'">'+(cap?'<figcaption>'+inline(esc(cap))+'</figcaption>':'')+'</figure>'); continue; }
+    if(line.startsWith("## ")){ out.push("<h2>"+inline(esc(line.slice(3).trim()))+"</h2>"); continue; }
+    if(line.startsWith("### ")){ out.push("<h3>"+inline(esc(line.slice(4).trim()))+"</h3>"); continue; }
+    if(line.startsWith("# ")){ out.push('<p class="big">'+inline(esc(line.slice(2).trim()))+'</p>'); continue; }
+    out.push("<p>"+inline(esc(line))+"</p>");
   }
-  return out.join("\n    ");
+  flush();
+  return out.join("\n");
 }
 
 function buildPostHtml(f){
   const url = `${SITE_BASE}/blog/${f.id}`;
-  const lede = f.lede ? `<p class="a-lede">${esc(f.lede)}</p>` : "";
-  const summary = f.summary ? `<div class="a-summary"><b>한 줄 요약</b><br>${esc(f.summary)}</div>` : "";
+  const lede = f.lede ? '<div class="a-lede">'+richLines(f.lede)+'</div>' : "";
+  const summary = f.summary ? '<div class="a-summary"><b>요약</b>'+richLines(f.summary)+'</div>' : "";
   return `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -71,18 +80,24 @@ function buildPostHtml(f){
   .a-tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 11px;border-radius:99px;background:#eef0ff;color:var(--indigo)}
   article h1{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1.35;margin:14px 0 10px}
   .a-meta{color:#aab2c5;font-size:13px;font-weight:600;margin-bottom:8px}
-  .a-lede{font-size:16px;color:#46506a;margin:18px 0 26px;line-height:1.75}
+  .a-lede{margin:18px 0 26px}
+  .a-lede p{font-size:16px;color:#46506a;line-height:1.75;margin:0 0 10px}
+  .a-lede p:last-child{margin-bottom:0}
   article h2{font-size:20px;font-weight:800;letter-spacing:-.3px;margin:34px 0 12px;padding-left:12px;border-left:5px solid var(--indigo)}
   article h3{font-size:16px;font-weight:700;margin:22px 0 8px}
   article p{font-size:15.5px;color:#2b3550;margin:12px 0}
   article ul{margin:12px 0 12px 22px;color:#2b3550;font-size:15.5px}
   article li{margin:6px 0}
+  article strong{font-weight:800}
+  .big{font-size:1.2em}
+  hr.a-hr{border:none;border-top:1px solid var(--line);margin:26px 0}
   article img{max-width:100%;height:auto;display:block;border-radius:12px}
-  .a-fig{margin:22px 0}
-  .a-fig img{border:1px solid var(--line)}
+  .a-fig{margin:22px 0;text-align:center}
+  .a-fig img{border:1px solid var(--line);margin:0 auto}
   .a-fig figcaption{font-size:12.5px;color:var(--sub);margin-top:8px;text-align:center}
   .a-summary{background:#f6f7ff;border:1px solid #e3e6ff;border-left:5px solid var(--indigo);border-radius:14px;padding:20px 22px;margin:28px 0}
   .a-summary b{color:var(--indigo)}
+  .a-summary p{font-size:15.5px;color:#2b3550;margin:8px 0 0}
   .a-source{margin-top:30px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--sub)}
   footer{margin-top:40px;color:#aab2c5;font-size:13px;text-align:center}
 </style>

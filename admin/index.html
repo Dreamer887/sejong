@@ -33,6 +33,9 @@
   .msg.err{display:block;background:#fceaea;color:#c0392b}
   .imgbtn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--indigo);background:#eef0ff;border:none;border-radius:9px;padding:8px 13px;cursor:pointer}
   .imgbtn:disabled{opacity:.55;cursor:default}
+  .rtbar{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+  .rtbar button{font-size:12.5px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:6px 11px;cursor:pointer}
+  .rtbar button:hover{background:#f3f4ff;border-color:var(--indigo)}
   .editbadge{display:inline-block;font-size:11.5px;font-weight:700;color:#9a6b00;background:#fdf3da;padding:3px 10px;border-radius:99px;margin-left:8px}
   .manage{margin-top:18px}
   .mlist{display:flex;flex-direction:column;gap:8px;margin-top:6px}
@@ -53,8 +56,14 @@
   .pv .pv-summary{background:#f6f7ff;border:1px solid #e3e6ff;border-left:5px solid var(--indigo);border-radius:12px;padding:16px 18px;margin:18px 0;font-size:14px}
   .pv .pv-summary b{color:var(--indigo)}
   .pv figure{margin:14px 0}
-  .pv img{max-width:100%;height:auto;display:block;border-radius:10px;border:1px solid var(--line)}
+  .pv img{max-width:100%;height:auto;display:block;border-radius:10px;border:1px solid var(--line);margin:0 auto}
   .pv figcaption{font-size:12px;color:var(--sub);text-align:center;margin-top:6px}
+  .pv .big{font-size:1.2em}
+  .pv strong{font-weight:800}
+  .pv figure{text-align:center}
+  .pv hr.a-hr{border:none;border-top:1px solid var(--line);margin:18px 0}
+  .pv-lede p{margin:0 0 8px} .pv-lede p:last-child{margin-bottom:0}
+  .pv-summary p{margin:6px 0 0}
 </style>
 </head>
 <body>
@@ -97,13 +106,19 @@
 
       <label>본문</label>
       <textarea id="body" rows="14" placeholder="빈 줄로 문단을 나눕니다."></textarea>
-      <div class="hint">빈 줄 = 문단 구분 · 줄 앞 "## " = 소제목 · "### " = 작은 소제목 · "- " = 목록</div>
+      <div class="rtbar">
+        <button type="button" data-wrap="**" title="굵게"><b>굵게</b></button>
+        <button type="button" data-wrap="__" title="밑줄"><u>밑줄</u></button>
+        <button type="button" data-wrap="++" title="크게">큰글씨</button>
+        <button type="button" id="hrbtn" title="구분선">— 구분선</button>
+      </div>
+      <div class="hint">한 줄 = 한 문단(엔터로 간격) · "## " 소제목 · "### " 작은제목 · "- " 목록 · "---" 구분선 · 글자 선택 후 위 버튼으로 굵게·밑줄·크게</div>
       <button type="button" class="imgbtn" id="imgbtn" style="margin-top:8px">🖼 이미지/그래프 넣기</button>
       <input type="file" id="imgfile" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none">
       <div class="hint">사진·그래프 이미지를 고르면 커서 위치에 자동 삽입됩니다(5MB 이하).</div>
 
-      <label>한 줄 요약 (선택)</label>
-      <input id="summary" placeholder="글의 결론을 한 문장으로. 비워도 됩니다.">
+      <label>요약 (선택)</label>
+      <textarea id="summary" rows="3" placeholder="글의 결론. 여러 줄 가능."></textarea>
 
       <button class="btn" id="publish">발행하기</button>
       <button class="linkbtn" id="canceledit" style="display:none">+ 수정 취소하고 새 글 작성</button>
@@ -127,25 +142,32 @@
 
 <script>
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function inline(t){return t.replace(/\+\+(.+?)\+\+/g,'<span class="big">$1</span>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/__(.+?)__/g,'<u>$1</u>');}
+function richLines(text){return String(text||"").replace(/\r/g,"").split("\n").filter(function(l){return l.trim()!=="";}).map(function(l){return "<p>"+inline(esc(l.trim()))+"</p>";}).join("");}
 function bodyToHtml(text){
-  const blocks=String(text||"").replace(/\r/g,"").split(/\n{2,}/);const out=[];
-  for(const raw of blocks){const block=raw.trim();if(!block)continue;const lines=block.split("\n");
-    const im=block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
-    if(im){const cap=esc(im[1].trim()),src=esc(im[2].trim());out.push('<figure><img src="'+src+'" alt="'+cap+'">'+(cap?'<figcaption>'+cap+'</figcaption>':'')+'</figure>');continue;}
-    if(block.startsWith("## "))out.push("<h2>"+esc(block.slice(3).trim())+"</h2>");
-    else if(block.startsWith("### "))out.push("<h3>"+esc(block.slice(4).trim())+"</h3>");
-    else if(lines.every(l=>l.trim().startsWith("- ")))out.push("<ul>"+lines.map(l=>"<li>"+esc(l.trim().slice(2).trim())+"</li>").join("")+"</ul>");
-    else out.push("<p>"+lines.map(l=>esc(l.trim())).join("<br>")+"</p>");}
-  return out.join("\n");
+  const lines=String(text||"").replace(/\r/g,"").split("\n");const out=[];let buf=[];
+  function flush(){if(buf.length){out.push("<ul>"+buf.map(function(x){return "<li>"+inline(esc(x))+"</li>";}).join("")+"</ul>");buf=[];}}
+  for(const raw of lines){const line=raw.trim();
+    if(line.startsWith("- ")){buf.push(line.slice(2).trim());continue;}
+    flush();
+    if(line==="")continue;
+    if(line==="---"||line==="***"){out.push('<hr class="a-hr">');continue;}
+    const im=line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if(im){const cap=im[1].trim();out.push('<figure class="a-fig"><img src="'+esc(im[2].trim())+'" alt="'+esc(cap)+'">'+(cap?'<figcaption>'+inline(esc(cap))+'</figcaption>':'')+'</figure>');continue;}
+    if(line.startsWith("## ")){out.push("<h2>"+inline(esc(line.slice(3).trim()))+"</h2>");continue;}
+    if(line.startsWith("### ")){out.push("<h3>"+inline(esc(line.slice(4).trim()))+"</h3>");continue;}
+    if(line.startsWith("# ")){out.push('<p class="big">'+inline(esc(line.slice(2).trim()))+'</p>');continue;}
+    out.push("<p>"+inline(esc(line))+"</p>");}
+  flush();return out.join("\n");
 }
 const $=id=>document.getElementById(id);
 function fmtDate(iso){if(!iso)return"";const p=iso.split("-");return p[0]+". "+(+p[1])+". "+(+p[2])+".";}
 function render(){
   const tag=$("tag").value,title=$("title").value||"제목을 입력하세요",lede=$("lede").value,body=$("body").value,summary=$("summary").value,date=fmtDate($("date").value);
   let h='<span class="pv-tag">'+esc(tag)+'</span><h1>'+esc(title)+'</h1><div class="pv-meta">'+esc(date)+' · 작성: 투자되지</div>';
-  if(lede)h+='<div class="pv-lede">'+esc(lede)+'</div>';
+  if(lede)h+='<div class="pv-lede">'+richLines(lede)+'</div>';
   h+=bodyToHtml(body);
-  if(summary)h+='<div class="pv-summary"><b>한 줄 요약</b><br>'+esc(summary)+'</div>';
+  if(summary)h+='<div class="pv-summary"><b>요약</b>'+richLines(summary)+'</div>';
   $("preview").innerHTML=h;
 }
 const now=new Date(Date.now()+9*3600*1000);
@@ -205,6 +227,17 @@ async function loadList(){
 }
 $("loadlist").addEventListener("click",loadList);
 
+function wrapSel(mark){
+  const ta=$("body"),s=ta.selectionStart,e=ta.selectionEnd,v=ta.value;
+  const sel=v.slice(s,e)||"텍스트";
+  ta.value=v.slice(0,s)+mark+sel+mark+v.slice(e);
+  ta.focus();ta.selectionStart=s+mark.length;ta.selectionEnd=s+mark.length+sel.length;render();
+}
+Array.prototype.forEach.call(document.querySelectorAll(".rtbar [data-wrap]"),function(b){b.addEventListener("click",function(){wrapSel(b.dataset.wrap);});});
+$("hrbtn").addEventListener("click",function(){
+  const ta=$("body"),s=ta.selectionStart,v=ta.value,t="\n---\n";
+  ta.value=v.slice(0,s)+t+v.slice(s);ta.focus();ta.selectionStart=ta.selectionEnd=s+t.length;render();
+});
 $("imgbtn").addEventListener("click",function(){
   if(!$("passcode").value){const m=$("msg");m.className="msg err";m.textContent="이미지 업로드 전에 패스코드를 먼저 입력하세요.";return;}
   $("imgfile").click();
