@@ -142,7 +142,7 @@ function buildPostHtml(f, BASE){
   </article>
   <div class="ad-slot"><span class="adlabel">광고 영역 · Google AdSense</span></div>
   <a class="backlink" href="./index.html">← 분석 목록으로</a>
-  <footer>작성: 투자되지 · 데이터 출처: 국토교통부 실거래가</footer>
+  <footer>작성: 투자되지 · 데이터 출처: 국토교통부 실거래가 공개시스템(rt.molit.go.kr)<br><a href="../privacy.html" style="color:#aab2c5;text-decoration:none;font-weight:600">개인정보처리방침</a> · <a href="../terms.html" style="color:#aab2c5;text-decoration:none;font-weight:600">이용약관</a></footer>
 </div>
 </body>
 </html>
