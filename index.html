@@ -432,7 +432,7 @@ function renderHeroHighlights(nDong, nRural, highs, rise, period){
 async function loadReports(){
   // (1) 오늘 신고내역 (법정동 그룹 구분)
   try{
-    const {labels, rows} = await gvizTable('(매일 자동) 오늘 신고내역');
+    const {labels, rows} = await gvizTable('오늘 신고내역');
     const title = labels[0] || '';
     const hi = rows.findIndex(r => String(r[0]).trim() === '법정동');
     const isRural = s => RURAL_RE.test(String(s));
