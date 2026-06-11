@@ -186,7 +186,7 @@ function clearForm(){$("title").value="";$("lede").value="";$("body").value="";$
 $("canceledit").addEventListener("click",function(){editId=null;clearForm();setMode();window.scrollTo(0,0);});
 
 async function api(payload){
-  const r=await fetch("/.netlify/functions/publish-post",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  const r=await fetch("/api/publish-post",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
   const j=await r.json();if(!r.ok)throw new Error(j.error||("오류 "+r.status));return j;
 }
 function listInfo(t){$("mlist").innerHTML='<div style="font-size:13px;color:#aab2c5">'+t+'</div>';}
@@ -249,7 +249,7 @@ $("imgfile").addEventListener("change",async function(e){
   btn.disabled=true;btn.textContent="업로드 중…";msg.className="msg";msg.textContent="";
   try{
     const dataUrl=await new Promise(function(res,rej){const r=new FileReader();r.onload=function(){res(r.result);};r.onerror=rej;r.readAsDataURL(file);});
-    const j=await fetch("/.netlify/functions/upload-image",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({passcode:$("passcode").value,dataUrl:dataUrl})}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||("오류 "+r.status));return j;});});
+    const j=await fetch("/api/upload-image",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({passcode:$("passcode").value,dataUrl:dataUrl})}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||("오류 "+r.status));return j;});});
     const ta=$("body"),pos=(ta.selectionStart!=null?ta.selectionStart:ta.value.length);
     const snippet="\n\n![캡션을 입력하세요]("+j.url+")\n\n";
     ta.value=ta.value.slice(0,pos)+snippet+ta.value.slice(pos);
