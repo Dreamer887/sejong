@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>세종 부동산 인사이트</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#f4f6fa; --card:#ffffff; --ink:#1a2233; --sub:#6b7689;
+    --blue:#2563eb; --red:#e0484f; --teal:#0ea5a4; --amber:#d97706;
+    --line:#e4e8f0; --up:#e0484f; --down:#2563eb;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 60px;position:relative}
+  header{padding:34px 0 10px}
+  header .badge{display:inline-block;background:#e7eefc;color:var(--blue);font-size:13px;font-weight:700;padding:4px 12px;border-radius:99px;margin-bottom:10px}
+  header h1{font-size:30px;font-weight:800;letter-spacing:-.5px}
+  header p{color:var(--sub);margin-top:6px;font-size:15px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:24px 0 8px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .kpi .label{font-size:13px;color:var(--sub);font-weight:600}
+  .kpi .value{font-size:23px;font-weight:800;margin-top:4px;letter-spacing:-.5px}
+  .kpi .delta{font-size:13px;font-weight:700;margin-top:2px}
+  .kpi .ref{font-size:12px;color:var(--sub);margin-top:2px}
+  .up{color:var(--up)} .down{color:var(--down)}
+  section{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  section > h2{font-size:20px;font-weight:800;letter-spacing:-.4px;display:flex;align-items:center;gap:8px;margin:0 0 4px}
+  section > h2::before{content:"";width:5px;height:20px;border-radius:3px;background:var(--blue)}
+  section > .desc{color:var(--sub);font-size:14px;margin:2px 0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  section > .card,section > .grid2 > .card,section > .grid3 > .card{background:transparent;border:none;border-radius:0;padding:0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .chart-box{position:relative;height:320px}
+  .chart-box.tall{height:360px}
+  .card h3{font-size:15px;font-weight:700;margin-bottom:10px;color:var(--ink)}
+  .toggle{display:flex;gap:6px;margin-bottom:12px}
+  .toggle button{border:1px solid var(--line);background:#fff;color:var(--sub);font-size:13px;font-weight:600;padding:5px 14px;border-radius:99px;cursor:pointer}
+  .toggle button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .imgs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .imgs figure{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .imgs img{width:100%;display:block}
+  .imgs figcaption{font-size:13px;color:var(--sub);padding:10px 14px;font-weight:600}
+  .summary{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:14px;padding:22px 24px}
+  .summary b{color:var(--blue)}
+  footer{margin-top:44px;color:var(--sub);font-size:13px;text-align:center}
+  .ad-slot{margin:16px auto;max-width:970px;min-height:90px;display:flex;align-items:center;justify-content:center;background:#fbfcfe;border:1px dashed #dfe4ec;border-radius:12px;overflow:hidden}
+  .ad-slot .adlabel{font-size:11px;color:#b8c0cc;letter-spacing:.08em}
+  .ad-slot ins{display:block}
+  .topnav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(244,246,250,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:9px 2px;margin-bottom:16px}
+  .topnav .brand{display:flex;align-items:center;gap:7px;font-weight:800;font-size:15px;color:var(--ink)}
+  .topnav .brand i{color:var(--blue);font-size:19px}
+  .topnav .navlinks{display:flex;gap:4px}
+  .topnav .navlinks a{font-size:13px;font-weight:700;color:var(--sub);text-decoration:none;padding:6px 13px;border-radius:99px}
+  .topnav .navlinks a:hover{background:#fff;color:var(--ink)}
+  .grouphead{display:flex;align-items:center;gap:10px;margin:40px 0 14px;padding-top:14px;border-top:2px solid var(--line);scroll-margin-top:64px}
+  .grouphead h2{font-size:21px;font-weight:800;margin:0;letter-spacing:-.4px}
+  .gh-badge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px}
+  .gh-daily{background:#fdecec;color:#e0484f}
+  .gh-month{background:#eef2fb;color:#2563eb}
+  .tabpage{position:absolute;top:0;left:20px;right:20px;visibility:hidden;pointer-events:none}
+  .tabpage.active{position:static;left:auto;right:auto;visibility:visible;pointer-events:auto}
+  .pagehead{display:flex;align-items:center;gap:10px;margin:6px 0 16px}
+  .pagehead h2{font-size:22px;font-weight:800;margin:0;letter-spacing:-.4px}
+  .topnav .navlinks a{cursor:pointer}
+  .topnav .navlinks a.on{background:var(--ink);color:#fff}
+  .hot-split{display:flex;gap:16px;align-items:stretch}
+  .hot-split #hotChips{flex:0 0 270px;max-height:380px;overflow:auto;margin-bottom:0;align-content:flex-start}
+  .hot-split .chart-box{flex:1;min-width:0}
+  @media(max-width:760px){.hot-split{flex-direction:column}.hot-split #hotChips{flex-basis:auto;max-height:none}}
+  #heroSec{scroll-margin-top:64px}
+  .tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .tier-block{grid-column:var(--c);grid-row:var(--r);border:1px solid var(--line);border-radius:9px;background:var(--card);overflow:hidden;display:flex;flex-direction:column}
+  .tier-bhead{padding:4px 9px;display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+  .tier-bhead .tn{font-size:12px;font-weight:800;white-space:nowrap}
+  .tier-bhead .rng{font-size:10px;font-weight:600;opacity:.8;text-align:right}
+  .tier-bbody{display:flex;flex-wrap:wrap;gap:3px;padding:5px 8px;align-content:flex-start;flex:1}
+  .chip{display:inline-flex;align-items:baseline;gap:4px;border:1px solid var(--line);background:#fafbfd;border-radius:99px;padding:1px 8px;font-size:11.5px;font-weight:600}
+  .chip .v{font-size:10px;color:var(--sub);font-weight:600}
+  .chip.sejong{background:#e7eefc;border:2px solid var(--blue);color:var(--blue)}
+  .chip.sejong .v{color:var(--blue)}
+  @media(max-width:760px){.tier-grid{grid-template-columns:1fr}.tier-block{grid-column:auto;grid-row:auto}}
+  .dtable{width:100%;border-collapse:collapse;font-size:13.5px}
+  .dtable th,.dtable td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  .dtable th{position:sticky;top:0;background:#f7f9fc;color:var(--sub);font-weight:700;font-size:12.5px;z-index:1}
+  .dtable td.l,.dtable th.l{text-align:left}
+  .dtable td.dong{font-weight:700;color:var(--blue)}
+  .dtable tbody tr:hover{background:#f7f9fc}
+  .tbl-wrap{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:12px}
+  .rep-meta{font-size:12.5px;color:var(--sub);margin-bottom:10px}
+  #heroSec{margin:18px 0 6px}
+  .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+  .hcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .hcard.hi{border:2px solid #e0484f;background:#fff7f6}
+  .hcard.up{border:2px solid #d97706;background:#fffaf2}
+  .hcard .hlabel{font-size:12.5px;color:var(--sub);font-weight:600;display:flex;align-items:center;gap:5px}
+  .hcard .hval{font-size:20px;font-weight:800;margin-top:5px;letter-spacing:-.4px}
+  .hcard .hsub{font-size:12.5px;color:var(--sub);margin-top:3px}
+  .hbadge{font-size:11px;font-weight:700;padding:1px 8px;border-radius:99px;background:#fdecec;color:#e0484f}
+  .hcard .hlist{margin-top:6px;display:flex;flex-direction:column;gap:3px}
+  .hcard .hline{font-size:13.5px;font-weight:700;letter-spacing:-.2px}
+  .hcard .hline .ha{font-size:12px;font-weight:600;color:var(--sub)}
+  .hcard .hmore-list{flex-direction:column;gap:3px;margin-top:6px;border-top:1px solid var(--line);padding-top:6px}
+  .hcard .hmore-btn{margin-top:7px;font-size:12px;font-weight:700;color:#e0484f;background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:3px}
+  .dtable tr.gstart td{border-top:2px solid #c9d6f0}
+  #volTable td,#volTable th{text-align:center;padding:6px 8px;font-size:12.5px}
+  #volTable td.l,#volTable th.l{text-align:left}
+  .sortable th{cursor:pointer;user-select:none;white-space:nowrap}
+  .sortable th:hover{color:var(--ink)}
+  .sortable th .ar{font-size:10px;margin-left:2px;color:var(--blue)}
+  #trendTable td{text-align:right}
+  #trendTable td.l,#trendTable th.l{text-align:left}
+  #trendTable td.lown{color:#b8c0cc}
+  #trendTable .chg,#trendAvgTable .chg{font-size:10.5px;font-weight:600;line-height:1.15}
+  #trendTable .m2c .v,#trendAvgTable .m2c .v{font-weight:600}
+  #trendAvgTable td{text-align:right}
+  #trendAvgTable td.l,#trendAvgTable th.l{text-align:left}
+  #trendAvgTable tr td.dong{color:var(--blue);font-weight:700}
+  #trendTable td.imp{color:#9aa3b2;font-style:italic;background:#fbfcff}
+  #trendTable td.imp .v{font-weight:500}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:900px){.grid3{grid-template-columns:1fr}}
+  .grid3 .chart-box{height:250px}
+  .hot-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .hot-chips .hchip{border:1px solid var(--line);background:#fafbfd;color:var(--ink);border-radius:99px;padding:5px 13px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:baseline;gap:5px;transition:.12s}
+  .hot-chips .hchip .v{font-size:11.5px;color:var(--sub);font-weight:600}
+  .hot-chips .hchip:hover{border-color:#aebac9}
+  .hot-chips .hchip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .hot-chips .hchip.on .v{color:#cfd6e2}
+  .hot-chips .hgrp{flex-basis:100%;font-size:11.5px;color:var(--sub);font-weight:700;margin-top:6px}
+  .hot-chips .hgrp:first-child{margin-top:0}
+
+
+/* ===================== PLAYGROUND SKIN (시안 B) ===================== */
+:root{
+  --bg:#f3f5fb; --card:#ffffff; --ink:#16203a; --sub:#727e98; --line:#eef1f8;
+  --blue:#5b6cff; --red:#ff5470; --up:#ff5470; --down:#3d6bff; --teal:#16c79a; --amber:#ff8a5c;
+}
+body{background:#f3f5fb;
+  background-image:radial-gradient(820px 480px at 90% -12%,rgba(160,107,255,.10),transparent 60%),
+                   radial-gradient(760px 520px at -10% 2%,rgba(91,108,255,.10),transparent 58%);
+  background-attachment:fixed;}
+.wrap{max-width:1080px}
+/* ---- nav : segmented pill ---- */
+.topnav{background:rgba(243,245,251,.82);backdrop-filter:blur(12px);border-bottom:none;padding:14px 2px 12px;margin-bottom:6px}
+.topnav .brand{font-size:17px;gap:10px}
+.topnav .brand i{color:#fff;background:linear-gradient(140deg,#5b6cff,#a06bff);width:34px;height:34px;border-radius:11px;
+  display:grid;place-items:center;font-size:19px;box-shadow:0 6px 16px -6px rgba(91,108,255,.7)}
+.topnav .navlinks{background:#e7eaf5;border-radius:99px;padding:4px;gap:3px}
+.topnav .navlinks a{border-radius:99px;padding:8px 15px;font-size:13px;color:#727e98;font-weight:700}
+.topnav .navlinks a:hover{background:transparent;color:#16203a}
+.topnav .navlinks a.on{background:#fff;color:#5b6cff;box-shadow:0 8px 22px -12px rgba(40,55,110,.55)}
+.topnav .navcta{font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,#5b6cff,#a06bff);
+  border:none;border-radius:99px;padding:10px 18px;cursor:pointer;white-space:nowrap;
+  box-shadow:0 8px 20px -10px rgba(91,108,255,.85)}
+.topnav .navcta:hover{filter:brightness(1.05)}
+/* ---- ad slot ---- */
+.ad-slot{border:1.5px dashed #dde2ef;border-radius:20px;background:#fff}
+.ad-slot .adlabel{color:#aab2c5;font-weight:600}
+/* ---- sections as soft rounded cards ---- */
+section{background:#fff;border:none;border-radius:24px;padding:24px 26px;box-shadow:0 10px 30px -16px rgba(40,55,110,.26);margin-top:18px}
+section>h2{font-size:20px;font-weight:800;letter-spacing:-.4px}
+section>h2::before{display:none}
+section>.desc{color:#727e98}
+.pagehead{margin:10px 4px 2px}
+.pagehead h2{font-size:23px;font-weight:800;letter-spacing:-.5px}
+.grouphead{border-top:none;margin:36px 4px 4px;padding-top:0}
+.grouphead h2{font-size:22px;font-weight:800}
+.card{border:none;border-radius:18px}
+.tbl-wrap{border-radius:16px;border-color:#eef1f8}
+.summary{border-left-color:#5b6cff;border-radius:16px;border:1px solid #eef1f8;border-left:5px solid #5b6cff}
+.summary b{color:#5b6cff}
+/* ---- hero banner (오늘의 실거래) ---- */
+#heroSec{background:linear-gradient(135deg,#5b6cff 0%,#7b5cff 55%,#a06bff 100%);border:none;border-radius:28px;
+  padding:30px 32px 32px;box-shadow:0 18px 48px -22px rgba(60,40,140,.55);color:#fff;margin-top:6px}
+#heroSec>h2{color:#fff}
+#heroSec .herochip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:#fff;
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:6px 14px}
+#heroSec .herochip .hdot{width:7px;height:7px;border-radius:50%;background:#7dffc0;box-shadow:0 0 10px #7dffc0}
+#heroSec .herotitle{font-size:33px;font-weight:800;letter-spacing:-.9px;line-height:1.24;color:#fff;margin:16px 0 0}
+#heroSec .herolede{font-size:15px;line-height:1.7;color:rgba(255,255,255,.92);margin:11px 0 0;max-width:600px}
+#heroSec .hbadge{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.25)}
+#heroSec .hero-grid{margin-top:22px}
+#heroSec .hcard,#heroSec .hcard.hi,#heroSec .hcard.up{
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.26);border-radius:20px;
+  backdrop-filter:blur(6px);box-shadow:none}
+#heroSec .hlabel,#heroSec .hsub,#heroSec .hline .ha{color:rgba(255,255,255,.9)}
+#heroSec .hlabel i{color:#dff6ec}
+#heroSec .hval,#heroSec .hline{color:#fff}
+#heroSec .hmore-btn{color:#fff}
+#heroSec .hmore-list{border-top:1px solid rgba(255,255,255,.25)}
+/* ---- KPI : colourful gradient tiles ---- */
+#kpis{gap:14px}
+#kpis .kpi{border:none;border-radius:20px;color:#fff;padding:18px 20px;box-shadow:0 10px 26px -16px rgba(40,55,110,.4)}
+#kpis .kpi .label{color:rgba(255,255,255,.92)}
+#kpis .kpi .value{color:#fff}
+#kpis .kpi .delta,#kpis .kpi .delta.up,#kpis .kpi .delta.down{color:rgba(255,255,255,.96)}
+#kpis .kpi .ref{color:rgba(255,255,255,.82)}
+#kpis .kpi:nth-child(1){background:linear-gradient(140deg,#5b6cff,#7b8cff)}
+#kpis .kpi:nth-child(2){background:linear-gradient(140deg,#16c79a,#3bd9b0)}
+#kpis .kpi:nth-child(3){background:linear-gradient(140deg,#a06bff,#bd8cff)}
+#kpis .kpi:nth-child(4){background:linear-gradient(140deg,#ff8a5c,#ffae7d)}
+#kpis .kpi:nth-child(n+5){background:linear-gradient(140deg,#5b6cff,#a06bff)}
+/* ---- tier blocks (keep inline grid + colours) ---- */
+.tier-block{border:1px solid #eef1f8;border-radius:16px;background:#fff;box-shadow:0 6px 18px -14px rgba(40,55,110,.3)}
+.tier-bbody .chip{border:1px solid #eef1f8;background:#f7f9fc;border-radius:10px}
+.chip.sejong{background:#e7eefc;border:2px solid #5b6cff;color:#5b6cff}
+.chip.sejong .v{color:#5b6cff}
+/* ---- toggles & region chips ---- */
+.toggle button{border:1px solid #eef1f8;border-radius:99px;background:#fff}
+.toggle button.on{background:#5b6cff;border-color:#5b6cff;color:#fff}
+.hot-chips .hchip{border:1px solid #eef1f8;background:#f7f9fc;border-radius:99px}
+.hot-chips .hchip:hover{border-color:#c3cbe8}
+.hot-chips .hchip.on{background:#5b6cff;border-color:#5b6cff;color:#fff}
+.hot-chips .hchip.on .v{color:#dfe4ff}
+/* ---- tables ---- */
+.dtable th{background:#f7f9fc}
+.dtable td.dong,.dtable tbody tr td.dong{color:#5b6cff}
+.dtable tbody tr:hover{background:#f6f8ff}
+footer{color:#aab2c5}
+@media(max-width:760px){
+  .topnav{flex-wrap:wrap}
+  .topnav .navlinks{flex-wrap:wrap;justify-content:center}
+  .topnav .navcta{display:none}
+  #heroSec{padding:24px 20px}
+  #heroSec .herotitle{font-size:25px}
+  section{padding:20px 18px;border-radius:20px}
+}
+/* =================== /PLAYGROUND SKIN =================== */
+
+
+/* ---- hero data cards (사진 레이아웃) ---- */
+#heroSec .hcard .hlabel{font-weight:600;font-size:12.5px;color:rgba(255,255,255,.9);display:flex;align-items:center;gap:6px}
+#heroSec .hval{font-size:30px;font-weight:800;letter-spacing:-1px;margin-top:8px;color:#fff}
+#heroSec .hsub{font-size:12.5px;color:rgba(255,255,255,.88);margin-top:6px}
+#heroSec .hsplit{display:flex;gap:26px;margin-top:20px}
+#heroSec .hsplit > div{font-size:14px;font-weight:600;color:rgba(255,255,255,.85)}
+#heroSec .hsplit b{display:block;font-size:38px;font-weight:800;color:#fff;margin-top:6px;letter-spacing:-1px;line-height:1.05}
+#heroSec .hline{font-size:13px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#heroSec .hprev{font-size:11px;font-weight:500;opacity:.72}
+#heroSec .hline .ha{color:rgba(255,255,255,.8);font-weight:500}
+
+#heroSec .hmore-head{font-size:12.5px;font-weight:700;color:rgba(255,255,255,.92);margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.28)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="topnav">
+  <div class="brand"><i class="ti ti-building-skyscraper"></i> 세종 부동산 인사이트</div>
+  <div class="navlinks"><a data-tab="trade" class="on">오늘의 실거래</a><a data-tab="trend">동·단지별 매매가 추이</a><a data-tab="market">시장지표</a><a data-tab="position">위상·급지</a></div>
+  <button class="navcta">관심단지 ＋</button>
+</nav>
+
+<div class="ad-slot"><span class="adlabel">광고 영역 · Google AdSense</span></div>
+
+<div class="tabpage active" id="page-trade">
+<section id="heroSec">
+  <span class="herochip"><span class="hdot"></span>매일 자동 갱신 · <span id="heroDate"></span></span>
+  <h1 class="herotitle">세종의 모든 거래를,<br>매일 가장 먼저 만나보세요</h1>
+  <p class="herolede">국토부 실거래가를 자동으로 모아드려요. 어렵게 찾을 필요 없이, 오늘의 신고가·상승률·급지까지 한눈에.</p>
+  <div id="heroToday" class="hero-grid"><div class="hcard"><div class="hlabel">불러오는 중…</div></div></div>
+</section><div class="ad-slot"><span class="adlabel">광고 영역 · Google AdSense</span></div>
+
+<section>
+  <h2>오늘 신고내역</h2>
+  <p class="desc" id="repDesc">법정동 오름차순 · 전용 50㎡ 이상</p>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table class="dtable" id="repTable"><tbody><tr><td>불러오는 중…</td></tr></tbody></table>
+    </div>
+  </div>
+</section><section>
+  <h2>실거래 신고량 추이 (국토부)</h2>
+  <p class="desc">신고일별 매매 거래 건수(동 지역 + 읍·면) · 전용 50㎡ 이상</p>
+  <div class="card">
+    <p class="rep-meta" id="volMeta">불러오는 중…</p>
+    <div class="chart-box tall"><canvas id="volChart"></canvas></div>
+  </div>
+</section><section>
+  <h2>법정동별 일별 거래량 (국토부 실거래 자료)</h2>
+  <p class="desc">신고일 × 법정동 누적 · 동합계=동 지역만, 전체합계=읍·면 포함</p>
+  <div class="card">
+    <div class="tbl-wrap" id="volTable" style="max-height:420px">불러오는 중…</div>
+  </div>
+</section>
+</div>
+<div class="tabpage" id="page-trend">
+<div class="pagehead"><h2>동·단지별 매매가 추이</h2><span class="gh-badge gh-month">실거래 기반</span></div>
+<section>
+  <h2>동별 평균 ㎡당 매매가 추이 (실거래)</h2>
+  <p class="desc">동 지역 · 단지 동일가중 평균(보정값 포함) · 괄호 % = 전기 대비 변동</p>
+  <div class="card">
+    <div class="tbl-wrap"><table class="dtable" id="trendAvgTable"><tbody><tr><td>불러오는 중…</td></tr></tbody></table></div>
+  </div>
+</section>
+<section>
+  <h2>단지별 ㎡당 매매가 추이 (실거래)</h2>
+  <p class="desc" id="trendDesc">불러오는 중…</p>
+  <div class="card">
+    <div class="tbl-wrap" style="max-height:600px">
+      <table class="dtable sortable" id="trendTable"><tbody><tr><td>불러오는 중…</td></tr></tbody></table>
+    </div>
+  </div>
+</section>
+</div>
+<div class="tabpage" id="page-market">
+<div class="pagehead"><h2>시장지표 · KB 거시</h2><span class="gh-badge gh-month">월 갱신</span></div>
+<div class="kpis" id="kpis"></div><section>
+  <h2>매매 · 전세 가격 추이</h2>
+  <div class="card">
+    <div class="chart-box tall"><canvas id="priceChart"></canvas></div>
+  </div>
+</section><section>
+  <h2>월별 상승률</h2>
+  <div class="card"><div class="chart-box"><canvas id="pctChart"></canvas></div></div>
+</section><section>
+  <h2>가격 부담 지표 — PIR · J-PIR</h2>
+  <p class="desc"><span style="display:inline-block;width:12px;height:12px;background:rgba(16,185,129,.22);border:1px solid rgba(16,185,129,.55);border-radius:3px;vertical-align:-1px;margin-right:4px"></span>매수 적기 구간 — PIR·J-PIR·전세가율 3개 조건 동시 충족</p>
+  <div class="grid2">
+    <div class="card"><h3>PIR (가구소득 대비 매매가) <span id="pirPos"></span></h3><div class="chart-box"><canvas id="pirChart"></canvas></div></div>
+    <div class="card"><h3>J-PIR (가구소득 대비 전세가) <span id="jpirPos"></span></h3><div class="chart-box"><canvas id="jpirChart"></canvas></div></div>
+  </div>
+</section><section>
+  <h2>전세가율</h2>
+  <div class="card"><div class="chart-box"><canvas id="jsrChart"></canvas></div>
+    <p style="font-size:12.5px;color:var(--sub);margin-top:10px">※ 2017년 9월부터 표시 — 세종 신도시(행정중심복합도시) 아파트가 구축되어 본격적으로 거래되기 시작한 시기가 2017년 9월쯤부터로, 그 이전에는 신도시 거래보다 기존 지역의 실거래 비중이 높던 시기입니다.</p>
+  </div>
+</section>
+</div>
+<div class="tabpage" id="page-position">
+<div class="pagehead"><h2>위상·급지</h2></div>
+<section>
+  <h2>전국 급지 구분표 (시군구)</h2>
+  <p class="desc" id="tierDesc">㎡당 아파트 평균매매가격(전용면적, 만원) 기준</p>
+  <div id="tierTable"></div>
+</section><section>
+  <h2>지역 비교</h2>
+  <p class="desc" id="hotDesc">지역을 눌러 세종시와 비교 · ㎡당 아파트 평균매매가격(전용면적, 만원)</p>
+  <div class="card">
+    <div id="hotChips" class="hot-chips"></div>
+    <div class="chart-box tall"><canvas id="hotC1"></canvas></div>
+  </div>
+</section></div>
+<div class="ad-slot"><span class="adlabel">광고 영역 · Google AdSense</span></div>
+
+<footer>작성: 투자되지</footer>
+</div>
+
+<script>
+/* ===== 설정 ===== */
+const SHEET_ID = '1ocRpPMArYLGdvQzgSzYqzigc-dbUOe0BRbPBPJOl6lQ';
+const FORECAST_SHEET = '매매, 전세 전망지수';   // 전망지수 탭 이름
+
+/* ===== data.json 우선 로더 (없으면 구글시트 직접 읽기로 자동 폴백) ===== */
+let DATA_JSON=null;
+async function loadDataJson(){
+  try{
+    const r=await fetch('./data.json?t='+Date.now(), {cache:'no-store'});
+    if(r.ok) DATA_JSON=await r.json();
+  }catch(e){ DATA_JSON=null; }
+}
+const DATA_READY = loadDataJson();
+const FALLBACK = {"series": [{"ym": "2017-01", "sale": 26112.9, "sale_pct": null, "jeonse": 17301.2, "jeonse_pct": null, "pir": 6.75, "jpir": 4.47, "jsr": 66.26}, {"ym": "2017-02", "sale": 26112.9, "sale_pct": 0.0, "jeonse": 16857.2, "jeonse_pct": -2.57, "pir": 6.75, "jpir": 4.36, "jsr": 64.56}, {"ym": "2017-03", "sale": 26275.8, "sale_pct": 0.62, "jeonse": 16264.7, "jeonse_pct": -3.51, "pir": 6.79, "jpir": 4.21, "jsr": 61.9}, {"ym": "2017-04", "sale": 26333.8, "sale_pct": 0.22, "jeonse": 15011.7, "jeonse_pct": -7.7, "pir": 7.04, "jpir": 4.01, "jsr": 57.01}, {"ym": "2017-05", "sale": 26403.6, "sale_pct": 0.27, "jeonse": 14191.7, "jeonse_pct": -5.46, "pir": 7.06, "jpir": 3.8, "jsr": 53.75}, {"ym": "2017-06", "sale": 26764.0, "sale_pct": 1.37, "jeonse": 13950.5, "jeonse_pct": -1.7, "pir": 7.16, "jpir": 3.73, "jsr": 52.12}, {"ym": "2017-07", "sale": 27320.3, "sale_pct": 2.08, "jeonse": 13930.2, "jeonse_pct": -0.15, "pir": 6.87, "jpir": 3.5, "jsr": 50.99}, {"ym": "2017-08", "sale": 28161.1, "sale_pct": 3.08, "jeonse": 13900.8, "jeonse_pct": -0.21, "pir": 7.08, "jpir": 3.5, "jsr": 49.36}, {"ym": "2017-09", "sale": 28318.7, "sale_pct": 0.56, "jeonse": 13910.8, "jeonse_pct": 0.07, "pir": 7.12, "jpir": 3.5, "jsr": 49.12}, {"ym": "2017-10", "sale": 28442.7, "sale_pct": 0.44, "jeonse": 14261.5, "jeonse_pct": 2.52, "pir": 7.37, "jpir": 3.7, "jsr": 50.14}, {"ym": "2017-11", "sale": 28486.7, "sale_pct": 0.15, "jeonse": 14363.4, "jeonse_pct": 0.71, "pir": 7.38, "jpir": 3.72, "jsr": 50.42}, {"ym": "2017-12", "sale": 28490.6, "sale_pct": 0.01, "jeonse": 14367.0, "jeonse_pct": 0.03, "pir": 7.38, "jpir": 3.72, "jsr": 50.43}, {"ym": "2018-01", "sale": 28696.7, "sale_pct": 0.72, "jeonse": 14391.9, "jeonse_pct": 0.17, "pir": 7.1, "jpir": 3.56, "jsr": 50.15}, {"ym": "2018-02", "sale": 28768.4, "sale_pct": 0.25, "jeonse": 14347.9, "jeonse_pct": -0.31, "pir": 7.12, "jpir": 3.55, "jsr": 49.87}, {"ym": "2018-03", "sale": 28995.7, "sale_pct": 0.79, "jeonse": 14335.2, "jeonse_pct": -0.09, "pir": 7.17, "jpir": 3.55, "jsr": 49.44}, {"ym": "2018-04", "sale": 29031.9, "sale_pct": 0.12, "jeonse": 14245.0, "jeonse_pct": -0.63, "pir": 7.48, "jpir": 3.67, "jsr": 49.07}, {"ym": "2018-05", "sale": 29158.6, "sale_pct": 0.44, "jeonse": 14225.5, "jeonse_pct": -0.14, "pir": 7.52, "jpir": 3.67, "jsr": 48.79}, {"ym": "2018-06", "sale": 29264.9, "sale_pct": 0.36, "jeonse": 14187.0, "jeonse_pct": -0.27, "pir": 7.54, "jpir": 3.66, "jsr": 48.48}, {"ym": "2018-07", "sale": 29335.3, "sale_pct": 0.24, "jeonse": 14063.8, "jeonse_pct": -0.87, "pir": 7.62, "jpir": 3.65, "jsr": 47.94}, {"ym": "2018-08", "sale": 29379.3, "sale_pct": 0.15, "jeonse": 14042.3, "jeonse_pct": -0.15, "pir": 7.63, "jpir": 3.65, "jsr": 47.8}, {"ym": "2018-09", "sale": 29455.3, "sale_pct": 0.26, "jeonse": 14108.3, "jeonse_pct": 0.47, "pir": 7.65, "jpir": 3.67, "jsr": 47.9}, {"ym": "2018-10", "sale": 29469.3, "sale_pct": 0.05, "jeonse": 14142.7, "jeonse_pct": 0.24, "pir": 7.76, "jpir": 3.72, "jsr": 47.99}, {"ym": "2018-11", "sale": 29446.0, "sale_pct": -0.08, "jeonse": 14218.1, "jeonse_pct": 0.53, "pir": 7.75, "jpir": 3.74, "jsr": 48.29}, {"ym": "2018-12", "sale": 29511.1, "sale_pct": 0.22, "jeonse": 14362.2, "jeonse_pct": 1.01, "pir": 7.77, "jpir": 3.78, "jsr": 48.67}, {"ym": "2019-01", "sale": 29860.5, "sale_pct": 1.18, "jeonse": 14657.8, "jeonse_pct": 2.06, "pir": 7.39, "jpir": 3.63, "jsr": 49.09}, {"ym": "2019-02", "sale": 29828.4, "sale_pct": -0.11, "jeonse": 14801.1, "jeonse_pct": 0.98, "pir": 7.38, "jpir": 3.66, "jsr": 49.62}, {"ym": "2019-03", "sale": 29912.4, "sale_pct": 0.28, "jeonse": 14905.2, "jeonse_pct": 0.7, "pir": 7.4, "jpir": 3.69, "jsr": 49.83}, {"ym": "2019-04", "sale": 29968.4, "sale_pct": 0.19, "jeonse": 14882.4, "jeonse_pct": -0.15, "pir": 7.87, "jpir": 3.91, "jsr": 49.66}, {"ym": "2019-05", "sale": 29963.6, "sale_pct": -0.02, "jeonse": 14881.0, "jeonse_pct": -0.01, "pir": 7.86, "jpir": 3.91, "jsr": 49.66}, {"ym": "2019-06", "sale": 29952.7, "sale_pct": -0.04, "jeonse": 14880.7, "jeonse_pct": -0.0, "pir": 7.86, "jpir": 3.91, "jsr": 49.68}, {"ym": "2019-07", "sale": 29998.2, "sale_pct": 0.15, "jeonse": 14865.9, "jeonse_pct": -0.1, "pir": 7.5, "jpir": 3.72, "jsr": 49.56}, {"ym": "2019-08", "sale": 30005.5, "sale_pct": 0.02, "jeonse": 14845.4, "jeonse_pct": -0.14, "pir": 7.5, "jpir": 3.71, "jsr": 49.48}, {"ym": "2019-09", "sale": 29951.6, "sale_pct": -0.18, "jeonse": 14849.0, "jeonse_pct": 0.02, "pir": 7.49, "jpir": 3.71, "jsr": 49.58}, {"ym": "2019-10", "sale": 30048.9, "sale_pct": 0.32, "jeonse": 14862.7, "jeonse_pct": 0.09, "pir": 8.61, "jpir": 4.26, "jsr": 49.46}, {"ym": "2019-11", "sale": 30072.7, "sale_pct": 0.08, "jeonse": 14884.4, "jeonse_pct": 0.15, "pir": 8.62, "jpir": 4.26, "jsr": 49.49}, {"ym": "2019-12", "sale": 30222.7, "sale_pct": 0.5, "jeonse": 14990.9, "jeonse_pct": 0.72, "pir": 8.66, "jpir": 4.3, "jsr": 49.6}, {"ym": "2020-01", "sale": 31282.0, "sale_pct": 3.5, "jeonse": 15383.9, "jeonse_pct": 2.62, "pir": 7.47, "jpir": 3.67, "jsr": 49.18}, {"ym": "2020-02", "sale": 33167.0, "sale_pct": 6.03, "jeonse": 16733.4, "jeonse_pct": 8.77, "pir": 7.92, "jpir": 3.99, "jsr": 50.45}, {"ym": "2020-03", "sale": 35269.0, "sale_pct": 6.34, "jeonse": 17109.4, "jeonse_pct": 2.25, "pir": 8.42, "jpir": 4.08, "jsr": 48.51}, {"ym": "2020-04", "sale": 35585.0, "sale_pct": 0.9, "jeonse": 17173.4, "jeonse_pct": 0.37, "pir": 8.35, "jpir": 4.03, "jsr": 48.26}, {"ym": "2020-05", "sale": 35771.0, "sale_pct": 0.52, "jeonse": 17222.1, "jeonse_pct": 0.28, "pir": 8.39, "jpir": 4.04, "jsr": 48.15}, {"ym": "2020-06", "sale": 37329.0, "sale_pct": 4.36, "jeonse": 18009.6, "jeonse_pct": 4.57, "pir": 8.75, "jpir": 4.22, "jsr": 48.25}, {"ym": "2020-07", "sale": 39733.0, "sale_pct": 6.44, "jeonse": 18602.9, "jeonse_pct": 3.29, "pir": 9.4, "jpir": 4.4, "jsr": 46.82}, {"ym": "2020-08", "sale": 45569.0, "sale_pct": 14.69, "jeonse": 19952.1, "jeonse_pct": 7.25, "pir": 10.78, "jpir": 4.72, "jsr": 44.74}, {"ym": "2020-09", "sale": 49508.0, "sale_pct": 8.64, "jeonse": 20914.6, "jeonse_pct": 4.82, "pir": 11.71, "jpir": 4.95, "jsr": 43.49}, {"ym": "2020-10", "sale": 48483.0, "sale_pct": -2.07, "jeonse": 20726.2, "jeonse_pct": -0.9, "pir": 11.24, "jpir": 4.8, "jsr": 42.75}, {"ym": "2020-11", "sale": 49771.0, "sale_pct": 2.66, "jeonse": 21498.7, "jeonse_pct": 3.73, "pir": 11.54, "jpir": 4.98, "jsr": 43.2}, {"ym": "2020-12", "sale": 51549.0, "sale_pct": 3.57, "jeonse": 22564.7, "jeonse_pct": 4.96, "pir": 11.95, "jpir": 5.23, "jsr": 43.77}, {"ym": "2021-01", "sale": 53835.0, "sale_pct": 4.43, "jeonse": 24702.2, "jeonse_pct": 9.47, "pir": 13.0, "jpir": 5.97, "jsr": 45.88}, {"ym": "2021-02", "sale": 56000.0, "sale_pct": 4.02, "jeonse": 27319.3, "jeonse_pct": 10.59, "pir": 13.53, "jpir": 6.6, "jsr": 48.78}, {"ym": "2021-03", "sale": 56451.0, "sale_pct": 0.81, "jeonse": 27471.9, "jeonse_pct": 0.56, "pir": 13.64, "jpir": 6.64, "jsr": 48.67}, {"ym": "2021-04", "sale": 56872.0, "sale_pct": 0.75, "jeonse": 27407.7, "jeonse_pct": -0.23, "pir": 12.81, "jpir": 6.17, "jsr": 48.19}, {"ym": "2021-05", "sale": 57118.0, "sale_pct": 0.43, "jeonse": 27501.9, "jeonse_pct": 0.34, "pir": 12.86, "jpir": 6.19, "jsr": 48.15}, {"ym": "2021-06", "sale": 57300.0, "sale_pct": 0.32, "jeonse": 27496.6, "jeonse_pct": -0.02, "pir": 12.9, "jpir": 6.19, "jsr": 47.99}, {"ym": "2021-07", "sale": 57259.0, "sale_pct": -0.07, "jeonse": 27467.3, "jeonse_pct": -0.11, "pir": 12.3, "jpir": 5.9, "jsr": 47.97}, {"ym": "2021-08", "sale": 57223.0, "sale_pct": -0.06, "jeonse": 27477.3, "jeonse_pct": 0.04, "pir": 12.29, "jpir": 5.9, "jsr": 48.02}, {"ym": "2021-09", "sale": 59955.0, "sale_pct": 4.77, "jeonse": 28237.7, "jeonse_pct": 2.77, "pir": 12.88, "jpir": 6.06, "jsr": 48.07}, {"ym": "2021-10", "sale": 62409.0, "sale_pct": 4.09, "jeonse": 28912.5, "jeonse_pct": 2.39, "pir": 13.34, "jpir": 6.18, "jsr": 48.18}, {"ym": "2021-11", "sale": 64803.0, "sale_pct": 3.84, "jeonse": 29593.3, "jeonse_pct": 2.35, "pir": 13.85, "jpir": 6.32, "jsr": 48.24}, {"ym": "2021-12", "sale": 66050.0, "sale_pct": 1.92, "jeonse": 29933.5, "jeonse_pct": 1.15, "pir": 14.11, "jpir": 6.4, "jsr": 48.19}, {"ym": "2022-01", "sale": 66443.0, "sale_pct": 0.6, "jeonse": 30036.5, "jeonse_pct": 0.34, "pir": 14.98, "jpir": 6.77, "jsr": 48.18}, {"ym": "2022-02", "sale": 66771.0, "sale_pct": 0.49, "jeonse": 30094.2, "jeonse_pct": 0.19, "pir": 15.05, "jpir": 6.78, "jsr": 47.61}, {"ym": "2022-03", "sale": 66890.0, "sale_pct": 0.18, "jeonse": 30087.0, "jeonse_pct": -0.02, "pir": 15.08, "jpir": 6.78, "jsr": 47.19}, {"ym": "2022-04", "sale": 66961.0, "sale_pct": 0.11, "jeonse": 30058.2, "jeonse_pct": -0.1, "pir": 15.41, "jpir": 6.92, "jsr": 47.04}, {"ym": "2022-05", "sale": 66927.0, "sale_pct": -0.05, "jeonse": 30000.7, "jeonse_pct": -0.19, "pir": 15.41, "jpir": 6.91, "jsr": 46.73}, {"ym": "2022-06", "sale": 66784.0, "sale_pct": -0.21, "jeonse": 29817.6, "jeonse_pct": -0.61, "pir": 15.37, "jpir": 6.86, "jsr": 46.6}, {"ym": "2022-07", "sale": 66120.0, "sale_pct": -0.99, "jeonse": 29401.4, "jeonse_pct": -1.4, "pir": 14.49, "jpir": 6.44, "jsr": 46.32}, {"ym": "2022-08", "sale": 65179.0, "sale_pct": -1.42, "jeonse": 28933.7, "jeonse_pct": -1.59, "pir": 14.29, "jpir": 6.34, "jsr": 46.08}, {"ym": "2022-09", "sale": 64489.0, "sale_pct": -1.06, "jeonse": 28352.4, "jeonse_pct": -2.01, "pir": 14.14, "jpir": 6.21, "jsr": 45.68}, {"ym": "2022-10", "sale": 61442.0, "sale_pct": -4.72, "jeonse": 26723.4, "jeonse_pct": -5.75, "pir": 15.78, "jpir": 6.86, "jsr": 45.45}, {"ym": "2022-11", "sale": 58417.0, "sale_pct": -4.92, "jeonse": 24629.3, "jeonse_pct": -7.84, "pir": 15.01, "jpir": 6.33, "jsr": 45.56}, {"ym": "2022-12", "sale": 56928.0, "sale_pct": -2.55, "jeonse": 24067.2, "jeonse_pct": -2.28, "pir": 14.62, "jpir": 6.18, "jsr": 45.64}, {"ym": "2023-01", "sale": 54874.0, "sale_pct": -3.61, "jeonse": 23410.2, "jeonse_pct": -2.73, "pir": 11.25, "jpir": 4.8, "jsr": 46.05}, {"ym": "2023-02", "sale": 53869.0, "sale_pct": -1.83, "jeonse": 22788.2, "jeonse_pct": -2.66, "pir": 11.05, "jpir": 4.67, "jsr": 45.62}, {"ym": "2023-03", "sale": 53317.0, "sale_pct": -1.02, "jeonse": 22604.3, "jeonse_pct": -0.81, "pir": 10.93, "jpir": 4.64, "jsr": 45.57}, {"ym": "2023-04", "sale": 52836.0, "sale_pct": -0.9, "jeonse": 22340.9, "jeonse_pct": -1.17, "pir": 10.67, "jpir": 4.51, "jsr": 45.52}, {"ym": "2023-05", "sale": 53072.0, "sale_pct": 0.45, "jeonse": 22298.5, "jeonse_pct": -0.19, "pir": 10.72, "jpir": 4.5, "jsr": 45.27}, {"ym": "2023-06", "sale": 53060.0, "sale_pct": -0.02, "jeonse": 22288.6, "jeonse_pct": -0.04, "pir": 10.72, "jpir": 4.5, "jsr": 45.27}, {"ym": "2023-07", "sale": 53400.0, "sale_pct": 0.64, "jeonse": 22334.0, "jeonse_pct": 0.2, "pir": 10.95, "jpir": 4.58, "jsr": 45.11}, {"ym": "2023-08", "sale": 53688.0, "sale_pct": 0.54, "jeonse": 22521.2, "jeonse_pct": 0.84, "pir": 11.01, "jpir": 4.62, "jsr": 45.23}, {"ym": "2023-09", "sale": 53793.0, "sale_pct": 0.2, "jeonse": 22758.1, "jeonse_pct": 1.05, "pir": 11.03, "jpir": 4.67, "jsr": 45.58}, {"ym": "2023-10", "sale": 54101.0, "sale_pct": 0.57, "jeonse": 23067.4, "jeonse_pct": 1.36, "pir": 10.21, "jpir": 4.35, "jsr": 45.91}, {"ym": "2023-11", "sale": 54171.0, "sale_pct": 0.13, "jeonse": 23268.1, "jeonse_pct": 0.87, "pir": 10.22, "jpir": 4.39, "jsr": 46.26}, {"ym": "2023-12", "sale": 54426.0, "sale_pct": 0.47, "jeonse": 23455.3, "jeonse_pct": 0.8, "pir": 10.27, "jpir": 4.43, "jsr": 46.37}, {"ym": "2024-01", "sale": 55031.0, "sale_pct": 1.11, "jeonse": 23738.0, "jeonse_pct": 1.21, "pir": 9.8, "jpir": 4.23, "jsr": 46.43}, {"ym": "2024-02", "sale": 54919.0, "sale_pct": -0.2, "jeonse": 23696.0, "jeonse_pct": -0.18, "pir": 9.78, "jpir": 4.22, "jsr": 46.4}, {"ym": "2024-03", "sale": 54807.2, "sale_pct": -0.2, "jeonse": 23642.0, "jeonse_pct": -0.23, "pir": 9.76, "jpir": 4.21, "jsr": 46.37}, {"ym": "2024-04", "sale": 54525.0, "sale_pct": -0.51, "jeonse": 23554.0, "jeonse_pct": -0.37, "pir": 10.11, "jpir": 4.37, "jsr": 46.43}, {"ym": "2024-05", "sale": 54182.0, "sale_pct": -0.63, "jeonse": 23413.0, "jeonse_pct": -0.6, "pir": 10.05, "jpir": 4.34, "jsr": 46.44}, {"ym": "2024-06", "sale": 53996.0, "sale_pct": -0.34, "jeonse": 23313.0, "jeonse_pct": -0.43, "pir": 10.01, "jpir": 4.32, "jsr": 46.43}, {"ym": "2024-07", "sale": 53728.0, "sale_pct": -0.5, "jeonse": 23215.0, "jeonse_pct": -0.42, "pir": 9.7, "jpir": 4.19, "jsr": 46.45}, {"ym": "2024-08", "sale": 53608.0, "sale_pct": -0.22, "jeonse": 23123.0, "jeonse_pct": -0.4, "pir": 9.68, "jpir": 4.17, "jsr": 46.43}, {"ym": "2024-09", "sale": 53530.0, "sale_pct": -0.15, "jeonse": 23111.0, "jeonse_pct": -0.05, "pir": 9.66, "jpir": 4.17, "jsr": 46.5}, {"ym": "2024-10", "sale": 53477.0, "sale_pct": -0.1, "jeonse": 23122.0, "jeonse_pct": 0.05, "pir": 9.79, "jpir": 4.23, "jsr": 46.5}, {"ym": "2024-11", "sale": 53455.0, "sale_pct": -0.04, "jeonse": 23188.0, "jeonse_pct": 0.29, "pir": 9.78, "jpir": 4.24, "jsr": 46.64}, {"ym": "2024-12", "sale": 52869.0, "sale_pct": -1.1, "jeonse": 23087.0, "jeonse_pct": -0.44, "pir": 9.68, "jpir": 4.23, "jsr": 46.95}, {"ym": "2025-01", "sale": 52983.0, "sale_pct": 0.22, "jeonse": 23168.0, "jeonse_pct": 0.35, "pir": 8.96, "jpir": 3.92, "jsr": 47.0}, {"ym": "2025-02", "sale": 52936.0, "sale_pct": -0.09, "jeonse": 23138.0, "jeonse_pct": -0.13, "pir": 8.95, "jpir": 3.91, "jsr": 46.96}, {"ym": "2025-03", "sale": 52625.4, "sale_pct": -0.59, "jeonse": 23093.7, "jeonse_pct": -0.19, "pir": 8.9, "jpir": 3.91, "jsr": 47.08}, {"ym": "2025-04", "sale": 52591.3, "sale_pct": -0.06, "jeonse": 23086.9, "jeonse_pct": -0.03, "pir": 8.52, "jpir": 3.74, "jsr": 47.11}, {"ym": "2025-05", "sale": 53399.3, "sale_pct": 1.54, "jeonse": 23137.8, "jeonse_pct": 0.22, "pir": 8.65, "jpir": 3.75, "jsr": 46.55}, {"ym": "2025-06", "sale": 54181.6, "sale_pct": 1.47, "jeonse": 23264.0, "jeonse_pct": 0.55, "pir": 8.78, "jpir": 3.77, "jsr": 46.17}, {"ym": "2025-07", "sale": 54261.5, "sale_pct": 0.15, "jeonse": 23320.0, "jeonse_pct": 0.24, "pir": 9.04, "jpir": 3.89, "jsr": 46.23}, {"ym": "2025-08", "sale": 54356.7, "sale_pct": 0.18, "jeonse": 23397.3, "jeonse_pct": 0.33, "pir": 9.06, "jpir": 3.9, "jsr": 46.31}, {"ym": "2025-09", "sale": 54448.1, "sale_pct": 0.17, "jeonse": 23540.6, "jeonse_pct": 0.61, "pir": 9.07, "jpir": 3.92, "jsr": 46.48}, {"ym": "2025-10", "sale": 54528.8, "sale_pct": 0.15, "jeonse": 23670.2, "jeonse_pct": 0.55, "pir": 8.55, "jpir": 3.71, "jsr": 46.61}, {"ym": "2025-11", "sale": 54613.8, "sale_pct": 0.16, "jeonse": 23944.8, "jeonse_pct": 1.16, "pir": 8.56, "jpir": 3.75, "jsr": 47.06}, {"ym": "2025-12", "sale": 54866.7, "sale_pct": 0.46, "jeonse": 24748.9, "jeonse_pct": 3.36, "pir": 8.6, "jpir": 3.88, "jsr": 48.3}, {"ym": "2026-01", "sale": 55079.8, "sale_pct": 0.39, "jeonse": 25102.7, "jeonse_pct": 1.43, "pir": 8.44, "jpir": 3.85, "jsr": 48.78}], "avg": {"pir": 9.89, "jpir": 4.56, "jsr": 48.15}, "sale_forecast": [["2021-01", 114.29], ["2021-02", 108.62], ["2021-03", 94.83], ["2021-04", 94.64], ["2021-05", 100.0], ["2021-06", 87.5], ["2021-07", 78.57], ["2021-08", 103.7], ["2021-09", 100.0], ["2021-10", 82.0], ["2021-11", 75.0], ["2021-12", 64.29], ["2022-01", 62.96], ["2022-02", 80.36], ["2022-03", 72.22], ["2022-04", 79.63], ["2022-05", 73.21], ["2022-06", 72.22], ["2022-07", 61.11], ["2022-08", 69.64], ["2022-09", 62.96], ["2022-10", 61.67], ["2022-11", 70.37], ["2022-12", 70.59], ["2023-01", 78.26], ["2023-02", 100.0], ["2023-03", 104.81], ["2023-04", 105.88], ["2023-05", 102.83], ["2023-06", 109.8], ["2023-07", 109.26], ["2023-08", 103.57], ["2023-09", 108.33], ["2023-10", 107.14], ["2023-11", 83.96], ["2023-12", 74.51], ["2024-01", 78.43], ["2024-02", 78.85], ["2024-03", 74.04], ["2024-04", 86.27], ["2024-05", 86.0], ["2024-06", 87.76], ["2024-07", 91.35], ["2024-08", 96.36], ["2024-09", 97.32], ["2024-10", 96.23], ["2024-11", 87.25], ["2024-12", 81.73], ["2025-01", 76.36], ["2025-02", 86.21], ["2025-03", 106.14], ["2025-04", 140.48], ["2025-05", 126.27], ["2025-06", 102.63], ["2025-07", 87.7], ["2025-08", 90.52], ["2025-09", 100.83], ["2025-10", 114.62], ["2025-11", 108.06], ["2025-12", 112.5], ["2026-01", 123.77], ["2026-02", 113.33], ["2026-03", 95.61], ["2026-04", 89.17], ["2026-05", 92.31]], "jeonse_forecast": [["2021-01", 108.93], ["2021-02", 105.17], ["2021-03", 87.93], ["2021-04", 92.86], ["2021-05", 91.07], ["2021-06", 98.21], ["2021-07", 92.86], ["2021-08", 114.81], ["2021-09", 111.11], ["2021-10", 98.0], ["2021-11", 82.69], ["2021-12", 73.21], ["2022-01", 70.37], ["2022-02", 87.5], ["2022-03", 74.07], ["2022-04", 81.48], ["2022-05", 76.79], ["2022-06", 88.89], ["2022-07", 74.07], ["2022-08", 85.71], ["2022-09", 81.48], ["2022-10", 73.33], ["2022-11", 75.93], ["2022-12", 78.43], ["2023-01", 85.87], ["2023-02", 88.68], ["2023-03", 100.0], ["2023-04", 97.06], ["2023-05", 104.72], ["2023-06", 113.73], ["2023-07", 120.37], ["2023-08", 116.67], ["2023-09", 116.67], ["2023-10", 117.35], ["2023-11", 95.28], ["2023-12", 89.22], ["2024-01", 90.2], ["2024-02", 80.77], ["2024-03", 79.81], ["2024-04", 82.35], ["2024-05", 90.0], ["2024-06", 88.78], ["2024-07", 95.19], ["2024-08", 96.36], ["2024-09", 103.57], ["2024-10", 104.72], ["2024-11", 101.96], ["2024-12", 104.81], ["2025-01", 98.18], ["2025-02", 97.41], ["2025-03", 103.51], ["2025-04", 123.02], ["2025-05", 120.34], ["2025-06", 111.4], ["2025-07", 109.84], ["2025-08", 122.41], ["2025-09", 125.83], ["2025-10", 130.77], ["2025-11", 131.45], ["2025-12", 132.5], ["2026-01", 131.97], ["2026-02", 125.83], ["2026-03", 107.89], ["2026-04", 110.83], ["2026-05", 116.15]]};
+
+/* ===== 유틸 ===== */
+/* gviz JSONP 로더: file://로 열어도 CORS 제약 없이 시트 데이터를 가져온다 */
+let __gvN=0;
+function gvizFetchLive(sheet){
+  return new Promise((resolve,reject)=>{
+    const cb='__gvCb'+(++__gvN);
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}`
+      +`&headers=0${sheet?`&sheet=${encodeURIComponent(sheet)}`:''}&t=${Date.now()}`;
+    const s=document.createElement('script');
+    const timer=setTimeout(()=>{ cleanup(); reject(new Error('timeout')); }, 12000);
+    function cleanup(){ clearTimeout(timer); delete window[cb]; s.remove(); }
+    window[cb]=resp=>{
+      cleanup();
+      if(!resp||resp.status==='error'||!resp.table) return reject(new Error('gviz error'));
+      const rows=resp.table.rows.map(r=>(r.c||[]).map(c=>c==null?'':(c.f!=null?c.f:(c.v==null?'':c.v))));
+      resolve(rows);
+    };
+    s.onerror=()=>{ cleanup(); reject(new Error('script load fail')); };
+    s.src=url;
+    document.head.appendChild(s);
+  });
+}
+
+/* gviz: 헤더 라벨 + 데이터행을 함께 가져오는 변형 (headers=0 미사용) */
+function gvizTableLive(sheet){
+  return new Promise((resolve,reject)=>{
+    const cb='__gvT'+(++__gvN);
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}`
+      +`&sheet=${encodeURIComponent(sheet)}&t=${Date.now()}`;
+    const s=document.createElement('script');
+    const timer=setTimeout(()=>{ cleanup(); reject(new Error('timeout')); }, 12000);
+    function cleanup(){ clearTimeout(timer); delete window[cb]; s.remove(); }
+    window[cb]=resp=>{
+      cleanup();
+      if(!resp||resp.status==='error'||!resp.table) return reject(new Error('gviz error'));
+      const labels=resp.table.cols.map(c=>(c.label!=null?c.label:'').trim());
+      const rows=resp.table.rows.map(r=>(r.c||[]).map(c=>c==null?'':(c.f!=null?c.f:(c.v==null?'':c.v))));
+      resolve({labels, rows});
+    };
+    s.onerror=()=>{ cleanup(); reject(new Error('script load fail')); };
+    s.src=url;
+    document.head.appendChild(s);
+  });
+}
+
+/* data.json이 있으면 그걸, 없으면 위 Live 함수(구글시트)로 폴백 */
+async function gvizFetch(sheet){
+  await DATA_READY;
+  const key = sheet || 'main';
+  if(DATA_JSON && DATA_JSON[key]) return DATA_JSON[key];
+  return gvizFetchLive(sheet);
+}
+async function gvizTable(sheet){
+  await DATA_READY;
+  if(DATA_JSON && DATA_JSON[sheet]) return DATA_JSON[sheet];
+  return gvizTableLive(sheet);
+}
+
+/* ===== 국토부 실거래 신고 (오늘 내역 + 누적 신고량) ===== */
+const RURAL_RE = /[읍면]/;   // 읍·면 지역 제외(예: 조치원읍 남리)
+const wonMan = man => {
+  man = Math.round(Number(man) || 0);
+  const e = Math.floor(man / 10000), m = man - e * 10000;
+  return e > 0 ? (e + '억' + (m ? ' ' + m.toLocaleString() + '만' : '')) : (man.toLocaleString() + '만');
+};
+const parseYMD = s => { const m = String(s).match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+  return m ? `${m[1]}-${('0'+m[2]).slice(-2)}-${('0'+m[3]).slice(-2)}` : String(s); };
+
+function toggleHighs(btn){
+  const list=btn.parentElement.querySelector('.hmore-list');
+  if(!list) return;
+  const open=list.style.display==='none';
+  list.style.display=open?'flex':'none';
+  btn.innerHTML=(open?'접기':'더보기 '+list.children.length+'건')+' <i class="ti ti-chevron-'+(open?'up':'down')+'"></i>';
+}
+function renderHeroHighlights(nDong, nRural, highs, rise, period){
+  const el=document.getElementById('heroToday'); if(!el) return;
+  const tiles=[];
+  // 1) 오늘 신고 건수 — 동 지역 / 읍·면 / 합계
+  tiles.push(`<div class="hcard"><div class="hlabel"><i class="ti ti-file-text"></i>오늘 신고 건수</div>`
+    +`<div class="hsplit"><div>동 지역<b>${nDong.toLocaleString()}</b></div>`
+    +`<div>읍·면<b>${nRural.toLocaleString()}</b></div>`
+    +`<div>합계<b>${(nDong+nRural).toLocaleString()}</b></div></div></div>`);
+  // 2) 오늘의 신고가 — 금액을 크게
+  if(highs && highs.length){
+    const top=highs[0], rest=highs.slice(1);
+    let card=`<div class="hcard hi"><div class="hlabel">오늘의 신고가</div>`
+      +`<div class="hval">${wonMan(top.amt)}</div>`
+      +`<div class="hsub">${cleanApt(top.apt).replace(/마을/g,'')} ${Math.floor(top.area)}㎡${top.prev?` · <span class="hprev">직전 ${wonMan(top.prev)}</span>`:''}</div>`
+      +`<div class="hmore-head">기록기간${period?`(${period}개월)`:''} 내 최고가 경신${highs.length>1?` ${highs.length}건`:''}</div>`;
+    if(rest.length){
+      const lines=rest.map(d=>`<div class="hline">${cleanApt(d.apt).replace(/마을/g,'')} <span class="ha">${Math.floor(d.area)}㎡</span> · ${wonMan(d.amt)}${d.prev?` · <span class="hprev">직전 ${wonMan(d.prev)}</span>`:''}</div>`).join('');
+      card+=`<div class="hmore-list" style="display:none">${lines}</div>`
+        +`<button type="button" class="hmore-btn" onclick="toggleHighs(this)">신고가 더보기 ${rest.length}건 <i class="ti ti-chevron-down"></i></button>`;
+    }
+    tiles.push(card+`</div>`);
+  }else{
+    tiles.push(`<div class="hcard"><div class="hlabel">오늘의 신고가</div><div class="hval" style="font-size:18px;opacity:.85">오늘 없음</div></div>`);
+  }
+  // 3) 최대 상승률 — 상승률을 크게
+  if(rise){
+    tiles.push(`<div class="hcard up"><div class="hlabel">최대 상승률</div>`
+      +`<div class="hval">+${(rise.rise*100).toFixed(1)}%</div>`
+      +`<div class="hsub">${cleanApt(rise.apt)} ${Math.floor(rise.area)}㎡ · ${wonMan(rise.amt)} · 직전 평균比</div></div>`);
+  }else{
+    tiles.push(`<div class="hcard"><div class="hlabel">최대 상승률</div><div class="hval" style="font-size:18px;opacity:.85">해당 없음</div></div>`);
+  }
+  el.innerHTML=tiles.join('');
+}
+async function loadReports(){
+  // (1) 오늘 신고내역 (법정동 그룹 구분)
+  try{
+    const {labels, rows} = await gvizTable('(매일 자동) 오늘 신고내역');
+    const title = labels[0] || '';
+    const hi = rows.findIndex(r => String(r[0]).trim() === '법정동');
+    const isRural = s => RURAL_RE.test(String(s));
+    const data = (hi >= 0 ? rows.slice(hi + 1) : rows)
+      .filter(r => r[0])
+      .sort((a, b) => {
+        const ra = isRural(a[0]) ? 1 : 0, rb = isRural(b[0]) ? 1 : 0;
+        if (ra !== rb) return ra - rb;                         // 읍·면은 맨 뒤로
+        if (a[0] !== b[0]) return a[0] < b[0] ? -1 : 1;        // 법정동 ↑
+        if (a[1] !== b[1]) return a[1] < b[1] ? -1 : 1;        // 아파트 ↑
+        return (Number(a[4]) || 0) - (Number(b[4]) || 0);      // 전용면적 ↑
+      });
+    const nDong = data.filter(r => !isRural(r[0])).length;
+    const nRural = data.length - nDong;
+    const dt = (title.match(/\d{4}-\d{2}-\d{2}/) || [''])[0];
+    document.getElementById('repDesc').textContent =
+      `${dt ? dt + ' · ' : ''}동 지역 ${nDong}건${nRural ? ' · 읍·면 ' + nRural + '건' : ''} · 전용 50㎡ 이상`;
+
+    let cur = null, body = '';
+    data.forEach(r => {
+      const start = r[0] !== cur;                          // 법정동이 바뀌는 첫 행
+      if (start) cur = r[0];
+      const ru = isRural(r[0]);
+      body += `<tr class="${start ? 'gstart' : ''}">
+        <td class="l dong"${ru ? ' style="color:#94a3b8"' : ''}>${start ? r[0] : ''}</td>
+        <td class="l">${r[1]}</td>
+        <td>${r[3] || '-'}</td>
+        <td>${r[4] ? Number(r[4]).toFixed(1) : '-'}</td>
+        <td>${wonMan(r[5])}</td></tr>`;
+    });
+    document.getElementById('repTable').innerHTML =
+      `<thead><tr><th class="l">법정동</th><th class="l">아파트</th><th>층</th><th>전용㎡</th><th>거래금액</th></tr></thead>`
+      + `<tbody>${body || '<tr><td class="l">오늘 신규 신고 없음</td></tr>'}</tbody>`;
+
+    // ▼ 오늘의 주목 거래: 신고가 / 최대상승 ▼
+    try{
+      const hist = await gvizTable('(매일 자동) 실거래(매매)');
+      const normYM = s => { const m=String(s).match(/(\d{4})\D+(\d{1,2})/); return m?`${m[1]}-${('0'+m[2]).slice(-2)}`:String(s); };
+      const H={};
+      hist.rows.forEach(r=>{                       // r=[계약일,법정동,아파트,전용,동,층,거래금액]
+        const apt=r[2], area=Number(r[3])||0, amt=Number(r[6])||0;
+        if(!apt||!area||!amt) return;
+        const k=r[1]+'|'+apt+'|'+area.toFixed(2);
+        (H[k]=H[k]||[]).push({ym:normYM(r[0]), amt});
+      });
+      let highs=[], topRise=null;
+      data.forEach(r=>{                            // r=[법정동,아파트,동,층,전용,거래금액]
+        const area=Number(r[4])||0, amt=Number(r[5])||0;
+        if(!area||!amt) return;
+        const arr=H[r[0]+'|'+r[1]+'|'+area.toFixed(2)];
+        if(!arr||!arr.length) return;
+        const maxAmt=Math.max.apply(null,arr.map(d=>d.amt));
+        if(amt>=maxAmt){
+          const below=arr.map(d=>d.amt).filter(a=>a<amt);
+          const prev=below.length?Math.max.apply(null,below):null;
+          highs.push({apt:r[1],area,amt,prev});
+        }
+        const months=[...new Set(arr.map(d=>d.ym))].sort();
+        if(months.length>=2){
+          const lastM=months[months.length-1];
+          const prior=arr.filter(d=>d.ym<lastM);
+          if(prior.length>=2){
+            const avg=prior.reduce((s,d)=>s+d.amt,0)/prior.length;
+            const rise=amt/avg-1;
+            if(rise>0 && (!topRise||rise>topRise.rise)) topRise={apt:r[1],area,amt,rise,n:prior.length};
+          }
+        }
+      });
+      highs.sort((a,b)=>b.amt-a.amt);
+      const _ym=hist.rows.map(r=>normYM(r[0])).filter(v=>/^\d{4}-\d{2}$/.test(v)).sort();
+      let periodMonths=0;
+      if(_ym.length){const a=_ym[0],b=_ym[_ym.length-1];periodMonths=(+b.slice(0,4)-+a.slice(0,4))*12+(+b.slice(5,7)-+a.slice(5,7))+1;}
+      renderHeroHighlights(nDong, nRural, highs, topRise, periodMonths);
+    }catch(e2){
+      renderHeroHighlights(nDong, nRural, [], null, 0);
+    }
+  }catch(e){
+    document.getElementById('repTable').innerHTML = '<tbody><tr><td class="l">신고내역을 불러오지 못했습니다.</td></tr></tbody>';
+  }
+
+  // (2) 누적 신고량 추이 (차트 + 도표)
+  try{
+    const {labels, rows} = await gvizTable('(매일 자동) 국토부 실거래 자료');
+    const cols   = labels.map((lb, i) => ({lb, i})).filter(o => o.i > 0);
+    const dongC  = cols.filter(o => !RURAL_RE.test(o.lb)).sort((a, b) => a.lb < b.lb ? -1 : 1);
+    const ruralC = cols.filter(o =>  RURAL_RE.test(o.lb)).sort((a, b) => a.lb < b.lb ? -1 : 1);
+    const ordered = dongC.concat(ruralC);
+
+    const drows = rows.filter(r => /\d{4}\D+\d{1,2}\D+\d{1,2}/.test(String(r[0])));
+
+    // --- 차트용 시계열(동 지역 합계, 오름차순) ---
+    const series = drows.map(r => ({ ymd: parseYMD(r[0]),
+        total: dongC.reduce((s, o) => s + (Number(r[o.i]) || 0), 0),
+        rural: ruralC.reduce((s, o) => s + (Number(r[o.i]) || 0), 0) }))
+      .sort((a, b) => a.ymd < b.ymd ? -1 : 1);
+    const dongSum = series.reduce((s, d) => s + d.total, 0);
+    const ruralSum = series.reduce((s, d) => s + d.rural, 0);
+    document.getElementById('volMeta').textContent =
+      series.length ? `${series.length}일 기록 · 동 지역 ${dongSum.toLocaleString()}건${ruralSum ? ' · 읍·면 ' + ruralSum.toLocaleString() + '건' : ''}`
+                    : '아직 기록된 신고가 없습니다.';
+
+    const L = series.map(d => d.ymd);
+    new Chart(document.getElementById('volChart'), {
+      data:{ labels:L, datasets:[
+        { type:'bar', label:'읍·면', data:series.map(d=>d.rural),
+          backgroundColor:'#16c79a', stack:'day', order:2 },
+        { type:'bar', label:'동 지역', data:series.map(d=>d.total),
+          backgroundColor:'#5b6cff', stack:'day', borderRadius:5, order:1 }]},
+      options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
+        plugins:{legend:{labels:{usePointStyle:true, boxWidth:16}},
+          tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${(c.parsed.y ?? 0).toLocaleString()}건`}}},
+        scales:{ x:{stacked:true, grid:{display:false}, ticks:{maxRotation:0, autoSkip:true}},
+          y:{stacked:true, grid:{color:'#edf0f6'}, beginAtZero:true, ticks:{precision:0}}}}});
+
+    // --- 도표(신고일 × 법정동, 최신이 위로) ---
+    const sorted = drows.slice().sort((a, b) => parseYMD(a[0]) < parseYMD(b[0]) ? 1 : -1);
+    let thtml = '<thead><tr><th class="l">신고일</th>'
+      + ordered.map(o => `<th${RURAL_RE.test(o.lb) ? ' style="color:#94a3b8"' : ''}>${o.lb}</th>`).join('')
+      + '<th>동합계</th><th>전체합계</th></tr></thead><tbody>';
+    sorted.forEach(r => {
+      const dongSum = dongC.reduce((s, o) => s + (Number(r[o.i]) || 0), 0);
+      const ruralSumR = ruralC.reduce((s, o) => s + (Number(r[o.i]) || 0), 0);
+      thtml += `<tr><td class="l">${parseYMD(r[0])}</td>`
+        + ordered.map(o => { const v = Number(r[o.i]) || 0; return `<td>${v || ''}</td>`; }).join('')
+        + `<td style="font-weight:700">${dongSum}</td>`
+        + `<td style="font-weight:700;color:#5b6cff">${dongSum + ruralSumR}</td></tr>`;
+    });
+    thtml += '</tbody>';
+    document.getElementById('volTable').innerHTML = `<table class="dtable">${thtml}</table>`;
+  }catch(e){
+    document.getElementById('volMeta').textContent = '누적 신고량을 불러오지 못했습니다.';
+  }
+}
+
+loadReports();
+
+function parseCSV(t){
+  const rows=[]; let row=[],cur='',q=false;
+  for(let i=0;i<t.length;i++){const c=t[i];
+    if(q){ if(c==='"'){ if(t[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else{ if(c==='"')q=true;
+      else if(c===','){row.push(cur);cur='';}
+      else if(c==='\n'){row.push(cur);rows.push(row);row=[];cur='';}
+      else if(c!=='\r')cur+=c; } }
+  if(cur!==''||row.length){row.push(cur);rows.push(row);}
+  return rows;
+}
+const num = s => { if(s==null) return null;
+  s=String(s).replace(/[",%\s]/g,''); return s===''?null:(isNaN(+s)?null:+s); };
+const parseYM = s => { const m=String(s).match(/(\d{4})[.\-\/\s]+(\d{1,2})/);
+  return m?`${m[1]}-${String(+m[2]).padStart(2,'0')}`:null; };
+
+/* ===== 시트 파싱 (★PIR 구조: 연도|월|매매|상승률|전세|상승률|중위소득|PIR|J-PIR|전세가율) ===== */
+function parseMain(rows){
+  const series=[]; let avg=null, year=null;
+  const mRe=/^(\d{1,2})월$/;
+  for(const r of rows){
+    const y=parseInt(String(r[0]).replace(/\D/g,''));
+    if(!isNaN(y)&&y>1900) year=y;
+    const c1=String(r[1]||'').trim();
+    if(c1==='평균'){ avg={pir:num(r[7]),jpir:num(r[8]),jsr:num(r[9])}; continue; }
+    const m=c1.match(mRe);
+    if(!m||year===null) continue;
+    const sale=num(r[2]); if(sale===null) continue;
+    series.push({ym:`${year}-${String(+m[1]).padStart(2,'0')}`,
+      sale, sale_pct:num(r[3]), jeonse:num(r[4]), jeonse_pct:num(r[5]),
+      pir:num(r[7]), jpir:num(r[8]), jsr:num(r[9]),
+      buy:[r[10],r[11],r[12]].every(v=>String(v||'').trim().toUpperCase()==='Y')});
+  }
+  if(!avg && series.length){
+    const mean=k=>+(series.reduce((a,d)=>a+(d[k]??0),0)/series.length).toFixed(2);
+    avg={pir:mean('pir'),jpir:mean('jpir'),jsr:mean('jsr')};
+  }
+  return {series, avg, sale_forecast:[], jeonse_forecast:[]};
+}
+function parseForecast(rows){
+  /* A열: '17.1'/'2024.1'(연.월) 또는 '2'~'12'(월만), 1월이 빈 칸으로 올 수도 있음 */
+  const arr=[];
+  for(const r of rows){
+    const s=num(r[1]), j=num(r[2]);
+    if(s===null && j===null) continue;          // 헤더·빈 행 제외
+    const a=String(r[0]||'').trim();
+    let month=null, year=null;
+    let m;
+    if((m=a.match(/^(\d{2}|\d{4})\.(\d{1,2})$/))){ year=+m[1]<100?2000+ +m[1]:+m[1]; month=+m[2]; }
+    else if((m=a.match(/^(\d{4})[-\/\s]+(\d{1,2})$/))){ year=+m[1]; month=+m[2]; }
+    else if(/^\d{1,2}$/.test(a) && +a>=1 && +a<=12){ month=+a; }
+    else if(a===''){ month=1; }                 // 연도 셀이 비면 1월로 간주
+    else continue;
+    arr.push({month, year, s, j});
+  }
+  const anchor=arr.findIndex(r=>r.year!==null);
+  if(anchor<0) return {sale:[],jeonse:[]};
+  let y=arr[anchor].year;
+  for(let i=anchor+1;i<arr.length;i++){
+    if(arr[i].year!==null) y=arr[i].year;
+    else if(arr[i].month===1) y++;
+    arr[i].year=y;
+  }
+  y=arr[anchor].year;
+  for(let i=anchor-1;i>=0;i--){
+    if(arr[i+1].month===1) y--;
+    if(arr[i].year!==null) y=arr[i].year; else arr[i].year=y;
+  }
+  const sale=[],jeonse=[];
+  for(const r of arr){
+    const ym=`${r.year}-${String(r.month).padStart(2,'0')}`;
+    if(r.s!==null) sale.push([ym,r.s]);
+    if(r.j!==null) jeonse.push([ym,r.j]);
+  }
+  return {sale,jeonse};
+}
+
+/* ===== 데이터 로드 ===== */
+async function loadData(){
+  let data, src;
+  try{
+    data=parseMain(await gvizFetch());
+    if(!data.series.length) throw new Error('no rows');
+    src='구글 시트 연동됨 (새로고침 시 자동 갱신)';
+  }catch(e){
+    data=FALLBACK; src='구글 시트 연결 실패 — 내장 데이터를 표시 중';
+  }
+  render(data);
+}
+
+/* ===== 렌더링 ===== */
+Chart.defaults.font.family="'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif";
+Chart.defaults.color='#8a93a8';
+const gridStyle={color:'#edf0f6'};
+const baseOpts={responsive:true, maintainAspectRatio:false,
+  interaction:{mode:'index', intersect:false},
+  plugins:{legend:{labels:{usePointStyle:true, pointStyle:'line', boxWidth:24}}},
+  elements:{point:{radius:0, hoverRadius:4}, line:{borderWidth:2, tension:.25}}};
+const yearTicks=lbls=>({callback:(v,i)=>lbls[i].endsWith('-01')?lbls[i].slice(0,4):null,
+  maxRotation:0, autoSkip:false});
+const avgLine=(val,color,lbls)=>({label:'장기평균 '+val, data:lbls.map(()=>val),
+  borderColor:color, borderDash:[6,5], borderWidth:1.5, pointRadius:0, fill:false});
+const bandPlugin={id:'buyBands',
+  beforeDatasetsDraw(chart){
+    const cfg=chart.options.plugins.buyBands;
+    if(!cfg||!cfg.bands||!cfg.bands.length) return;
+    const {ctx, chartArea, scales:{x}}=chart;
+    ctx.save();
+    for(const [a,b] of cfg.bands){
+      const x0=Math.max(chartArea.left, x.getPixelForValue(a-0.5));
+      const x1=Math.min(chartArea.right, x.getPixelForValue(b+0.5));
+      const g=ctx.createLinearGradient(0,chartArea.top,0,chartArea.bottom);
+      g.addColorStop(0,'rgba(16,185,129,.20)');
+      g.addColorStop(1,'rgba(16,185,129,.04)');
+      ctx.fillStyle=g;
+      ctx.fillRect(x0,chartArea.top,x1-x0,chartArea.bottom-chartArea.top);
+    }
+    ctx.restore();
+  }};
+
+/* ----- 기간 토글 공통 ----- */
+const charts={};
+function plot(id,cfg){ if(charts[id]) charts[id].destroy(); charts[id]=new Chart(document.getElementById(id),cfg); }
+const lastM=(arr,m)=>m>0?arr.slice(-m):arr;
+const xt=l=>l.length<=14?{maxRotation:0, autoSkip:true}:yearTicks(l);
+const RANGES=[['전체',0],['3년',36],['1년',12],['6개월',6],['3개월',3]];
+function addToggle(canvasId, draw, def=0){
+  const card=document.getElementById(canvasId).closest('.card');
+  const ex=card.querySelector('.toggle'); if(ex) ex.remove();
+  const div=document.createElement('div'); div.className='toggle';
+  div.innerHTML=RANGES.map(([t,m])=>`<button data-m="${m}"${m===def?' class="on"':''}>${t}</button>`).join('');
+  card.insertBefore(div, card.querySelector('.chart-box'));
+  div.addEventListener('click',e=>{
+    if(e.target.tagName!=='BUTTON') return;
+    div.querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+    e.target.classList.add('on');
+    draw(+e.target.dataset.m);
+  });
+  draw(def);
+}
+
+function render(DATA){
+  const S=DATA.series;
+  const last=S[S.length-1];
+  const fmtEok=v=>(v/10000).toFixed(2)+'억';
+  const fmtPrice=v=>{const e=Math.floor(v/10000);const man=Math.round(v-e*10000);
+    return `${e}억 ${man.toLocaleString()}만`;};
+  const fmtPct=v=>v==null?'-':(v>0?'+':'')+v.toFixed(2)+'%';
+  const [yy,mm]=last.ym.split('-');
+
+  // 전세가율 장기평균은 신도시 거래 본격화(2017-09) 이후 구간으로 직접 계산
+  const jsrValid=S.filter(d=>d.ym>='2017-09' && d.jsr!=null);
+  if(jsrValid.length) DATA.avg.jsr=+(jsrValid.reduce((a,d)=>a+d.jsr,0)/jsrValid.length).toFixed(2);
+  S.forEach(d=>{ if(d.buy===undefined)
+    d.buy=(d.pir<DATA.avg.pir && d.jpir<DATA.avg.jpir && d.jsr>DATA.avg.jsr); });
+  const bandsOf=s=>{
+    const b=[]; let st=null;
+    s.forEach((d,i)=>{
+      if(d.buy && st===null) st=i;
+      if(st!==null && (!d.buy || i===s.length-1)){ b.push([st, d.buy?i:i-1]); st=null; }
+    });
+    return b;
+  };
+
+
+  // PIR·J-PIR 현재 위치 배지 — 장기평균=허리 기준, 최저=발, 최고=머리
+  const posColors={'발':'#15803d','무릎':'#65a30d','허리':'#d97706','어깨':'#ea580c','머리':'#dc2626'};
+  const setPos=(elId,key,avg)=>{
+    const arr=S.map(d=>d[key]).filter(v=>v!=null);
+    const cur=last[key], min=Math.min(...arr), max=Math.max(...arr);
+    let zone;
+    if(cur<=avg){
+      const t=(avg-cur)/Math.max(avg-min,1e-9);   // 0=평균, 1=역대 최저
+      zone=t<=0.15?'허리':t<=0.7?'무릎':'발';
+    }else{
+      const t=(cur-avg)/Math.max(max-avg,1e-9);   // 0=평균, 1=역대 최고
+      zone=t<=0.15?'허리':t<=0.7?'어깨':'머리';
+    }
+    const c=posColors[zone];
+    const diff=(cur/avg-1)*100;
+    document.getElementById(elId).innerHTML=
+      `<span style="display:inline-block;background:${c}18;color:${c};border:1px solid ${c}55;border-radius:99px;padding:1px 10px;font-size:12px;font-weight:700;vertical-align:1px">${zone} 구간 · 평균 대비 ${diff>0?'+':''}${diff.toFixed(1)}%</span>`;
+  };
+  setPos('pirPos','pir',DATA.avg.pir);
+  setPos('jpirPos','jpir',DATA.avg.jpir);
+
+  const kpis=[
+    {label:'평균 매매가격', value:fmtPrice(last.sale), delta:fmtPct(last.sale_pct)+' (전월比)', cls:(last.sale_pct??0)>=0?'up':'down', ref:''},
+    {label:'평균 전세가격', value:fmtPrice(last.jeonse), delta:fmtPct(last.jeonse_pct)+' (전월比)', cls:(last.jeonse_pct??0)>=0?'up':'down', ref:''},
+    {label:'PIR', value:last.pir.toFixed(2), delta:last.pir<DATA.avg.pir?'평균 하회':'평균 상회', cls:last.pir<DATA.avg.pir?'down':'up', ref:'장기평균 '+DATA.avg.pir},
+    {label:'J-PIR', value:last.jpir.toFixed(2), delta:last.jpir<DATA.avg.jpir?'평균 하회':'평균 상회', cls:last.jpir<DATA.avg.jpir?'down':'up', ref:'장기평균 '+DATA.avg.jpir},
+    {label:'전세가율', value:last.jsr.toFixed(1)+'%', delta:last.jsr>DATA.avg.jsr?'평균 상회':'평균 하회', cls:last.jsr>DATA.avg.jsr?'up':'down', ref:'장기평균 '+DATA.avg.jsr+'%'},
+  ];
+  document.getElementById('kpis').innerHTML=kpis.map(k=>
+    `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div>
+     <div class="delta ${k.cls}">${k.delta}</div>${k.ref?`<div class="ref">${k.ref}</div>`:''}</div>`).join('');
+
+  /* 1. 가격 추이 */
+  addToggle('priceChart', m=>{
+    const s=lastM(S,m), l=s.map(d=>d.ym);
+    plot('priceChart',{
+      type:'line',
+      data:{labels:l, datasets:[
+        {label:'평균 매매가격', data:s.map(d=>d.sale), borderColor:'#5b6cff',
+         backgroundColor:'rgba(91,108,255,.08)', fill:true},
+        {label:'평균 전세가격', data:s.map(d=>d.jeonse), borderColor:'#16c79a',
+         backgroundColor:'rgba(22,199,176,.07)', fill:true}]},
+      options:{...baseOpts,
+        plugins:{...baseOpts.plugins, tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmtEok(c.parsed.y)} (${c.parsed.y.toLocaleString()}만)`}}},
+        scales:{x:{grid:{display:false}, ticks:xt(l)},
+                y:{grid:gridStyle, ticks:{callback:v=>(v/10000).toFixed(1)+'억'}}}}});
+  }, 0);
+
+  /* 2. 월별 상승률 */
+  addToggle('pctChart', m=>{
+    const s=lastM(S,m), l=s.map(d=>d.ym);
+    plot('pctChart',{
+      type:'bar',
+      data:{labels:l, datasets:[
+        {label:'매매 상승률(%)', data:s.map(d=>d.sale_pct), backgroundColor:'#5b6cff', borderRadius:4},
+        {label:'전세 상승률(%)', data:s.map(d=>d.jeonse_pct), backgroundColor:'#7fd8c6', borderRadius:4}]},
+      options:{...baseOpts, interaction:{mode:'index'},
+        plugins:{legend:{labels:{usePointStyle:true, pointStyle:'rect', boxWidth:14}}},
+        scales:{x:{grid:{display:false}, ticks:xt(l)},
+                y:{grid:gridStyle, ticks:{callback:v=>v+'%'}}}}});
+  }, 12);
+
+  /* 3. PIR / J-PIR (매수 적기 음영 포함) */
+  addToggle('pirChart', m=>{
+    const s=lastM(S,m), l=s.map(d=>d.ym);
+    plot('pirChart',{
+      type:'line', plugins:[bandPlugin],
+      data:{labels:l, datasets:[
+        {label:'PIR', data:s.map(d=>d.pir), borderColor:'#5b6cff'},
+        avgLine(DATA.avg.pir,'#ff8a5c',l)]},
+      options:{...baseOpts, plugins:{...baseOpts.plugins, buyBands:{bands:bandsOf(s)}},
+        scales:{x:{grid:{display:false}, ticks:xt(l)}, y:{grid:gridStyle}}}});
+  }, 0);
+  addToggle('jpirChart', m=>{
+    const s=lastM(S,m), l=s.map(d=>d.ym);
+    plot('jpirChart',{
+      type:'line', plugins:[bandPlugin],
+      data:{labels:l, datasets:[
+        {label:'J-PIR', data:s.map(d=>d.jpir), borderColor:'#16c79a'},
+        avgLine(DATA.avg.jpir,'#ff8a5c',l)]},
+      options:{...baseOpts, plugins:{...baseOpts.plugins, buyBands:{bands:bandsOf(s)}},
+        scales:{x:{grid:{display:false}, ticks:xt(l)}, y:{grid:gridStyle}}}});
+  }, 0);
+
+  /* 4. 전세가율 (2017-09부터: 신도시 구축·거래 본격화 시점) */
+  const jsrBase=S.filter(d=>d.ym>='2017-09');
+  addToggle('jsrChart', m=>{
+    const s=lastM(jsrBase,m), l=s.map(d=>d.ym);
+    plot('jsrChart',{
+      type:'line',
+      data:{labels:l, datasets:[
+        {label:'전세가율(%)', data:s.map(d=>d.jsr), borderColor:'#a06bff',
+         backgroundColor:'rgba(160,107,255,.07)', fill:true},
+        avgLine(DATA.avg.jsr,'#ff8a5c',l)]},
+      options:{...baseOpts, scales:{x:{grid:{display:false}, ticks:xt(l)},
+        y:{grid:gridStyle, ticks:{callback:v=>v+'%'}}}}});
+  }, 0);
+
+}
+
+/* ===== 메뉴 탭 전환 ===== */
+function showTab(name){
+  document.querySelectorAll('.tabpage').forEach(p=>p.classList.toggle('active', p.id==='page-'+name));
+  document.querySelectorAll('.topnav .navlinks a').forEach(a=>a.classList.toggle('on', a.dataset.tab===name));
+  window.scrollTo(0,0);
+  setTimeout(()=>{
+    window.dispatchEvent(new Event('resize'));
+    try{ Object.keys(charts).forEach(k=>{ if(charts[k]) charts[k].resize(); }); }catch(e){}
+  }, 70);
+}
+document.querySelectorAll('.topnav .navlinks a').forEach(a=>{
+  a.addEventListener('click', e=>{ e.preventDefault(); showTab(a.dataset.tab); });
+});
+
+loadData();
+
+/* ===== 급지 구분표 ===== */
+const TIER_SHEET='(매월) 전국 m2당 매매가격';
+const TIER_COLS=[[4, "서울 강북구"], [5, "서울 광진구"], [6, "서울 노원구"], [7, "서울 도봉구"], [8, "서울 동대문구"], [9, "서울 마포구"], [10, "서울 서대문구"], [11, "서울 성동구"], [12, "서울 성북구"], [13, "서울 용산구"], [14, "서울 은평구"], [15, "서울 종로구"], [16, "서울 중구"], [17, "서울 중랑구"], [19, "서울 강남구"], [20, "서울 강동구"], [21, "서울 강서구"], [22, "서울 관악구"], [23, "서울 구로구"], [24, "서울 금천구"], [25, "서울 동작구"], [26, "서울 서초구"], [27, "서울 송파구"], [28, "서울 양천구"], [29, "서울 영등포구"], [32, "부산 중구"], [33, "부산 서구"], [34, "부산 동구"], [35, "부산 영도구"], [36, "부산 부산진구"], [37, "부산 동래구"], [38, "부산 남구"], [39, "부산 북구"], [40, "부산 해운대구"], [41, "부산 사하구"], [42, "부산 금정구"], [43, "부산 연제구"], [44, "부산 수영구"], [45, "부산 사상구"], [46, "부산 기장군"], [47, "부산 강서구"], [49, "대구 중구"], [50, "대구 동구"], [51, "대구 서구"], [52, "대구 남구"], [53, "대구 북구"], [54, "대구 수성구"], [55, "대구 달서구"], [56, "대구 달성군"], [58, "인천 중구"], [59, "인천 동구"], [60, "인천 미추홀구"], [61, "인천 연수구"], [62, "인천 남동구"], [63, "인천 부평구"], [64, "인천 계양구"], [65, "인천 서구"], [67, "광주 동구"], [68, "광주 서구"], [69, "광주 남구"], [70, "광주 북구"], [71, "광주 광산구"], [73, "대전 동구"], [74, "대전 중구"], [75, "대전 서구"], [76, "대전 유성구"], [77, "대전 대덕구"], [79, "울산 중구"], [80, "울산 남구"], [81, "울산 동구"], [82, "울산 북구"], [83, "울산 울주군"], [86, "세종시"], [89, "수원 장안구"], [90, "수원 권선구"], [91, "수원 팔달구"], [92, "수원 영통구"], [94, "성남 수정구"], [95, "성남 중원구"], [96, "성남 분당구"], [98, "고양 덕양구"], [99, "고양 일산동구"], [100, "고양 일산서구"], [102, "안양 만안구"], [103, "안양 동안구"], [105, "부천 원미구"], [106, "부천 소사구"], [107, "부천 오정구"], [108, "의정부시"], [109, "광명시"], [110, "평택시"], [112, "안산 단원구"], [113, "안산 상록구"], [114, "과천시"], [115, "구리시"], [116, "남양주시"], [118, "용인 처인구"], [119, "용인 기흥구"], [120, "용인 수지구"], [121, "시흥시"], [122, "군포시"], [123, "의왕시"], [124, "하남시"], [125, "오산시"], [126, "파주시"], [127, "이천시"], [128, "안성시"], [129, "김포시"], [130, "양주시"], [131, "동두천시"], [132, "광주시(경기)"], [134, "화성 만세구"], [135, "화성 효행구"], [136, "화성 병점구"], [137, "화성 동탄구"]];
+const TIER_FALLBACK={ym:'2026-05', vals:{"서울 강북구": 930.8, "서울 광진구": 2070.4, "서울 노원구": 1047.8, "서울 도봉구": 847.9, "서울 동대문구": 1443.4, "서울 마포구": 2169.5, "서울 서대문구": 1485.6, "서울 성동구": 2361.1, "서울 성북구": 1246.0, "서울 용산구": 2678.5, "서울 은평구": 1186.3, "서울 종로구": 1617.2, "서울 중구": 1795.8, "서울 중랑구": 945.4, "서울 강남구": 3718.6, "서울 강동구": 2004.0, "서울 강서구": 1385.9, "서울 관악구": 1209.9, "서울 구로구": 1073.8, "서울 금천구": 902.3, "서울 동작구": 1876.1, "서울 서초구": 3471.1, "서울 송파구": 2813.2, "서울 양천구": 2056.8, "서울 영등포구": 1822.8, "부산 중구": 268.7, "부산 서구": 461.3, "부산 동구": 583.3, "부산 영도구": 300.8, "부산 부산진구": 456.1, "부산 동래구": 654.0, "부산 남구": 562.6, "부산 북구": 394.3, "부산 해운대구": 630.6, "부산 사하구": 298.3, "부산 금정구": 471.2, "부산 연제구": 628.2, "부산 수영구": 840.7, "부산 사상구": 305.3, "부산 기장군": 395.4, "부산 강서구": 486.7, "대구 중구": 617.4, "대구 동구": 388.1, "대구 서구": 401.5, "대구 남구": 407.9, "대구 북구": 332.4, "대구 수성구": 593.6, "대구 달서구": 362.3, "대구 달성군": 305.7, "인천 중구": 445.1, "인천 동구": 353.9, "인천 미추홀구": 449.7, "인천 연수구": 678.3, "인천 남동구": 470.0, "인천 부평구": 551.9, "인천 계양구": 436.9, "인천 서구": 563.0, "광주 동구": 433.9, "광주 서구": 373.2, "광주 남구": 376.5, "광주 북구": 326.7, "광주 광산구": 361.1, "대전 동구": 362.2, "대전 중구": 398.8, "대전 서구": 479.7, "대전 유성구": 532.7, "대전 대덕구": 338.9, "울산 중구": 480.8, "울산 남구": 529.7, "울산 동구": 307.6, "울산 북구": 362.2, "울산 울주군": 327.8, "세종시": 674.0, "수원 장안구": 732.5, "수원 권선구": 613.3, "수원 팔달구": 868.1, "수원 영통구": 951.7, "성남 수정구": 1586.7, "성남 중원구": 1187.0, "성남 분당구": 1951.3, "고양 덕양구": 699.4, "고양 일산동구": 629.1, "고양 일산서구": 531.2, "안양 만안구": 808.3, "안양 동안구": 1170.7, "부천 원미구": 741.7, "부천 소사구": 674.8, "부천 오정구": 529.9, "의정부시": 490.6, "광명시": 1243.4, "평택시": 409.0, "안산 단원구": 662.1, "안산 상록구": 560.0, "과천시": 2776.7, "구리시": 980.8, "남양주시": 588.1, "용인 처인구": 541.0, "용인 기흥구": 688.3, "용인 수지구": 1048.5, "시흥시": 540.1, "군포시": 696.6, "의왕시": 893.7, "하남시": 1354.2, "오산시": 450.7, "파주시": 457.6, "이천시": 312.0, "안성시": 293.1, "김포시": 546.1, "양주시": 400.2, "동두천시": 243.2, "광주시(경기)": 534.8, "화성 만세구": 485.2, "화성 효행구": 489.1, "화성 병점구": 563.8, "화성 동탄구": 959.5}};
+const TIER_GROUPS=[
+  {title:'서울', col:1, startRow:1,
+   cuts:[3000,2000,1400,1000],
+   colors:['#9f1239','#be123c','#e11d48','#f43f5e','#fb7185'],
+   match:n=>n.startsWith('서울 ')},
+  {title:'수도권', col:2, startRow:3, special:true,
+   cuts:[2000,1400,1000,700,550,450,350],
+   colors:['#0f172a','#172554','#1e3a8a','#1d4ed8','#2563eb','#3b82f6','#60a5fa','#93c5fd'],
+   match:n=>!n.startsWith('서울 ') && !/^(부산|대구|광주|대전|울산) /.test(n) && n!=='세종시'},
+  {title:'광역시·세종', col:3, startRow:5,
+   cuts:[700,550,450,350],
+   colors:['#042f2e','#134e4a','#0f766e','#0d9488','#14b8a6'],
+   match:n=>/^(부산|대구|광주|대전|울산) /.test(n) || n==='세종시'},
+];
+
+function renderTiers(vals, ym){
+  const entries=Object.entries(vals).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length) return;
+  if(ym){
+    const [y,m]=ym.split('-');
+    document.getElementById('tierDesc').textContent=
+      `${y}년 ${+m}월 ㎡당 아파트 평균매매가격(전용면적, 만원) 기준 · 서울 / 수도권(경기·인천) / 광역시·세종 각 5급지`;
+  }
+  let out='';
+  for(const g of TIER_GROUPS){
+    const list=entries.filter(([n])=>g.match(n));
+    const nT=g.cuts.length+1, sp=!!g.special;   // 특급지 단 보유 여부
+    for(let ti=0;ti<nT;ti++){
+      const lo=ti<g.cuts.length?g.cuts[ti]:0;
+      const hi=ti===0?Infinity:g.cuts[ti-1];
+      const items=list.filter(([,v])=>v>=lo && v<hi);
+      if(!items.length) continue;
+      const rng=ti===0?`${lo.toLocaleString()}만 ~`
+        :ti===nT-1?`~ ${hi.toLocaleString()}만`
+        :`${lo.toLocaleString()} ~ ${hi.toLocaleString()}만`;
+      const c=g.colors[ti];
+      const tname=sp?(ti===0?'특급지':`${ti}급지`):`${ti+1}급지`;
+      const row=g.startRow+ti-(sp?1:0);
+      const chips=items.map(([n,v])=>
+        `<span class="chip${n==='세종시'?' sejong':''}">${n}<span class="v">${Math.round(v).toLocaleString()}</span></span>`).join('');
+      out+=`<div class="tier-block" style="--c:${g.col};--r:${row}">
+        <div class="tier-bhead" style="background:${c}14">
+          <span class="tn" style="color:${c}">${g.title} ${tname}</span>
+          <span class="rng" style="color:${c}">${rng}</span>
+        </div>
+        <div class="tier-bbody">${chips}</div>
+      </div>`;
+    }
+  }
+  document.getElementById('tierTable').innerHTML=`<div class="tier-grid">${out}</div>`;
+}
+
+function parseTier(rows){
+  const vals={}, series={}; let year=null, ym=null;
+  for(const r of rows){
+    const a=String(r[0]||'').trim();
+    let m, month=null;
+    if((m=a.match(/^(\d{2}|\d{4})\.(\d{1,2})$/))){ year=+m[1]<100?2000+ +m[1]:+m[1]; month=+m[2]; }
+    else if(/^\d{1,2}$/.test(a) && +a>=1 && +a<=12){ month=+a; }
+    else if(a===''){ month=1; }
+    const rowYm=(year!==null&&month!==null)?`${year}-${String(month).padStart(2,'0')}`:null;
+    let any=false;
+    for(const [i,n] of TIER_COLS){
+      const v=num(r[i]); if(v!==null){ vals[n]=v; any=true;
+        if(rowYm) (series[n]=series[n]||{})[rowYm]=v; }
+    }
+    if(any && rowYm) ym=rowYm;
+  }
+  return {vals, ym, series};
+}
+
+async function loadTiers(){
+  try{
+    const {vals,ym,series}=parseTier(await gvizFetch(TIER_SHEET));
+    if(!Object.keys(vals).length) throw new Error('no tier rows');
+    renderTiers(vals, ym);
+    renderHot(vals, series);
+  }catch(e){
+    renderTiers(TIER_FALLBACK.vals, TIER_FALLBACK.ym);
+    renderHot(TIER_FALLBACK.vals, {});
+  }
+}
+
+/* ===== 상급지 흐름 비교 (자동 선정) ===== */
+const TIER_HIST={"months":["2017-01","2017-02","2017-03","2017-04","2017-05","2017-06","2017-07","2017-08","2017-09","2017-10","2017-11","2017-12","2018-01","2018-02","2018-03","2018-04","2018-05","2018-06","2018-07","2018-08","2018-09","2018-10","2018-11","2018-12","2019-01","2019-02","2019-03","2019-04","2019-05","2019-06","2019-07","2019-08","2019-09","2019-10","2019-11","2019-12","2020-01","2020-02","2020-03","2020-04","2020-05","2020-06","2020-07","2020-08","2020-09","2020-10","2020-11","2020-12","2021-01","2021-02","2021-03","2021-04","2021-05","2021-06","2021-07","2021-08","2021-09","2021-10","2021-11","2021-12","2022-01","2022-02","2022-03","2022-04","2022-05","2022-06","2022-07","2022-08","2022-09","2022-10","2022-11","2022-12","2023-01","2023-02","2023-03","2023-04","2023-05","2023-06","2023-07","2023-08","2023-09","2023-10","2023-11","2023-12","2024-01","2024-02","2024-03","2024-04","2024-05","2024-06","2024-07","2024-08","2024-09","2024-10","2024-11","2024-12","2025-01","2025-02","2025-03","2025-04","2025-05","2025-06","2025-07","2025-08","2025-09","2025-10","2025-11","2025-12","2026-01","2026-02","2026-03","2026-04","2026-05"],"data":{"서울 강북구":[469.9,471.1,472.2,472.9,473.9,475.8,477.4,482.1,484.6,487.1,490.3,491.5,490.0,491.1,494.5,497.0,499.9,506.2,509.2,512.1,553.1,581.0,594.3,595.6,596.0,595.9,595.8,596.3,596.6,596.8,598.8,602.9,605.7,606.7,608.6,612.9,617.9,625.4,651.2,659.8,660.0,676.8,702.4,726.8,757.8,769.8,787.7,805.4,813.1,829.9,847.2,855.5,871.3,883.4,895.9,908.1,927.5,939.0,945.5,950.4,952.4,953.7,953.7,955.2,956.6,958.5,958.7,958.4,957.8,949.9,967.4,952.0,933.9,905.8,894.8,883.8,873.6,868.6,864.5,863.7,864.0,865.6,865.7,862.9,859.6,858.8,856.5,852.8,848.7,847.4,840.8,843.4,846.8,849.6,850.9,851.1,851.0,850.6,850.3,850.1,849.8,851.0,855.5,856.3,858.6,860.5,864.0,870.5,873.6,885.5,901.3,919.1,930.8],"서울 광진구":[703.1,703.6,706.6,708.6,714.7,728.6,733.9,751.8,759.0,771.9,793.2,805.7,825.4,838.6,870.3,882.0,885.8,893.8,902.9,913.5,945.0,965.1,972.7,976.2,975.9,977.8,977.4,977.1,980.1,980.6,993.6,1009.0,1026.2,1047.1,1079.5,1113.8,1121.9,1134.6,1160.3,1167.4,1168.9,1183.0,1217.5,1253.2,1291.2,1300.0,1316.2,1342.6,1355.2,1369.6,1384.6,1391.6,1399.4,1413.1,1439.0,1463.6,1490.0,1493.7,1515.9,1521.4,1524.6,1530.5,1531.8,1539.0,1544.1,1549.8,1552.2,1557.8,1554.0,1547.8,1614.1,1603.6,1576.2,1558.8,1529.9,1518.3,1506.9,1499.4,1499.0,1497.4,1500.3,1506.3,1508.7,1508.8,1509.1,1507.8,1506.8,1505.3,1504.7,1508.2,1519.1,1552.4,1571.2,1583.1,1591.2,1595.1,1596.3,1599.4,1606.2,1632.6,1645.8,1680.1,1728.1,1750.8,1779.5,1875.2,1954.1,1979.1,1994.8,2019.3,2046.4,2057.9,2070.4],"서울 노원구":[490.9,491.7,493.2,495.0,496.5,504.8,519.6,533.1,536.1,538.4,540.0,541.5,544.1,547.1,553.6,558.7,560.6,562.5,565.0,571.6,608.5,633.3,642.0,645.3,634.5,634.8,634.5,637.0,637.2,638.2,647.0,654.1,658.9,664.0,669.8,678.6,689.3,700.9,721.6,731.3,733.1,747.4,781.9,817.3,847.4,862.1,886.5,902.5,926.1,957.8,983.6,999.8,1020.3,1047.9,1065.3,1086.7,1112.0,1121.3,1124.7,1127.4,1129.6,1129.7,1129.6,1128.9,1128.1,1126.7,1126.6,1121.5,1115.4,1099.4,1115.1,1098.2,1068.3,1050.1,1026.9,1016.3,1006.0,1000.4,991.1,986.6,985.9,987.7,984.3,981.7,978.5,976.3,974.0,970.3,968.4,967.3,958.0,951.2,953.8,955.6,956.1,956.2,955.7,954.8,954.7,954.5,956.7,957.4,962.4,964.0,968.5,972.2,979.4,982.7,989.3,1004.2,1026.5,1037.0,1047.8],"서울 도봉구":[441.4,443.3,443.5,444.1,444.9,449.3,456.4,463.4,464.2,467.4,470.4,473.5,477.3,479.1,481.7,485.0,490.0,491.7,494.5,500.9,527.6,548.3,557.5,562.6,565.0,565.0,569.0,573.7,574.9,574.8,583.4,584.9,589.4,594.0,598.1,603.8,606.7,611.8,625.6,630.2,632.2,645.8,663.3,694.4,721.4,736.4,758.9,775.2,788.0,808.0,851.2,872.7,893.5,910.8,927.0,952.3,970.0,981.5,983.8,987.1,987.5,988.3,988.5,989.5,991.3,992.3,990.3,985.5,979.8,961.6,969.5,949.7,920.6,911.5,902.5,891.8,872.6,860.3,850.2,842.4,841.8,841.2,838.7,834.2,830.3,828.6,824.2,819.8,817.7,815.7,813.0,805.7,808.4,809.3,810.8,810.9,810.1,808.6,808.1,807.6,807.5,807.1,808.7,810.4,811.6,814.2,817.0,819.3,822.0,826.7,832.9,838.4,847.9],"서울 동대문구":[527.3,529.5,529.8,530.0,532.2,534.8,538.9,549.8,552.1,555.4,559.1,561.0,569.7,584.7,600.2,614.4,620.9,631.7,645.3,650.8,690.1,710.8,722.3,728.2,727.9,731.9,733.5,733.7,733.5,732.0,735.5,741.4,749.9,753.0,757.3,767.2,782.3,813.4,838.2,842.5,845.5,862.7,884.7,904.8,936.5,952.0,975.2,983.4,1005.6,1028.2,1044.7,1052.8,1061.4,1079.2,1092.0,1114.0,1144.2,1155.4,1165.4,1166.6,1172.3,1170.6,1169.9,1173.3,1173.3,1175.4,1172.6,1171.9,1169.7,1160.3,1198.8,1176.8,1146.0,1127.8,1113.9,1099.7,1086.6,1081.6,1076.9,1075.3,1078.2,1081.9,1081.3,1079.4,1083.7,1083.1,1081.6,1078.8,1077.9,1077.8,1088.1,1101.6,1112.2,1116.2,1118.6,1124.9,1127.2,1126.7,1140.8,1144.4,1147.2,1153.0,1164.3,1203.9,1213.5,1233.8,1263.7,1279.6,1295.2,1314.5,1356.1,1381.9,1443.4],"서울 마포구":[713.5,714.5,715.4,718.1,722.5,731.1,738.4,752.1,759.1,765.7,774.0,782.9,798.5,811.2,827.0,866.5,880.5,890.0,913.5,945.2,984.9,1002.4,1010.4,1013.0,1011.8,1011.1,1010.2,1011.1,1010.1,1010.7,1022.8,1035.2,1045.2,1058.8,1072.2,1096.4,1117.4,1124.2,1144.6,1152.7,1154.2,1172.7,1197.4,1217.9,1245.3,1257.0,1277.3,1295.0,1326.1,1355.8,1381.8,1395.0,1411.5,1433.3,1451.1,1477.6,1492.5,1503.0,1522.2,1524.1,1526.3,1528.3,1530.5,1533.7,1538.9,1544.0,1543.8,1542.2,1541.9,1536.8,1653.8,1629.3,1599.8,1581.3,1561.4,1542.0,1542.9,1542.0,1546.6,1553.1,1562.2,1566.5,1567.4,1567.4,1567.6,1566.6,1568.6,1570.5,1577.1,1584.2,1603.3,1629.5,1650.3,1659.8,1666.8,1687.4,1689.1,1702.7,1714.2,1740.3,1754.7,1786.8,1844.0,1867.5,1887.9,1951.6,2024.8,2041.9,2066.4,2101.7,2131.1,2149.4,2169.5],"서울 서대문구":[542.0,543.1,545.3,546.2,549.2,553.1,556.6,563.8,566.5,572.2,580.0,586.0,587.7,590.0,603.3,613.6,619.7,626.5,636.8,654.2,676.8,700.5,714.6,719.7,721.1,722.6,724.5,727.0,727.2,727.2,731.3,740.1,745.3,750.3,761.3,775.0,782.4,792.6,811.7,818.8,824.7,842.3,870.7,891.1,914.7,923.8,955.4,976.0,988.4,1004.4,1027.2,1038.7,1047.9,1061.3,1076.2,1088.7,1114.6,1124.1,1127.7,1133.2,1136.4,1136.5,1137.1,1137.8,1138.6,1136.5,1135.8,1134.3,1133.8,1129.4,1259.4,1242.5,1195.2,1162.3,1146.6,1134.4,1128.0,1125.0,1124.9,1123.3,1138.5,1141.1,1146.3,1149.2,1150.4,1148.8,1147.1,1147.9,1150.9,1156.1,1175.2,1187.6,1201.2,1206.8,1213.2,1217.3,1219.7,1224.0,1230.3,1235.3,1237.8,1254.5,1273.0,1290.7,1298.4,1318.7,1347.3,1357.9,1375.2,1413.1,1451.0,1469.4,1485.6],"서울 성동구":[687.0,689.6,692.5,694.4,697.5,714.9,725.8,739.2,746.1,759.1,770.7,783.8,814.5,838.7,874.4,894.5,898.9,905.3,909.4,921.4,971.1,986.7,992.3,1003.6,1009.8,1010.6,1014.0,1013.6,1014.6,1014.3,1027.0,1034.3,1048.1,1069.6,1081.9,1110.1,1132.4,1152.7,1179.2,1185.9,1186.5,1199.0,1229.9,1263.6,1304.1,1324.6,1347.7,1359.2,1398.2,1421.6,1436.6,1466.6,1476.8,1497.4,1506.5,1523.3,1567.0,1589.3,1600.4,1601.8,1610.2,1618.2,1621.3,1621.7,1622.8,1623.5,1623.7,1624.4,1623.6,1621.0,1771.2,1752.6,1712.6,1682.9,1647.4,1633.0,1621.8,1617.6,1613.1,1616.1,1624.3,1630.3,1634.8,1636.4,1635.2,1634.6,1634.4,1638.3,1642.0,1652.3,1678.2,1700.8,1723.1,1742.7,1751.8,1759.2,1762.4,1767.6,1784.6,1817.5,1840.1,1895.3,1960.8,1982.3,2011.1,2091.4,2170.8,2196.1,2218.4,2253.4,2307.1,2335.9,2361.1],"서울 성북구":[533.7,534.0,534.7,536.1,536.5,538.2,541.6,546.5,549.3,552.5,555.8,558.4,563.4,566.4,575.6,591.4,598.8,604.3,618.9,628.5,661.9,687.5,700.7,704.2,704.4,703.8,702.1,701.0,698.7,698.3,701.6,704.9,707.2,712.7,720.6,735.9,756.5,774.4,801.9,808.6,810.6,829.5,868.0,899.2,925.7,939.4,956.7,975.4,994.1,1009.6,1031.1,1040.5,1041.9,1055.2,1067.9,1084.9,1105.8,1116.6,1123.2,1124.2,1127.8,1126.9,1125.1,1126.2,1126.4,1125.6,1124.2,1120.1,1117.5,1108.4,1129.6,1111.7,1081.2,1068.4,1052.2,1036.6,1026.6,1021.6,1015.8,1012.0,1015.2,1016.4,1031.4,1029.2,1028.0,1027.2,1026.2,1025.3,1023.4,1024.2,1032.5,1043.2,1055.8,1064.6,1066.1,1069.2,1069.5,1068.5,1069.5,1071.1,1074.2,1078.5,1086.0,1087.8,1094.9,1106.2,1123.4,1132.5,1145.2,1164.2,1205.2,1227.7,1246.0],"서울 용산구":[891.7,892.5,893.7,897.3,907.5,925.2,939.0,962.5,969.4,976.8,983.5,992.6,1015.6,1035.4,1072.2,1100.6,1116.8,1130.6,1146.0,1171.0,1232.0,1246.0,1259.1,1261.1,1261.1,1262.2,1264.0,1267.2,1268.7,1270.7,1277.2,1283.7,1288.6,1300.8,1311.9,1338.8,1355.1,1369.8,1379.7,1382.3,1383.4,1387.1,1406.3,1430.8,1454.3,1466.4,1486.1,1493.9,1511.9,1531.4,1555.5,1570.6,1583.0,1604.9,1622.3,1659.8,1694.9,1712.3,1746.0,1764.2,1772.5,1779.3,1788.5,1793.4,1819.7,1845.7,1849.4,1850.2,1854.6,1851.8,2046.6,2037.3,2018.5,2012.2,2006.1,1999.5,1984.9,1972.3,1960.8,1958.8,1964.7,1972.3,2003.8,2010.4,2007.8,2007.3,2006.5,2011.5,2013.8,2023.2,2041.5,2057.0,2071.2,2082.4,2096.0,2134.5,2141.5,2148.5,2179.4,2231.8,2246.5,2296.8,2346.7,2389.0,2428.6,2461.6,2504.8,2564.1,2583.6,2606.0,2652.2,2663.5,2678.5],"서울 은평구":[505.2,505.9,507.3,509.4,510.3,513.4,515.6,518.0,520.2,520.9,524.9,525.3,527.8,530.9,537.0,542.6,548.3,553.5,557.1,566.0,583.2,606.4,614.5,619.7,620.7,621.4,621.5,626.6,627.4,628.4,629.9,632.4,639.2,646.1,653.0,662.4,669.5,676.8,688.0,696.3,698.9,708.3,722.0,743.5,775.4,784.3,810.3,836.0,853.2,863.7,874.0,879.5,883.5,901.9,914.6,933.1,956.7,966.7,974.2,983.0,984.0,984.1,984.2,984.4,986.0,986.9,987.4,988.2,987.7,985.4,1124.7,1106.0,1089.1,1075.9,1058.7,1050.4,1041.1,1038.3,1034.6,1027.5,1025.3,1024.9,1022.9,1021.0,1019.1,1017.2,1017.6,1017.0,1016.5,1043.0,1051.7,1057.8,1062.2,1064.9,1065.6,1069.1,1068.2,1067.7,1067.0,1072.2,1072.7,1077.2,1080.9,1082.6,1085.6,1089.7,1095.9,1103.4,1110.2,1138.3,1165.8,1176.6,1186.3],"서울 종로구":[659.7,663.1,664.1,667.3,671.0,676.7,678.7,683.1,686.4,691.2,692.9,698.4,703.9,705.4,720.3,724.5,730.0,737.6,740.5,745.3,763.1,777.3,788.7,792.9,782.6,782.7,787.1,800.2,806.2,806.8,811.0,812.4,826.2,830.7,840.1,845.3,849.8,857.6,865.0,867.6,873.6,881.2,888.4,907.6,938.6,945.5,956.2,970.6,981.9,999.0,1008.6,1031.5,1038.2,1044.6,1054.6,1063.2,1080.3,1090.2,1104.8,1113.3,1113.7,1113.7,1116.2,1119.5,1128.1,1133.2,1134.6,1134.2,1134.5,1136.2,1449.1,1447.5,1445.2,1442.4,1412.6,1382.5,1372.8,1375.0,1375.9,1378.5,1382.8,1384.6,1386.1,1386.3,1386.7,1386.2,1386.4,1389.1,1388.5,1392.1,1403.9,1410.6,1419.8,1420.4,1422.5,1424.2,1425.0,1425.6,1440.0,1472.7,1481.4,1495.5,1506.6,1511.3,1517.5,1522.4,1543.6,1555.5,1558.7,1572.0,1596.3,1603.5,1617.2],"서울 중구":[714.8,715.5,716.6,717.5,725.7,735.7,739.5,747.3,751.6,760.9,764.6,772.1,775.5,788.7,803.8,816.2,833.0,846.9,856.7,876.1,906.3,932.3,937.0,941.0,962.8,961.5,962.0,960.8,962.2,962.6,964.5,969.0,971.9,977.9,990.5,1003.0,1018.5,1025.5,1033.7,1036.7,1045.1,1060.9,1081.4,1116.7,1147.6,1160.6,1188.5,1209.1,1229.5,1262.3,1269.6,1282.0,1298.9,1310.4,1321.1,1326.7,1347.1,1355.7,1372.1,1378.1,1379.6,1379.6,1379.6,1381.1,1382.2,1383.0,1390.1,1389.8,1392.0,1389.0,1462.2,1433.6,1415.8,1405.8,1388.4,1378.4,1365.6,1359.9,1355.8,1355.5,1356.9,1358.6,1358.6,1359.8,1361.2,1359.0,1359.3,1356.2,1362.1,1366.6,1380.0,1401.2,1418.7,1424.6,1429.0,1435.4,1438.6,1439.5,1441.7,1458.7,1465.4,1493.6,1519.6,1527.5,1553.6,1583.8,1640.0,1690.2,1701.7,1720.9,1748.9,1758.2,1795.8],"서울 중랑구":[457.5,457.7,459.3,459.8,462.6,465.8,468.7,473.9,475.7,478.3,480.5,482.3,485.3,488.6,495.8,501.4,505.0,509.1,515.0,517.7,535.4,549.3,561.8,568.3,564.9,570.5,571.0,575.6,578.6,579.8,584.1,588.9,596.8,600.9,609.0,618.7,623.4,628.5,641.9,646.9,650.3,663.1,681.1,707.9,734.1,745.3,763.8,776.7,782.4,796.9,813.4,823.4,833.3,851.1,871.0,900.7,918.3,936.0,946.1,953.9,954.6,955.4,955.4,955.7,956.2,958.1,959.3,959.3,959.2,957.1,980.2,972.6,963.1,956.4,952.5,940.3,927.4,915.8,909.3,903.4,903.6,899.6,895.5,893.7,893.1,891.8,889.9,880.1,876.7,877.0,878.4,881.4,886.8,887.6,888.6,888.2,887.8,887.7,888.1,889.6,890.7,892.3,894.2,895.7,898.1,900.1,903.1,904.9,908.6,915.0,925.8,936.6,945.4],"서울 강남구":[1301.3,1303.4,1307.1,1312.0,1330.1,1364.6,1380.5,1418.7,1423.3,1438.9,1458.5,1498.1,1560.4,1608.5,1674.0,1710.1,1704.5,1710.2,1717.6,1744.3,1811.5,1825.4,1833.2,1831.9,1801.0,1790.9,1773.6,1759.8,1758.2,1770.4,1814.5,1853.1,1886.3,1916.4,1900.1,1950.2,1978.7,2002.0,2009.5,2003.8,1994.9,2010.5,2060.8,2097.5,2143.2,2169.8,2184.4,2216.0,2236.5,2266.4,2286.8,2300.0,2310.2,2334.8,2356.0,2388.9,2423.1,2449.6,2497.4,2513.4,2526.8,2532.1,2539.3,2549.5,2554.6,2564.6,2575.8,2574.6,2572.9,2556.8,2729.7,2704.9,2644.7,2606.9,2596.2,2586.6,2586.4,2595.0,2606.9,2622.5,2649.5,2662.4,2671.8,2665.9,2664.8,2665.0,2662.9,2663.1,2667.9,2674.8,2708.9,2757.2,2810.3,2847.4,2865.6,2892.8,2914.8,2933.0,3019.0,3191.3,3264.0,3429.9,3483.6,3534.9,3576.7,3623.4,3669.9,3716.7,3753.2,3771.2,3758.0,3740.1,3718.6],"서울 강동구":[671.8,672.4,674.8,677.6,691.7,713.8,716.0,694.6,702.9,707.6,716.6,723.4,739.8,749.4,785.9,799.3,802.5,808.7,815.2,822.5,855.6,877.1,892.8,896.5,891.6,889.6,883.4,881.3,876.5,873.9,875.8,881.8,891.2,905.7,923.7,957.3,970.0,994.4,1010.2,1017.2,1019.1,1031.0,1057.1,1089.5,1120.6,1135.9,1161.6,1191.9,1221.1,1249.0,1273.6,1290.3,1305.3,1328.2,1342.4,1356.2,1367.7,1381.1,1401.9,1415.8,1417.8,1418.4,1419.0,1419.7,1419.7,1421.1,1420.1,1415.1,1411.3,1399.2,1534.9,1497.5,1428.1,1413.5,1407.6,1403.8,1388.8,1386.1,1394.0,1401.8,1409.2,1414.8,1418.2,1418.7,1415.9,1414.4,1412.3,1410.9,1410.6,1416.6,1444.5,1484.3,1503.0,1520.6,1527.8,1533.4,1532.9,1533.0,1544.7,1573.5,1579.5,1614.2,1662.8,1683.4,1712.5,1812.7,1856.9,1871.8,1896.1,1920.8,1959.1,1983.0,2004.0],"서울 강서구":[590.9,591.7,593.3,595.6,598.5,606.9,615.9,626.8,630.7,632.9,636.2,640.7,646.3,649.0,660.5,670.0,677.5,681.4,688.8,703.8,738.4,779.9,803.3,807.6,816.0,816.2,816.0,816.8,816.4,813.4,812.4,814.1,816.8,817.0,819.6,829.5,840.8,846.8,858.8,860.5,862.8,870.4,896.3,918.4,943.2,956.0,977.1,990.4,1008.6,1032.6,1047.3,1058.4,1069.2,1091.9,1109.3,1146.1,1187.6,1212.4,1240.4,1243.8,1247.4,1248.8,1250.6,1254.2,1255.9,1256.2,1255.3,1251.5,1248.9,1237.8,1277.3,1263.3,1230.2,1206.6,1188.3,1179.5,1162.9,1159.4,1152.1,1149.5,1151.8,1160.0,1161.0,1160.3,1158.0,1156.6,1154.9,1152.6,1149.7,1149.0,1150.6,1152.4,1160.1,1165.4,1167.6,1171.1,1174.9,1175.7,1177.9,1181.9,1185.9,1192.6,1201.3,1206.3,1212.0,1223.0,1247.3,1261.4,1272.3,1307.6,1339.5,1366.8,1385.9],"서울 관악구":[523.8,524.3,525.0,525.7,528.1,534.2,539.0,548.1,551.2,552.9,555.6,557.5,560.5,564.2,570.1,576.7,587.1,594.3,602.9,616.0,643.6,666.4,676.5,678.6,683.9,685.7,685.8,687.7,687.3,687.0,689.4,697.0,700.4,705.9,713.3,728.7,741.6,749.7,767.5,774.4,779.6,792.6,823.2,846.7,861.1,871.6,893.6,904.7,924.3,946.0,965.8,979.6,985.8,1000.0,1016.5,1039.8,1055.7,1069.1,1082.7,1080.6,1081.3,1080.2,1082.7,1083.9,1085.6,1087.0,1086.1,1087.2,1086.5,1078.4,1101.9,1081.3,1061.5,1049.3,1038.5,1027.3,1013.4,1010.2,1003.8,999.1,998.0,998.2,992.5,989.7,986.5,985.0,983.0,981.5,981.0,981.3,998.8,1005.2,1011.3,1014.1,1014.5,1014.6,1014.2,1013.2,1013.7,1017.3,1030.2,1036.3,1041.0,1044.4,1050.1,1061.3,1079.6,1091.7,1111.5,1146.1,1179.9,1197.3,1209.9],"서울 구로구":[507.1,508.9,511.0,512.9,515.3,518.3,525.1,532.6,536.2,540.6,541.3,542.2,546.3,548.7,553.5,561.9,566.4,571.5,583.4,592.9,627.9,651.0,666.2,669.0,655.8,657.9,657.9,658.0,658.7,659.7,664.7,668.4,673.5,677.0,684.9,699.7,707.8,721.1,744.1,748.8,750.9,767.7,791.4,816.4,844.0,855.5,874.8,888.6,904.4,929.3,946.4,957.6,970.9,992.6,1013.0,1020.3,1044.4,1060.1,1073.8,1081.6,1083.5,1085.2,1085.7,1086.5,1088.6,1090.4,1090.1,1089.4,1088.1,1081.4,1072.2,1050.3,1024.1,1009.0,993.3,982.3,962.6,957.7,952.6,948.0,947.5,948.2,949.0,947.5,945.9,944.8,943.1,942.1,942.8,941.7,943.4,947.1,949.5,950.9,952.2,951.8,951.8,951.9,952.2,954.1,954.8,957.7,964.6,968.0,973.5,978.4,987.5,993.4,1001.9,1020.9,1040.1,1058.7,1073.8],"서울 금천구":[429.1,431.3,432.9,434.4,436.0,443.7,448.1,452.4,455.7,459.8,462.3,467.8,469.4,470.0,472.2,474.4,478.3,480.9,483.5,491.0,512.7,527.6,537.0,537.3,535.7,538.8,542.3,542.2,542.4,544.2,547.8,550.4,555.1,573.3,581.8,601.1,610.2,617.7,638.9,642.7,644.5,658.1,669.4,684.5,710.8,720.0,729.4,743.2,750.2,760.2,776.5,787.1,794.7,805.0,818.5,836.0,854.3,859.4,863.4,869.9,872.2,874.4,877.0,879.0,883.7,886.7,892.3,892.7,890.8,889.1,978.2,959.0,934.2,928.5,919.7,909.1,902.7,899.0,895.5,894.7,893.4,893.3,892.9,891.9,889.1,884.0,893.2,890.2,888.4,878.1,877.4,877.4,877.5,880.7,881.5,884.5,884.8,883.9,882.9,880.0,879.4,877.6,878.5,881.1,882.4,882.6,882.5,883.2,886.3,888.5,893.5,896.1,902.3],"서울 동작구":[648.2,648.1,649.6,650.9,655.2,667.1,678.6,689.3,696.1,705.2,713.4,726.9,744.7,759.0,785.6,799.3,816.0,827.2,837.6,852.3,899.0,923.3,932.0,937.4,939.4,941.2,941.5,943.1,942.3,942.7,946.3,952.8,957.7,970.1,980.4,1007.4,1028.4,1039.8,1059.0,1062.8,1067.5,1078.3,1106.7,1128.3,1152.1,1162.0,1181.8,1202.5,1231.9,1273.2,1295.3,1309.4,1317.3,1357.9,1381.8,1392.1,1403.4,1424.1,1432.9,1445.4,1446.2,1447.5,1447.3,1449.4,1457.6,1460.1,1460.1,1457.2,1456.0,1450.5,1492.3,1481.0,1453.0,1439.5,1412.4,1375.6,1362.9,1361.6,1356.7,1355.0,1360.2,1362.2,1363.3,1363.3,1361.2,1360.1,1362.7,1361.5,1363.4,1366.9,1377.4,1396.3,1407.7,1415.8,1430.9,1434.6,1434.9,1435.8,1441.2,1457.9,1470.7,1500.0,1527.3,1550.0,1570.4,1608.8,1680.2,1701.2,1758.9,1783.5,1826.7,1851.3,1876.1],"서울 서초구":[1136.7,1138.2,1143.3,1147.2,1158.8,1187.2,1204.0,1239.4,1243.7,1257.0,1274.8,1299.5,1333.4,1371.6,1427.8,1446.4,1452.6,1455.5,1465.5,1479.8,1567.6,1601.9,1615.2,1614.6,1569.6,1568.3,1562.2,1555.2,1553.9,1556.5,1577.1,1602.9,1626.1,1646.5,1669.5,1702.5,1717.8,1735.2,1743.8,1740.0,1739.1,1746.2,1777.9,1813.2,1848.6,1849.1,1872.5,1889.7,1927.5,1957.2,1984.7,1994.9,2018.1,2073.9,2096.7,2139.4,2180.6,2204.1,2261.9,2291.5,2304.7,2308.7,2316.1,2329.0,2355.1,2366.2,2373.9,2374.2,2372.2,2369.2,2649.5,2616.1,2592.5,2559.9,2499.4,2475.0,2385.9,2374.3,2377.3,2388.6,2397.5,2419.6,2420.4,2419.1,2416.6,2416.7,2418.1,2431.7,2450.2,2473.9,2527.7,2576.8,2606.6,2629.6,2725.6,2788.7,2803.5,2819.5,2896.8,2967.2,3037.7,3150.0,3194.5,3227.3,3254.9,3279.0,3315.7,3380.8,3411.9,3449.2,3461.7,3464.1,3471.1],"서울 송파구":[845.0,847.8,850.2,855.6,868.2,888.1,900.1,923.0,925.4,939.7,956.9,978.9,1012.1,1049.5,1098.6,1119.9,1125.1,1131.0,1131.2,1146.3,1192.2,1216.4,1221.2,1219.3,1189.5,1184.7,1180.7,1176.8,1179.3,1181.4,1209.6,1220.3,1234.2,1262.9,1296.0,1339.7,1353.3,1355.2,1366.4,1362.8,1359.2,1363.2,1421.5,1456.6,1492.0,1506.1,1540.3,1565.5,1596.2,1617.7,1643.6,1655.3,1680.1,1699.3,1724.9,1759.6,1786.6,1815.5,1833.2,1841.8,1851.1,1852.4,1851.1,1852.8,1867.3,1867.6,1863.7,1859.2,1849.3,1832.6,2026.9,1969.1,1927.0,1909.5,1899.4,1888.2,1893.7,1917.3,1934.8,1950.8,1974.8,1990.0,1997.5,1991.3,1983.4,1980.8,1978.9,1978.4,1981.3,1990.9,2024.4,2069.1,2110.6,2127.8,2137.9,2148.6,2152.1,2162.7,2240.4,2293.7,2307.5,2389.9,2447.5,2503.9,2541.0,2606.7,2668.4,2734.3,2760.0,2793.5,2799.6,2809.7,2813.2],"서울 양천구":[731.0,732.6,733.2,733.8,736.5,751.7,758.4,769.8,771.2,773.5,780.4,796.9,816.6,828.7,843.5,849.4,852.8,855.6,859.9,883.4,950.7,974.4,979.7,983.6,961.3,959.1,955.7,950.6,950.9,955.3,968.0,976.9,983.0,1006.5,1033.9,1060.7,1080.6,1101.4,1126.4,1129.2,1129.1,1140.0,1172.5,1207.8,1237.0,1248.7,1263.2,1277.2,1288.9,1331.0,1354.8,1368.0,1389.8,1409.3,1421.6,1437.8,1454.6,1468.2,1481.8,1485.9,1497.8,1500.9,1499.7,1500.1,1503.8,1507.2,1506.9,1502.5,1499.0,1485.8,1575.6,1551.4,1521.7,1515.0,1505.3,1496.4,1492.2,1490.9,1494.9,1503.7,1516.1,1529.5,1534.5,1536.3,1533.5,1531.9,1530.2,1529.8,1529.0,1530.2,1538.1,1557.9,1581.5,1597.3,1604.5,1610.0,1615.7,1623.7,1642.3,1692.2,1736.7,1812.7,1883.2,1891.5,1908.3,1943.9,1988.3,1999.0,2009.8,2023.6,2044.1,2054.1,2056.8],"서울 영등포구":[673.6,673.9,679.6,685.5,692.6,701.3,712.6,725.3,726.9,732.9,739.0,748.8,763.7,781.4,800.1,820.2,835.2,843.0,857.2,873.7,928.2,955.9,975.9,979.4,958.8,957.6,956.3,956.0,958.1,963.7,979.0,985.1,995.2,1016.2,1032.1,1058.3,1073.8,1086.4,1107.9,1112.9,1117.3,1128.8,1163.9,1192.7,1210.6,1223.9,1244.9,1258.7,1277.4,1299.9,1320.3,1336.3,1350.4,1367.3,1380.9,1406.1,1425.9,1441.7,1452.1,1463.9,1466.7,1472.8,1472.0,1472.6,1475.8,1480.7,1484.7,1486.0,1485.5,1474.5,1467.7,1445.8,1421.4,1405.7,1387.7,1377.8,1372.2,1368.3,1365.5,1367.9,1374.7,1380.9,1389.6,1391.0,1389.3,1388.9,1387.6,1386.3,1387.7,1394.1,1402.9,1417.3,1436.0,1441.8,1449.0,1454.2,1457.4,1460.3,1467.4,1491.8,1510.5,1538.1,1568.0,1584.0,1601.1,1633.1,1662.6,1692.0,1708.3,1736.8,1784.0,1807.6,1822.8],"부산 중구":[223.3,223.3,223.7,224.7,224.9,225.7,226.6,221.9,229.4,229.4,229.4,229.4,231.0,231.0,231.0,231.0,232.0,232.0,231.8,231.8,231.8,231.8,231.8,231.8,240.0,240.0,241.8,241.7,241.7,241.7,241.3,240.7,240.7,240.7,241.4,241.4,241.4,241.4,241.3,241.3,241.3,240.7,240.7,240.7,240.6,240.6,240.6,240.6,239.9,240.2,241.3,242.5,242.5,242.5,242.8,243.8,244.0,244.4,246.4,251.3,253.0,253.0,253.0,253.8,255.4,256.5,258.5,259.9,259.9,263.8,282.4,281.5,281.0,281.0,281.0,281.0,280.8,280.8,280.8,280.8,280.8,280.8,280.5,280.0,280.0,280.0,280.0,279.8,279.2,278.3,277.4,274.5,274.5,274.5,274.5,274.5,274.2,274.2,274.2,271.1,274.3,274.2,274.2,274.2,274.2,274.2,273.8,273.8,269.8,269.4,269.4,269.4,268.7],"부산 서구":[285.1,285.3,288.0,288.2,290.1,292.6,294.3,295.4,297.7,303.1,303.7,304.7,305.2,305.2,305.3,305.6,305.6,306.6,306.6,306.2,306.1,306.1,308.0,308.1,310.9,311.1,311.0,310.3,310.3,310.0,310.1,309.8,309.4,309.1,309.1,309.2,309.5,309.5,310.3,310.4,310.4,311.2,311.5,312.6,312.7,312.2,314.3,317.8,321.0,323.5,324.3,326.3,326.9,330.9,334.2,336.4,337.5,339.5,347.9,349.3,349.6,349.7,349.8,350.9,352.0,355.2,354.8,354.9,355.0,355.0,494.6,488.9,485.5,482.3,477.9,475.7,469.0,470.6,468.6,467.0,466.6,465.5,464.7,464.5,464.0,463.7,462.3,461.4,461.2,459.1,458.1,457.4,457.1,456.7,457.4,455.9,454.1,466.2,465.4,464.4,463.1,462.2,470.3,467.5,466.1,465.4,464.7,462.5,462.4,461.8,461.4,461.6,461.3],"부산 동구":[304.8,305.6,310.7,312.3,312.4,312.9,315.5,316.1,316.8,317.7,318.9,318.7,318.1,318.1,318.1,318.3,318.0,318.3,318.5,318.1,327.7,327.0,327.1,325.9,336.0,334.6,334.6,333.9,333.9,330.9,329.7,329.7,329.5,327.3,327.3,327.3,327.7,327.7,328.4,329.5,330.5,331.8,335.3,338.7,339.4,339.8,341.0,352.2,356.7,364.0,366.4,372.6,373.5,377.0,384.1,393.7,399.0,401.0,404.2,404.5,408.6,409.4,410.3,411.6,415.6,415.7,415.9,416.2,415.9,416.2,633.8,622.6,615.3,602.7,593.4,579.6,564.3,554.2,555.3,554.7,554.2,553.4,551.9,550.5,549.8,546.7,545.7,543.2,539.8,539.0,537.9,533.6,532.0,535.7,535.3,534.2,532.9,529.4,525.0,524.9,523.6,568.6,567.7,567.0,565.8,565.9,567.0,569.1,571.5,575.6,580.5,582.2,583.3],"부산 영도구":[239.3,239.4,240.0,240.3,241.3,241.1,241.1,241.6,241.3,241.7,241.8,242.0,242.2,242.4,242.2,242.3,242.3,242.3,242.3,242.2,242.1,242.2,242.2,241.9,240.9,240.5,240.3,240.0,239.8,239.5,238.9,238.8,238.8,238.6,238.6,237.7,237.8,237.4,237.2,237.0,237.3,235.3,235.0,234.5,233.1,233.0,236.3,246.8,250.9,253.5,255.9,257.6,259.1,265.1,271.0,274.5,284.4,288.5,291.4,292.7,293.7,294.2,294.5,294.5,295.9,296.2,296.2,296.6,296.6,296.6,323.2,319.5,313.7,311.5,310.1,306.7,301.9,299.2,297.0,295.0,293.9,293.6,292.7,291.3,288.2,287.2,286.7,286.4,285.9,285.1,282.9,282.3,301.6,301.5,300.0,299.0,297.3,294.8,300.6,299.3,298.8,298.6,297.8,296.2,294.0,305.2,304.8,304.6,303.8,303.4,303.0,302.6,300.8],"부산 부산진구":[329.7,331.6,335.3,337.1,338.2,344.8,345.8,346.9,347.2,348.1,348.5,348.5,348.7,348.8,348.4,348.8,348.8,348.4,347.7,345.9,344.7,342.5,342.3,342.3,338.8,338.6,338.2,337.8,336.4,335.8,335.3,334.2,333.9,332.0,331.3,331.0,330.9,331.2,332.6,332.9,333.2,334.2,340.2,340.4,340.9,342.3,357.0,375.6,395.5,403.1,407.1,410.0,414.7,416.4,421.8,427.3,431.2,433.1,435.8,437.7,437.7,438.8,439.4,439.6,440.0,440.8,439.3,439.4,438.5,435.6,471.5,458.2,450.8,447.6,443.4,438.4,435.0,433.2,428.8,427.8,427.1,426.6,426.9,424.6,423.6,422.4,420.9,418.6,417.8,414.7,417.8,424.1,423.4,425.7,425.5,424.3,423.7,423.3,424.5,422.6,419.4,417.8,431.0,430.4,436.0,435.9,436.8,445.0,445.3,446.8,452.6,453.9,456.1],"부산 동래구":[358.0,359.5,360.8,369.3,375.2,378.5,380.7,385.0,386.5,386.9,387.5,387.3,386.3,385.9,385.2,384.7,384.9,384.8,384.0,383.9,381.5,379.2,377.7,376.7,375.3,374.4,373.5,370.5,369.2,362.0,361.9,359.1,357.4,357.1,358.6,364.7,366.8,368.7,371.1,373.4,374.0,378.6,383.0,385.2,393.7,397.4,432.1,445.1,463.6,473.3,479.6,484.5,488.5,501.7,514.1,526.8,532.5,541.8,548.3,551.4,554.2,556.3,557.6,559.9,560.7,560.1,560.5,557.3,555.6,552.3,647.9,636.7,625.4,620.5,615.5,604.8,598.6,618.6,614.5,609.6,608.4,607.3,606.2,605.7,605.0,604.7,603.6,600.5,597.4,596.4,595.8,598.5,599.2,604.9,604.7,593.2,592.1,592.0,591.5,591.0,591.1,590.3,590.3,589.1,589.3,594.1,600.2,610.8,614.4,619.2,624.4,652.3,654.0],"부산 남구":[367.5,369.4,371.5,373.7,375.5,378.3,382.6,382.8,382.9,383.5,383.2,382.9,382.3,381.7,381.2,381.1,380.4,379.1,377.9,377.2,376.0,375.1,371.9,371.5,370.4,359.9,360.2,359.3,359.2,359.0,358.3,357.2,357.3,357.2,357.2,365.4,369.8,372.0,378.5,378.8,379.0,382.5,388.6,392.4,394.9,400.4,424.6,438.5,448.6,459.8,466.4,473.5,478.0,485.4,492.5,504.6,517.1,523.4,528.0,533.2,535.7,537.8,538.7,539.6,540.3,543.1,542.8,538.0,537.7,535.8,603.3,585.4,560.8,556.2,549.0,537.6,536.5,534.0,531.5,530.4,531.2,531.9,530.8,530.2,529.6,529.3,529.5,528.7,526.1,528.7,528.6,528.8,528.6,528.0,526.8,525.8,525.1,524.7,524.8,524.3,527.2,528.6,547.2,547.5,547.9,548.8,553.2,530.6,532.3,533.2,560.1,561.5,562.6],"부산 북구":[309.2,309.9,311.9,312.6,313.7,314.5,315.3,317.6,317.6,317.8,318.7,319.4,319.2,319.3,319.5,318.8,318.0,316.8,314.9,315.0,314.8,313.0,311.7,311.3,310.5,310.1,309.1,306.2,305.8,302.8,302.3,299.3,298.1,297.5,296.0,295.7,296.0,292.6,291.5,291.5,290.8,290.2,290.4,291.9,292.6,293.7,304.1,321.5,328.2,331.8,333.8,337.9,344.2,351.8,357.7,364.2,369.6,373.2,379.3,382.5,384.1,384.9,386.6,387.3,388.4,389.0,389.6,388.5,387.4,385.0,438.4,433.7,427.5,425.7,419.7,415.5,413.4,409.5,407.2,406.1,405.0,404.6,403.1,402.5,401.4,400.8,399.8,399.0,398.7,398.2,397.1,395.7,395.9,395.7,395.1,392.5,391.4,390.7,397.9,396.7,395.9,394.5,393.8,392.3,391.6,391.5,391.3,391.3,391.4,392.1,392.7,393.1,394.3],"부산 해운대구":[440.0,441.8,443.2,443.9,444.7,446.2,447.2,448.3,448.0,447.1,446.5,444.9,443.2,442.1,441.8,438.5,437.8,436.5,432.8,431.5,430.4,428.3,424.2,423.8,421.8,421.1,420.1,415.8,415.0,413.0,410.9,409.9,408.6,408.0,409.1,426.8,434.0,439.1,442.8,446.7,447.6,454.4,462.6,476.5,489.1,498.9,538.1,567.0,580.7,592.0,603.9,613.3,631.1,658.0,676.7,695.1,714.1,723.0,735.0,739.5,741.2,741.4,741.2,742.2,742.9,743.4,740.9,736.8,735.0,728.0,751.2,734.8,714.5,705.2,687.1,668.2,657.5,653.5,651.9,650.6,650.8,649.3,649.0,648.1,646.7,645.5,643.3,640.4,638.1,636.1,632.4,630.3,629.0,628.4,627.2,626.6,625.1,622.1,619.2,616.1,614.1,612.6,614.7,612.3,609.4,609.4,611.8,615.7,617.8,622.1,626.0,628.6,630.6],"부산 사하구":[239.4,241.0,241.8,242.8,244.1,244.9,245.6,246.5,246.9,246.7,246.7,246.6,247.0,248.1,248.4,248.6,248.8,248.8,248.5,242.7,242.3,242.4,242.9,242.9,239.3,238.9,238.8,238.1,237.5,237.8,237.4,237.1,237.1,236.3,235.6,234.7,234.6,234.8,234.5,234.5,232.7,232.7,234.3,234.5,234.9,234.9,243.1,253.8,258.2,260.8,261.8,263.7,265.2,269.4,277.2,286.8,292.4,295.5,301.8,302.3,305.5,305.6,305.9,306.0,306.2,306.2,306.1,306.1,306.5,306.3,326.4,323.7,319.9,318.0,315.8,313.2,309.3,307.9,313.6,313.1,312.6,311.5,310.9,310.0,309.8,309.2,308.9,308.3,307.1,306.9,306.2,305.9,305.9,305.5,305.0,304.0,303.8,302.0,301.3,299.8,299.0,298.0,303.3,302.2,301.3,301.1,300.7,300.4,300.4,300.1,299.7,298.5,298.3],"부산 금정구":[352.7,356.8,359.0,359.5,361.2,365.7,369.9,373.8,375.0,376.4,377.1,377.7,377.7,377.6,378.0,377.3,376.7,376.5,376.1,375.3,374.9,374.1,374.2,373.7,372.9,371.7,371.9,371.7,371.2,370.9,370.7,370.2,369.0,369.0,368.2,368.9,368.7,369.0,369.9,369.9,370.1,370.3,371.5,374.6,375.8,382.4,398.1,426.0,438.3,442.3,450.4,453.4,455.8,466.5,473.6,482.9,487.6,490.1,494.1,496.5,496.7,497.2,498.0,502.1,504.7,505.0,502.2,502.8,502.1,498.4,542.1,537.5,533.2,529.8,523.4,518.8,514.8,516.5,511.6,509.9,509.0,507.4,506.2,505.2,503.4,503.1,500.2,497.6,496.4,493.9,493.1,492.7,490.8,489.9,489.7,487.7,487.2,485.2,483.6,478.1,473.7,472.0,471.6,470.5,469.8,469.8,469.6,469.8,470.5,470.6,471.1,471.3,471.2],"부산 연제구":[380.6,381.6,383.5,385.8,387.7,389.9,391.3,394.6,395.4,395.0,395.2,396.2,396.4,396.1,393.4,393.2,393.4,392.4,391.8,391.5,391.1,390.4,389.8,389.3,387.5,387.2,386.3,385.4,385.2,385.2,382.1,378.8,377.3,375.7,375.4,382.5,383.3,384.8,387.5,388.8,388.9,391.0,397.6,400.4,407.1,413.7,432.9,448.0,461.6,479.8,485.2,497.8,505.2,513.4,521.5,534.4,541.4,546.6,549.6,551.9,552.8,552.9,553.1,554.1,553.3,552.7,553.3,552.3,551.8,549.7,646.7,630.8,614.4,606.1,597.7,584.3,576.5,574.4,571.0,569.8,567.9,573.9,574.8,574.4,572.6,571.7,569.9,567.6,566.2,564.2,563.6,562.9,562.6,561.7,561.4,558.8,557.4,555.3,557.4,556.5,556.9,555.5,575.0,585.8,588.6,590.6,613.2,618.4,620.8,624.5,626.3,627.7,628.2],"부산 수영구":[469.5,472.4,474.6,476.7,478.5,480.5,483.3,485.5,486.2,484.6,481.0,481.7,481.4,481.4,481.2,483.0,482.0,480.9,481.1,480.1,480.4,479.7,479.6,478.0,475.0,475.2,474.8,476.3,474.9,473.8,472.1,470.1,470.8,474.3,484.6,528.1,534.4,540.7,559.2,569.0,572.4,600.8,619.7,639.9,658.2,668.3,728.9,748.7,758.9,776.3,784.1,789.0,810.7,833.2,843.5,864.4,874.1,883.1,897.3,901.1,901.4,901.4,901.4,900.4,903.9,900.9,899.9,895.7,893.6,889.7,911.2,898.0,872.2,849.4,833.9,818.3,807.7,804.6,802.5,800.5,798.7,797.8,797.3,795.7,792.6,787.5,783.5,779.1,776.0,773.1,770.1,768.5,778.2,784.6,785.7,783.2,780.9,780.1,779.5,779.2,802.5,800.4,802.1,801.7,799.3,801.8,811.7,820.2,822.7,829.7,834.4,838.6,840.7],"부산 사상구":[268.4,269.0,269.3,269.9,270.6,271.1,271.5,273.4,273.6,274.0,274.5,274.7,274.7,274.9,275.8,275.6,275.7,275.9,275.8,274.9,274.7,274.8,274.6,274.3,271.1,270.8,270.6,270.2,270.0,267.4,266.9,266.3,266.3,264.8,264.7,264.5,264.6,264.4,263.9,263.9,263.8,261.4,261.8,261.5,261.6,261.4,263.3,268.7,273.5,274.3,274.9,276.2,281.8,283.8,287.7,293.6,295.7,299.0,302.8,305.4,307.6,308.4,308.9,309.5,310.0,310.8,311.1,311.9,312.4,312.5,319.6,316.4,313.7,312.5,310.4,309.0,306.3,305.6,305.1,304.2,303.7,302.7,302.3,300.8,299.4,299.2,298.7,297.1,295.9,295.0,292.8,292.1,304.7,304.7,304.3,302.4,301.8,301.4,299.5,299.8,299.5,298.5,298.1,311.3,309.9,309.7,309.6,309.3,309.2,308.5,307.8,306.5,305.3],"부산 기장군":[311.5,312.4,314.1,315.2,316.5,317.5,318.5,319.1,319.2,319.4,319.1,319.0,318.3,318.3,318.3,317.8,317.5,317.3,316.4,314.9,314.5,313.1,310.4,310.1,309.8,309.2,307.2,306.2,305.5,304.0,302.4,301.2,300.7,300.7,299.2,299.2,299.2,299.3,295.6,295.2,293.5,289.8,289.2,288.4,288.3,288.4,296.5,310.9,320.3,333.9,338.6,343.7,347.2,357.6,360.6,367.8,374.9,383.7,394.6,399.9,403.3,404.4,405.6,407.1,409.4,411.5,411.6,411.5,410.9,407.8,472.8,468.3,456.5,450.9,440.6,432.6,430.2,428.1,427.2,426.5,424.6,423.4,422.8,421.6,420.5,420.1,419.6,418.7,418.3,417.2,415.9,414.2,414.2,414.0,412.4,410.5,409.8,409.5,408.8,407.9,407.0,405.2,403.1,400.9,396.3,396.0,395.7,395.3,395.2,395.2,395.5,395.4,395.4],"부산 강서구":[356.0,356.4,356.7,356.9,358.8,359.5,360.0,360.0,359.2,359.2,359.3,359.3,359.3,364.3,364.3,363.3,363.3,363.3,363.3,362.5,362.1,359.1,357.8,357.8,369.7,368.8,368.4,365.9,362.8,356.5,348.1,346.7,346.4,346.4,344.1,344.1,344.1,344.9,344.7,344.7,344.5,347.2,347.8,350.3,352.8,354.7,360.9,420.1,440.2,447.5,459.8,465.0,465.8,471.6,474.5,483.2,486.6,489.6,491.0,491.0,490.3,490.1,490.1,489.8,489.8,489.1,488.2,486.7,485.7,484.0,579.2,556.9,539.8,529.7,520.2,513.9,511.6,512.3,511.8,512.7,514.0,515.4,515.4,515.2,514.0,513.4,512.6,511.0,510.1,509.0,507.3,506.4,505.1,504.7,504.1,503.2,502.5,499.5,496.1,495.4,494.8,494.2,493.8,491.4,488.3,486.5,484.5,481.5,480.1,485.2,484.7,487.4,486.7],"대구 중구":[337.9,337.9,337.8,338.4,341.3,341.3,342.0,344.9,355.7,359.0,361.7,366.2,367.4,369.3,374.1,378.3,378.8,375.2,379.7,382.2,387.6,393.0,396.4,397.1,399.3,400.6,401.0,401.7,402.9,402.5,403.4,405.0,406.5,412.9,416.4,419.6,420.3,421.3,421.7,421.9,422.0,425.2,429.4,431.2,436.9,438.1,447.8,461.0,468.5,481.6,494.2,504.6,505.9,513.0,520.1,520.2,521.3,520.9,520.7,520.5,520.1,518.2,516.2,514.0,513.8,510.3,508.0,506.6,501.3,496.6,562.5,543.5,531.7,534.2,524.7,530.8,519.5,517.6,518.5,520.7,524.6,526.9,530.7,531.8,530.1,529.5,527.6,536.9,536.2,536.1,540.5,555.5,562.4,565.3,565.6,566.2,567.7,568.6,569.1,570.3,572.3,575.3,581.6,581.7,590.3,591.0,594.6,598.2,600.3,606.1,611.1,614.9,617.4],"대구 동구":[291.6,291.5,291.5,291.5,291.7,291.9,291.6,292.5,293.0,293.3,294.1,295.1,295.8,296.2,297.4,298.2,298.9,299.9,301.2,301.6,302.0,301.7,301.0,301.3,301.3,301.4,301.2,301.9,302.2,302.5,302.3,303.0,303.2,303.5,303.8,304.0,305.9,306.5,306.8,307.7,308.5,310.1,311.3,312.0,314.1,314.7,317.5,322.4,327.1,329.9,332.6,335.3,341.2,343.9,346.4,349.1,353.5,355.8,356.6,356.2,355.7,355.8,355.2,354.7,354.0,354.0,353.6,352.1,350.2,347.5,388.4,383.5,378.2,372.8,367.7,363.0,359.4,359.1,358.6,361.5,361.5,362.9,361.9,360.9,363.0,362.5,362.9,360.1,364.6,363.8,363.3,363.0,362.5,367.2,366.9,369.4,368.8,367.3,366.3,369.8,370.8,370.6,370.2,370.8,380.4,380.1,382.3,383.5,384.4,385.5,386.1,386.5,388.1],"대구 서구":[271.8,271.7,271.8,271.6,271.6,273.1,273.0,274.2,274.9,275.3,276.9,276.7,276.8,276.8,277.3,277.4,278.8,279.9,282.3,283.5,285.1,288.7,290.8,291.4,289.8,290.8,291.6,292.8,294.6,295.0,297.0,297.7,298.9,300.9,302.0,304.1,306.8,308.0,312.2,316.1,318.5,327.4,332.6,337.3,343.8,349.6,356.6,363.9,379.9,386.6,392.1,395.1,396.2,399.2,404.2,405.8,406.6,407.3,407.5,406.7,406.7,407.9,408.9,408.0,406.9,405.1,404.7,402.5,401.7,397.1,414.3,409.4,398.7,393.2,387.2,391.4,386.9,383.0,381.5,380.3,378.6,375.3,374.3,372.5,370.4,369.9,368.2,367.7,366.8,365.2,363.9,362.5,357.6,367.0,365.4,364.3,378.7,374.5,380.8,379.5,378.4,378.3,377.9,378.0,381.0,381.1,380.9,397.3,398.6,399.3,400.4,400.7,401.5],"대구 남구":[274.8,274.9,274.6,275.0,275.0,275.5,275.7,277.3,277.6,278.7,279.6,279.9,280.0,280.2,281.2,282.5,283.8,284.5,285.0,286.0,287.2,291.2,294.8,295.2,297.8,301.0,302.2,303.7,303.9,304.4,304.6,304.0,309.6,310.8,312.4,313.0,314.2,314.2,316.3,319.4,319.8,320.4,321.5,322.1,325.7,328.5,337.4,345.7,348.7,353.4,360.2,364.8,370.9,374.4,380.8,392.4,395.7,397.0,398.7,402.5,403.0,403.0,402.9,402.4,402.3,401.2,398.8,397.9,397.4,396.8,439.4,435.7,431.5,424.3,410.4,403.2,396.3,391.2,385.1,396.6,407.4,406.5,404.5,403.8,401.1,400.4,397.3,392.7,390.2,389.0,387.7,386.6,385.9,386.4,386.7,384.3,380.8,385.0,384.4,382.2,382.0,386.4,386.1,385.2,384.8,384.6,384.3,396.0,396.6,396.5,396.0,408.6,407.9],"대구 북구":[299.2,298.9,298.5,298.0,297.9,297.2,297.4,297.7,298.6,298.2,299.3,299.3,299.6,299.5,300.4,301.2,301.9,302.8,303.2,302.9,303.1,304.7,305.8,305.8,305.5,305.3,305.2,304.0,302.5,302.1,302.2,302.6,302.6,302.7,303.0,304.0,304.0,304.8,305.0,304.7,304.7,304.6,305.4,305.8,306.8,307.1,308.2,311.9,317.1,321.5,327.9,333.0,337.6,340.7,341.9,343.9,346.6,347.6,349.7,349.8,349.9,350.2,350.2,350.6,349.8,348.7,347.3,347.2,346.4,345.7,379.3,373.0,368.6,364.2,360.0,354.9,349.4,347.6,346.5,346.1,345.9,346.7,346.6,345.6,344.5,343.8,342.6,343.7,342.2,340.3,338.1,336.8,335.8,335.1,334.8,333.5,331.7,333.7,334.4,333.1,332.3,330.4,329.9,329.6,329.4,329.2,329.0,329.5,329.9,331.5,332.0,332.3,332.4],"대구 수성구":[402.3,401.9,401.1,400.8,400.3,400.3,402.8,409.6,413.9,417.4,421.0,423.0,428.3,432.3,437.0,443.4,447.1,449.0,450.1,451.9,457.5,459.5,460.5,462.3,468.6,470.6,471.8,471.6,471.7,471.5,471.4,471.4,472.1,473.2,475.2,476.6,479.2,480.7,482.6,483.3,483.9,487.1,493.3,500.3,512.9,523.3,547.1,566.9,579.4,589.4,600.8,609.8,617.5,623.4,625.8,629.0,633.9,636.1,639.2,639.5,639.5,638.9,637.8,638.0,636.4,636.0,634.5,632.6,629.9,626.9,673.0,657.3,641.0,632.7,619.3,605.9,591.8,587.7,583.6,584.1,583.8,584.4,584.2,583.5,581.7,580.5,578.8,577.1,575.5,573.9,571.8,582.3,583.6,587.4,586.3,584.4,578.1,577.1,576.4,577.3,576.9,578.7,579.3,578.0,575.5,576.6,577.6,581.2,580.0,583.9,591.1,592.3,593.6],"대구 달서구":[308.1,307.2,306.8,306.6,306.3,306.1,306.7,308.3,309.8,311.3,312.9,313.3,313.9,314.4,315.9,316.7,318.5,318.9,319.4,319.9,321.2,322.8,324.0,325.0,327.3,327.8,329.0,329.4,329.9,332.1,332.3,332.7,334.2,334.2,336.1,338.1,339.3,342.3,344.4,344.5,346.5,350.2,354.5,359.9,368.3,373.6,391.7,410.7,417.6,430.3,436.7,440.9,444.5,450.3,452.7,454.9,456.6,456.6,460.0,459.6,459.2,458.1,455.5,451.9,450.0,443.9,439.4,434.1,430.7,419.3,417.0,407.1,397.4,390.5,385.0,376.0,371.6,369.3,367.6,367.0,368.1,367.9,367.8,368.2,367.3,367.7,366.9,365.6,365.5,364.2,363.2,363.3,365.8,365.6,365.2,363.5,363.0,361.9,360.8,362.4,361.5,360.4,362.5,361.5,361.3,360.7,360.7,362.6,362.5,362.3,362.3,362.6,362.3],"대구 달성군":[249.3,248.9,248.6,248.3,248.0,248.0,248.2,249.0,248.6,249.8,249.7,250.0,250.1,250.5,250.7,251.5,251.2,251.5,251.5,251.2,251.4,251.8,252.5,252.7,261.7,261.5,261.5,260.9,261.3,261.4,261.6,261.3,261.3,261.3,261.5,261.8,261.9,261.8,262.2,262.2,262.6,262.7,263.2,263.9,264.7,265.6,268.0,273.6,279.6,281.5,289.1,290.9,294.1,298.1,303.2,306.2,309.6,310.8,312.0,312.6,313.5,313.5,313.3,313.1,311.9,311.1,310.2,307.4,305.1,302.0,334.3,326.0,319.2,314.1,310.6,308.3,305.6,304.9,304.8,304.7,305.4,311.5,311.3,311.4,311.2,311.1,310.9,309.8,309.6,309.4,309.0,308.4,309.3,308.9,308.3,307.7,307.1,306.5,306.0,305.4,305.3,304.7,304.1,303.4,303.3,303.3,305.2,305.3,305.5,305.6,305.9,305.6,305.7],"인천 중구":[256.2,256.7,257.6,257.7,258.7,259.5,259.5,260.8,261.2,261.0,261.0,261.0,261.1,261.7,262.3,262.2,262.1,259.9,257.6,257.9,257.8,257.7,255.7,255.4,257.1,257.1,256.2,253.7,253.5,253.0,251.2,250.6,251.0,250.7,251.2,252.8,254.3,255.3,257.7,259.4,259.9,261.8,262.7,263.1,263.8,265.5,267.9,270.8,272.3,274.2,279.3,282.5,288.9,292.4,294.5,300.9,310.3,315.1,330.2,337.4,339.3,339.8,339.9,341.0,345.7,345.5,346.0,344.9,344.2,342.2,475.4,462.2,446.1,443.3,437.0,430.3,426.8,427.2,427.7,427.0,427.5,431.1,432.7,432.7,433.5,434.3,435.1,436.2,437.2,438.2,441.1,443.6,444.9,446.0,446.4,454.1,453.6,453.4,453.1,453.0,451.5,451.2,450.9,450.3,450.0,449.3,448.6,448.8,448.8,447.9,447.2,447.8,445.1],"인천 동구":[255.5,255.6,256.2,256.4,256.8,256.7,257.4,259.3,259.8,260.2,260.4,260.6,260.7,260.6,260.6,261.4,260.8,260.9,261.5,261.5,261.7,261.4,261.7,261.9,264.1,264.0,263.9,263.8,263.7,263.3,263.4,263.4,263.2,263.4,263.2,263.1,263.1,263.1,263.0,262.8,263.0,264.7,267.4,268.9,269.9,269.9,270.1,270.6,271.6,272.4,274.9,278.5,283.7,295.3,305.0,317.3,327.8,340.6,358.6,362.6,364.9,366.3,367.2,367.9,370.3,373.3,372.2,369.4,368.6,367.8,391.9,387.8,383.0,377.9,370.1,367.0,363.1,361.9,361.8,366.8,366.1,364.5,364.3,362.1,361.3,360.8,359.0,358.3,353.0,351.5,351.7,351.9,351.9,351.8,351.8,351.1,350.9,350.9,350.4,350.5,350.3,350.3,350.1,350.6,350.8,351.2,351.3,351.4,352.0,353.4,353.4,353.6,353.9],"인천 미추홀구":[261.8,262.1,262.8,263.4,264.2,265.2,265.9,266.7,267.3,268.2,271.2,271.4,271.4,272.0,272.0,273.1,273.6,274.7,274.6,274.9,276.9,277.2,277.1,277.5,277.6,277.7,277.7,277.9,277.9,277.9,277.9,277.9,277.8,278.3,278.0,278.1,278.8,281.1,283.6,285.6,286.7,288.4,290.3,291.6,292.1,293.3,294.8,295.6,297.2,298.1,302.4,306.4,311.1,319.7,329.8,335.6,349.7,358.3,363.6,366.9,368.7,370.0,371.1,373.5,377.8,378.0,378.1,377.8,377.2,374.7,446.1,436.3,430.1,423.6,417.1,413.8,414.4,412.5,414.8,413.8,414.3,414.1,413.9,413.1,412.2,411.0,410.6,410.3,413.0,413.4,413.8,422.6,424.7,425.3,424.6,424.1,431.8,432.4,432.2,432.0,437.4,437.4,437.6,438.8,439.7,439.6,446.6,446.8,446.9,448.2,449.4,449.3,449.7],"인천 연수구":[377.4,379.0,379.6,380.7,382.2,383.3,387.3,392.9,394.8,395.6,395.9,395.7,396.9,397.1,397.8,398.6,399.1,399.1,399.6,400.5,400.5,402.2,402.5,402.3,409.4,409.7,409.3,408.0,405.9,402.5,400.9,400.6,401.7,402.4,402.5,404.1,405.8,409.3,424.1,429.9,433.1,441.1,449.5,454.7,460.0,461.5,466.2,476.9,490.5,503.4,521.1,545.2,557.7,578.0,598.6,629.0,663.0,687.9,701.5,718.9,721.2,724.9,726.6,726.8,727.9,724.7,718.6,715.6,713.8,702.2,755.3,729.2,699.7,677.3,659.7,647.1,643.5,649.7,650.0,651.8,653.8,655.7,656.4,655.2,654.7,654.2,656.5,655.8,655.1,655.1,655.0,654.9,655.4,656.3,659.4,661.4,661.0,659.5,659.0,658.4,664.0,663.9,663.9,664.2,664.3,664.3,664.6,668.3,669.2,671.2,676.6,677.9,678.3],"인천 남동구":[321.9,322.3,322.4,323.5,323.7,324.5,325.4,326.5,327.6,328.4,329.3,330.5,331.0,331.9,332.6,332.8,333.9,334.2,334.7,334.7,334.9,334.8,335.0,335.0,335.5,335.5,335.5,335.7,334.5,333.7,333.1,333.5,334.2,334.4,335.8,337.2,338.0,341.9,350.9,357.9,364.4,373.2,375.0,377.1,378.7,379.6,381.1,382.6,387.7,394.2,410.6,421.7,437.3,453.7,468.7,482.3,494.0,504.4,515.4,519.3,523.2,525.1,525.4,526.4,525.4,521.2,517.8,514.3,512.7,496.6,506.8,493.8,481.2,474.7,466.5,462.8,459.9,458.6,458.4,458.1,457.6,456.9,457.8,457.6,457.2,457.2,457.4,458.5,459.3,460.4,460.8,461.1,462.4,462.7,462.9,462.7,464.9,464.7,464.4,464.1,463.6,463.7,464.3,464.2,466.6,466.7,467.0,467.1,467.4,468.5,469.2,469.7,470.0],"인천 부평구":[341.5,342.3,343.0,344.2,346.1,346.7,348.7,350.5,351.6,352.1,352.8,353.4,353.1,353.0,353.3,353.1,352.5,352.6,352.7,353.1,354.3,355.5,356.7,357.2,359.0,359.0,359.0,359.2,359.2,359.4,360.3,360.5,361.0,361.3,362.2,363.2,363.8,367.1,373.5,378.8,384.7,388.5,394.9,400.4,402.1,404.3,406.9,409.1,412.6,417.4,428.1,442.4,457.9,482.8,496.3,518.3,532.0,547.3,562.7,570.0,574.0,575.3,574.3,573.9,574.9,571.2,569.9,566.3,563.2,559.5,569.5,554.8,538.5,524.7,510.7,500.2,498.8,496.6,495.5,494.3,496.9,497.2,497.7,496.9,497.2,496.5,496.0,496.4,496.7,496.0,495.5,497.3,499.0,500.8,504.0,509.7,512.8,512.9,514.9,515.7,515.9,516.7,517.4,531.7,518.1,518.2,541.1,541.6,542.0,548.3,549.8,550.9,551.9],"인천 계양구":[310.1,310.8,310.9,311.7,312.0,312.8,314.6,316.2,317.7,318.0,318.3,318.6,318.7,318.7,319.2,319.0,319.1,319.1,318.8,318.3,318.3,318.5,319.0,319.0,319.7,320.8,321.7,322.1,322.2,322.7,323.9,324.2,324.4,324.7,325.3,325.8,326.5,327.4,329.0,330.3,331.2,332.5,333.6,335.8,337.4,339.2,341.3,345.2,346.8,350.7,357.7,373.1,384.2,405.0,413.2,435.8,451.2,461.3,475.7,480.3,483.0,484.7,483.6,483.4,485.8,487.2,488.6,488.2,486.0,483.8,474.1,467.8,462.2,455.5,447.6,441.6,434.1,431.8,435.5,432.8,437.2,436.6,435.5,433.9,431.7,430.9,429.4,426.5,425.2,424.5,424.3,424.2,425.2,425.8,426.1,425.1,424.7,423.6,423.2,423.1,422.9,436.2,437.4,436.9,436.4,436.0,436.1,435.3,435.9,435.3,437.8,437.4,436.9],"인천 서구":[293.9,292.6,292.7,293.0,292.8,292.7,293.2,293.4,293.4,293.5,293.6,293.5,293.3,292.5,292.2,291.6,291.2,290.6,289.6,289.1,289.4,289.9,290.3,289.8,294.1,294.6,294.6,295.0,294.1,293.8,293.9,293.6,294.2,294.2,295.0,295.7,297.2,299.1,307.1,308.0,309.9,314.2,317.9,319.3,321.5,323.3,327.0,334.0,339.7,349.4,360.2,370.4,377.2,389.2,398.8,413.6,429.1,437.8,445.3,450.6,452.8,456.4,458.1,458.4,458.8,454.4,452.0,450.7,449.3,444.8,547.1,531.1,515.2,498.2,484.3,475.6,475.2,477.6,476.4,483.8,488.3,491.6,499.3,503.8,504.1,504.4,505.5,511.5,513.4,515.3,518.8,527.0,534.7,539.0,540.7,543.4,545.3,548.6,548.9,549.7,549.8,552.4,553.1,553.2,563.5,562.0,562.0,562.6,562.4,562.6,563.2,563.0,563.0],"광주 동구":[202.0,202.3,202.0,201.9,201.9,201.9,201.9,201.9,202.5,203.6,205.1,207.3,207.3,207.4,208.1,208.1,209.6,210.2,210.3,210.3,211.7,213.3,215.6,218.3,218.2,219.2,219.2,219.7,220.0,220.0,221.3,224.0,224.2,223.8,223.7,223.7,224.2,224.3,224.5,224.8,225.8,226.0,226.4,227.3,228.1,228.7,229.1,232.7,233.0,236.2,238.0,239.1,239.1,241.0,241.0,241.9,245.9,247.4,247.6,248.4,248.4,249.0,249.0,250.6,252.9,254.1,257.2,259.7,258.9,258.6,466.1,459.4,448.8,440.3,430.2,427.1,424.2,423.3,422.1,421.6,421.5,422.7,423.8,423.9,423.0,422.4,421.6,420.9,423.7,439.5,446.8,446.1,446.1,445.5,448.4,445.6,446.5,446.4,446.0,445.1,444.5,443.0,442.6,442.2,441.0,440.5,440.2,440.2,440.0,439.6,439.1,437.3,433.9],"광주 서구":[254.3,255.1,256.9,256.9,257.1,257.3,258.0,258.7,259.7,260.7,262.7,264.1,265.3,265.7,267.2,272.6,276.2,278.7,281.5,285.0,288.0,292.7,295.7,299.6,306.5,308.7,309.7,312.1,313.3,314.6,317.1,320.7,321.5,321.4,322.5,324.0,324.8,325.0,326.1,326.3,326.4,326.3,327.0,329.4,329.2,329.8,331.7,334.9,335.6,338.4,339.9,342.0,345.2,349.2,353.7,356.3,361.7,372.4,377.5,382.4,387.4,388.6,391.1,394.8,399.4,403.1,404.7,404.5,404.2,403.1,418.6,410.3,401.7,398.1,394.5,392.2,390.2,388.4,386.7,385.7,385.8,386.8,396.7,397.5,395.9,394.6,393.9,392.4,391.3,391.0,390.3,389.9,389.3,388.9,389.0,388.1,387.5,386.7,386.1,385.1,384.6,383.8,383.3,382.6,381.8,380.9,380.6,380.0,379.3,378.7,378.1,375.6,373.2],"광주 남구":[259.1,260.9,261.0,261.0,261.4,262.9,264.4,266.0,267.6,267.9,272.0,275.1,280.7,281.8,284.1,284.6,287.0,288.7,294.8,302.7,308.7,318.7,324.9,329.1,334.7,337.6,337.8,337.4,336.9,337.3,337.4,337.3,337.5,337.0,336.7,336.5,336.5,336.5,338.3,338.7,338.0,338.7,339.1,339.5,340.2,340.8,349.7,361.1,370.5,374.1,378.4,380.8,381.8,384.9,386.6,391.9,400.2,406.6,411.1,415.0,421.8,423.0,425.5,429.5,433.3,436.3,437.2,437.9,437.6,436.1,435.4,430.6,420.3,415.9,413.8,411.5,410.0,407.5,405.6,404.4,409.2,409.3,409.2,408.5,407.9,406.7,405.2,401.4,399.8,399.1,398.3,397.7,397.2,396.6,395.8,394.5,394.2,394.0,393.5,392.5,392.4,391.5,390.3,389.3,387.0,385.1,384.5,383.7,382.5,382.6,381.0,378.9,376.5],"광주 북구":[230.0,230.0,231.4,231.8,231.9,232.0,231.6,232.4,232.2,232.8,233.3,233.1,233.2,233.0,233.7,233.7,234.4,235.0,236.3,237.1,239.9,243.0,246.7,248.5,251.0,251.8,252.1,253.3,253.3,253.2,253.5,253.8,254.0,255.1,255.1,255.8,256.5,256.7,257.4,258.5,258.3,258.3,259.1,259.2,259.5,259.8,260.1,263.1,266.3,268.6,270.4,274.1,277.2,281.0,283.2,287.7,291.9,296.3,304.9,309.2,311.7,313.4,314.3,315.7,317.5,319.6,320.7,322.6,322.2,321.7,334.7,332.7,329.2,327.1,322.7,320.8,319.7,318.3,317.6,318.1,317.3,316.8,320.4,319.9,319.4,318.9,318.0,318.2,317.5,316.3,315.4,314.8,313.7,313.2,312.0,310.7,310.0,309.9,315.9,316.7,316.6,324.7,324.2,324.5,324.1,324.2,324.1,324.1,324.0,323.9,323.7,327.5,326.7],"광주 광산구":[269.1,269.5,270.0,270.4,270.6,271.3,271.3,272.5,273.4,274.2,276.8,280.4,281.3,283.1,284.1,285.4,290.1,294.3,299.0,300.9,302.7,307.4,310.0,319.2,325.7,326.5,332.6,334.3,334.5,334.5,335.5,334.2,334.4,335.4,335.5,336.1,336.7,337.1,338.3,338.9,338.8,339.4,339.1,339.6,340.6,342.1,352.0,363.5,369.2,375.1,379.0,381.5,383.6,388.9,391.6,399.8,408.3,418.3,434.6,439.4,442.1,446.0,446.4,449.2,452.9,454.3,456.6,457.1,455.7,454.5,407.5,400.9,395.2,391.4,386.4,384.2,382.6,381.6,380.6,380.7,380.5,379.9,379.6,379.4,379.6,379.4,379.2,378.1,376.8,375.3,374.4,372.8,372.1,371.4,370.5,367.8,366.2,365.8,365.1,363.8,363.1,362.4,362.2,363.3,362.3,361.6,361.7,361.5,361.0,360.9,361.7,361.6,361.1],"대전 동구":[228.4,228.6,229.0,229.3,229.3,229.9,230.1,231.0,231.0,231.1,231.3,232.0,232.3,232.3,232.8,233.7,233.8,233.9,234.8,235.2,235.5,236.1,234.9,235.3,236.3,236.4,236.2,236.3,237.0,237.6,237.3,237.2,237.3,239.5,240.7,247.9,249.6,251.8,256.9,264.8,266.8,273.2,278.2,283.2,285.0,287.3,293.8,299.1,302.3,305.8,312.4,314.3,316.3,317.6,318.2,325.1,329.3,334.3,339.0,341.2,344.2,345.6,347.0,348.6,351.0,351.8,351.6,347.6,347.4,344.3,394.3,388.2,380.9,380.4,374.0,371.5,369.5,368.1,366.5,365.4,366.0,366.8,368.5,368.8,368.9,367.9,367.0,376.4,375.8,375.2,374.0,373.4,374.2,373.8,373.3,371.7,370.1,368.4,366.5,362.6,361.9,363.6,363.4,363.0,362.3,362.2,361.6,361.0,360.9,360.9,361.6,362.3,362.2],"대전 중구":[233.9,234.0,234.7,235.1,235.6,235.6,235.9,236.3,236.7,236.9,237.3,238.4,239.6,240.0,241.2,242.2,243.7,244.2,245.1,245.3,245.7,246.5,247.7,248.7,250.1,250.5,251.1,252.2,255.3,256.7,259.4,262.6,266.5,275.4,279.6,289.0,295.6,299.9,309.2,316.1,320.1,335.7,339.1,340.9,345.3,349.0,354.3,357.6,363.8,371.6,377.3,381.8,385.2,391.7,396.5,401.4,407.1,412.9,419.6,421.6,422.2,422.9,422.4,422.2,423.0,422.6,422.3,420.2,418.3,417.5,435.0,427.1,421.5,416.8,409.7,404.5,400.5,398.8,397.3,395.7,396.4,396.9,398.0,404.6,407.2,407.3,405.6,404.3,403.0,400.9,400.3,399.7,398.8,398.7,397.6,396.9,395.3,393.2,391.5,392.8,391.5,394.1,393.4,394.7,393.5,392.8,391.3,394.8,394.8,395.2,397.9,398.9,398.8],"대전 서구":[268.7,269.0,269.3,270.1,270.2,270.3,271.3,271.9,272.1,272.7,273.3,274.3,275.2,275.9,276.8,277.0,277.9,278.0,278.7,278.7,279.8,283.0,285.1,287.2,286.9,290.8,292.0,292.4,292.7,294.0,294.6,297.9,305.3,311.5,316.7,327.3,338.4,346.9,357.4,363.0,366.0,372.8,379.4,383.9,390.7,396.4,405.8,410.9,414.4,427.1,433.1,436.9,442.4,452.8,466.8,479.4,488.3,503.2,517.5,519.2,519.4,518.9,515.2,514.2,512.6,510.1,508.8,504.4,500.6,495.8,510.3,501.4,491.4,481.2,473.3,468.4,467.0,466.0,466.1,467.6,470.7,473.8,475.2,475.1,476.8,476.6,479.0,479.5,479.4,479.3,478.7,478.5,478.4,478.6,478.0,477.6,477.1,475.6,474.5,473.7,472.9,471.8,471.4,470.6,469.5,469.6,470.1,470.8,471.9,473.6,476.4,478.9,479.7],"대전 유성구":[305.9,307.5,307.9,308.4,308.3,308.6,308.7,309.2,309.7,310.8,311.0,311.3,312.0,312.6,313.0,314.5,314.9,315.0,315.3,317.3,321.6,325.2,331.1,333.3,334.4,334.7,336.3,339.0,340.8,341.7,346.2,348.7,357.8,366.3,379.3,388.3,396.2,402.1,410.3,412.6,415.6,429.9,440.1,446.0,461.2,468.2,486.2,497.5,507.4,526.3,545.0,549.6,553.9,563.5,572.5,580.0,588.5,592.2,599.0,601.4,600.9,598.1,595.3,594.1,588.8,584.6,581.0,572.6,568.0,560.6,551.3,540.6,530.4,522.8,517.5,506.3,500.6,502.4,503.2,505.2,511.0,513.2,520.5,520.8,521.6,521.4,521.0,521.3,521.0,520.6,520.5,524.8,524.9,526.0,526.6,526.4,525.2,525.0,524.7,525.2,525.0,529.2,528.9,528.5,528.4,528.5,528.6,531.1,531.1,531.3,531.4,532.1,532.7],"대전 대덕구":[220.5,220.7,222.4,222.4,222.6,223.4,223.5,224.0,224.4,224.9,225.7,225.8,225.9,225.6,225.4,225.1,224.4,224.4,224.5,224.5,224.7,224.6,225.1,224.7,224.2,224.0,224.0,224.0,223.9,224.4,224.6,225.1,225.0,225.9,225.9,226.3,231.7,233.0,234.2,235.5,236.8,243.4,252.6,256.8,258.9,262.4,266.9,276.7,280.0,286.6,293.2,295.5,300.8,306.2,311.0,318.7,328.5,331.3,339.8,346.3,348.9,348.5,348.5,349.6,350.7,349.9,349.0,348.6,348.2,347.2,371.0,366.0,362.5,358.4,350.7,345.2,341.9,339.5,338.2,344.6,346.8,347.5,347.2,347.1,346.7,347.0,345.7,344.7,344.0,343.3,342.9,341.9,341.7,341.8,341.0,334.8,338.6,338.5,338.1,337.5,337.0,336.5,336.1,341.6,340.5,340.3,340.0,340.6,340.6,340.5,339.3,339.3,338.9],"울산 중구":[329.0,328.2,329.8,329.6,330.1,330.8,330.5,330.7,330.9,330.7,330.1,331.0,331.6,331.4,330.8,324.7,322.5,321.7,318.9,317.6,316.4,315.1,314.3,312.3,311.6,309.6,303.4,299.1,299.0,296.0,293.4,293.2,293.3,293.9,295.0,297.5,298.8,299.5,301.2,302.9,303.5,307.8,311.7,313.0,314.6,318.4,331.0,344.0,351.5,358.2,360.9,367.1,369.1,372.2,372.9,373.8,378.5,380.2,385.2,388.1,388.7,389.4,388.8,388.1,388.1,386.9,386.1,383.4,382.8,381.1,444.2,435.9,422.1,416.8,414.9,411.4,407.9,408.0,409.5,409.7,410.2,411.9,412.9,413.5,413.6,413.1,413.5,413.8,414.3,414.9,416.2,417.4,418.5,420.2,421.2,422.6,422.8,422.9,424.3,425.7,426.1,427.8,428.9,429.1,430.5,431.0,432.5,434.7,474.6,475.9,479.0,479.9,480.8],"울산 남구":[356.2,356.0,357.6,360.2,360.0,359.8,359.8,358.2,358.3,358.6,359.9,360.7,360.2,360.1,359.7,357.4,357.0,355.9,354.3,353.3,353.1,351.0,346.1,345.3,343.6,340.2,338.5,336.1,334.9,334.4,333.5,333.2,332.5,333.2,336.7,340.3,342.7,345.5,350.7,352.6,354.5,363.0,366.3,369.9,378.7,388.4,412.9,445.7,456.8,464.0,470.5,473.4,475.2,477.0,479.5,486.3,489.4,493.2,495.8,497.3,498.6,499.8,499.7,500.5,501.4,501.1,498.9,497.9,497.3,496.0,507.3,496.0,486.4,477.5,472.2,469.7,466.8,466.4,464.7,465.3,465.8,467.4,466.9,466.7,466.5,466.4,465.9,470.0,469.9,469.6,471.3,472.9,473.3,474.3,475.1,475.3,478.2,478.5,479.3,480.1,481.2,483.7,490.0,491.1,493.8,495.2,499.4,506.9,510.1,518.9,523.3,527.1,529.7],"울산 동구":[317.2,317.0,317.6,317.5,317.4,316.8,316.5,314.8,314.8,313.0,311.4,308.1,306.7,306.1,305.7,304.1,301.9,300.3,299.0,298.6,298.3,293.6,291.3,289.1,288.7,286.2,283.7,281.2,279.9,279.2,278.2,277.8,276.5,275.4,274.2,274.0,274.0,274.0,273.2,273.0,272.4,270.9,271.9,271.7,271.5,271.4,271.3,275.6,281.8,285.1,290.9,294.5,295.1,297.3,302.3,312.9,317.7,319.2,323.0,325.0,325.2,325.0,325.2,325.8,326.0,325.3,322.7,322.1,321.6,321.1,314.7,305.8,300.1,296.9,295.5,290.1,283.4,280.3,277.8,276.7,276.6,276.3,274.1,272.8,271.6,271.3,269.7,269.3,269.1,268.9,268.2,298.6,298.4,298.2,298.2,297.8,297.9,300.1,299.6,300.5,300.7,300.4,300.2,300.5,300.5,300.9,301.9,302.7,304.1,305.2,305.9,307.1,307.6],"울산 북구":[280.5,280.4,280.1,279.1,280.7,280.0,279.6,276.7,273.9,272.0,270.3,266.6,267.1,266.2,265.2,259.1,256.5,255.6,252.2,248.5,246.8,245.4,243.5,242.3,241.4,238.2,233.0,226.4,225.3,222.4,220.4,220.4,220.9,220.7,220.9,223.6,225.0,226.0,229.3,230.3,230.7,232.8,234.4,235.8,237.1,238.0,242.1,251.2,261.9,266.6,272.0,274.2,277.2,280.3,281.7,284.0,286.7,290.2,293.3,294.6,295.2,295.2,295.4,296.0,296.6,297.9,297.2,297.0,296.9,296.2,368.9,361.6,353.3,350.5,346.7,343.3,342.9,343.1,342.8,342.9,342.3,341.6,341.3,341.0,340.6,339.9,339.2,338.5,338.3,338.2,338.8,339.8,340.3,341.4,341.8,342.6,342.9,342.7,342.9,343.4,343.8,344.6,349.5,350.7,351.4,352.1,353.2,355.7,357.6,359.1,361.0,361.6,362.2],"울산 울주군":[266.2,266.5,266.5,266.5,266.5,266.3,266.3,265.9,264.8,263.7,263.0,261.9,261.3,260.7,260.4,258.6,256.4,256.0,254.6,254.2,253.6,252.3,251.1,250.1,250.4,248.4,243.9,238.5,235.9,234.3,233.6,232.4,231.6,230.4,230.1,230.9,231.4,231.9,232.2,232.4,233.3,233.8,234.6,237.2,237.5,239.8,245.4,253.2,256.8,265.7,269.4,271.2,271.9,274.7,275.4,277.4,278.6,279.9,282.9,284.5,285.5,287.0,287.5,288.1,288.5,288.8,288.0,287.6,287.6,286.6,333.1,328.5,324.4,323.1,321.5,319.4,315.2,313.9,311.6,309.9,309.7,309.9,309.8,309.4,309.1,309.0,308.5,308.1,307.7,307.4,306.2,308.7,308.6,310.1,310.1,310.1,310.1,309.8,310.1,310.0,310.1,311.9,312.1,318.1,318.9,319.4,321.3,322.1,323.2,324.6,326.0,326.6,327.8],"세종시":[296.0,296.0,297.8,298.2,298.9,303.0,309.2,318.7,320.3,321.6,322.1,322.1,324.4,325.0,327.4,327.9,329.5,330.5,331.3,331.8,332.8,333.0,332.6,333.3,336.7,336.3,337.1,337.6,337.5,337.4,337.5,337.5,336.8,337.7,337.9,339.3,351.4,372.2,395.8,399.5,401.6,418.5,445.2,481.3,523.3,543.9,558.4,580.0,605.5,628.9,634.1,638.8,641.9,643.9,643.7,643.3,642.5,688.1,732.9,765.6,787.3,806.0,811.0,813.2,811.7,810.6,806.6,786.0,761.4,724.8,706.1,687.9,662.8,651.1,646.8,641.5,643.5,643.7,649.4,653.2,654.6,657.9,658.7,661.0,667.0,666.5,665.2,662.4,658.4,655.1,651.8,650.0,648.4,648.2,647.6,640.3,639.9,639.2,636.1,636.0,646.1,654.9,656.1,657.3,660.0,661.1,662.2,664.8,666.9,670.2,671.7,672.9,674.0],"수원 장안구":[360.0,360.7,361.1,361.5,361.7,362.2,363.3,363.5,364.0,363.7,364.0,363.7,363.9,363.9,364.2,364.7,364.5,364.7,365.1,365.8,366.6,368.0,373.8,374.4,373.7,373.7,373.9,374.6,376.6,376.0,375.9,376.4,377.0,378.1,378.7,379.7,383.5,397.9,416.3,422.5,429.0,438.5,445.1,450.4,456.2,458.5,462.8,468.1,475.8,490.8,512.0,525.9,539.8,566.5,581.9,609.1,627.1,644.8,658.1,662.6,664.5,670.9,670.8,672.2,672.9,671.2,666.6,663.7,661.1,654.9,717.0,695.9,664.9,659.1,637.7,619.7,611.5,610.2,609.2,637.4,636.5,635.3,634.5,634.1,632.8,632.4,629.9,628.6,627.4,626.3,629.7,647.6,653.1,657.8,661.6,663.3,664.0,663.9,665.3,666.2,667.2,669.4,671.8,673.4,675.8,676.6,680.0,702.6,705.1,707.8,714.2,720.4,732.5],"수원 권선구":[323.1,323.2,323.3,324.0,324.2,324.4,324.5,324.9,325.9,326.6,327.6,327.7,327.7,327.7,328.2,328.0,327.7,327.7,327.9,328.0,328.4,328.7,324.8,325.5,326.1,326.0,326.2,326.0,326.1,327.3,327.1,326.9,327.3,327.4,328.4,331.7,334.7,352.5,371.3,377.8,379.1,385.0,392.7,396.0,401.8,402.8,409.2,415.7,419.9,433.5,454.7,471.4,486.3,505.5,522.0,551.9,566.4,583.8,596.0,599.1,599.4,601.7,600.5,600.1,597.8,595.8,595.0,593.2,592.0,586.3,646.3,627.7,607.1,601.6,599.1,588.3,579.3,577.9,575.9,577.5,579.3,580.1,581.8,581.7,580.3,579.1,578.3,580.3,579.7,578.1,579.7,583.9,588.3,590.3,591.0,594.6,594.3,593.5,593.3,592.6,592.5,592.2,592.3,592.4,592.3,592.3,592.9,595.0,597.4,601.7,605.7,609.5,613.3],"수원 팔달구":[355.2,356.5,357.2,357.3,358.0,359.0,360.1,360.7,362.0,363.6,364.8,366.0,367.1,367.2,368.4,368.5,368.4,368.5,371.9,373.5,377.1,378.2,381.5,384.3,380.8,382.4,383.1,385.3,386.9,386.9,387.5,387.9,388.8,390.3,395.4,404.5,413.2,438.2,459.8,470.7,474.1,480.5,485.5,490.2,495.2,498.9,503.9,511.1,520.5,531.8,558.7,574.0,584.9,608.2,621.9,639.3,665.7,677.2,690.6,692.3,694.6,695.1,695.6,695.2,695.2,695.8,694.6,694.2,691.7,684.0,768.9,755.2,726.5,719.3,707.5,693.7,715.3,712.5,710.6,710.7,710.1,711.7,713.3,713.7,713.0,712.7,711.6,710.5,711.3,751.5,771.3,772.6,786.6,788.8,791.6,791.0,790.6,790.2,789.9,789.4,801.5,802.9,814.0,816.2,817.7,820.8,825.9,827.6,831.0,838.7,852.1,859.8,868.1],"수원 영통구":[446.4,447.2,448.0,449.0,448.8,449.6,450.2,453.1,453.9,453.6,454.2,455.8,456.6,462.1,466.9,472.6,475.0,479.4,480.5,481.1,490.2,494.4,497.3,497.3,502.5,502.9,502.8,502.0,501.3,501.3,501.8,501.7,504.1,508.4,516.6,536.1,560.5,591.9,613.9,618.3,618.9,625.1,641.7,653.0,672.1,677.8,693.9,706.4,723.0,750.9,773.9,791.7,804.0,828.3,850.3,876.5,896.5,913.0,931.9,933.5,933.8,930.5,928.2,927.8,922.6,917.3,911.5,905.9,887.6,851.2,906.3,882.2,856.1,842.7,833.2,827.1,819.6,819.0,818.5,823.5,818.3,822.6,824.7,826.6,828.1,829.2,830.0,831.0,832.6,835.5,840.6,848.4,855.4,861.2,863.3,865.0,865.0,865.4,866.6,871.4,872.4,876.2,880.0,882.3,886.0,889.7,902.6,909.4,914.8,921.8,933.1,943.7,951.7],"성남 수정구":[419.6,421.0,422.2,423.2,423.8,426.7,430.2,434.6,435.3,436.9,437.3,438.9,442.8,443.5,444.5,448.1,449.8,452.1,453.0,454.3,466.6,470.6,472.2,473.7,481.6,482.1,485.4,489.3,489.6,490.1,497.6,504.0,505.4,510.8,513.7,523.0,530.3,541.3,576.5,592.5,595.2,599.9,608.2,615.5,622.6,631.0,645.3,665.6,687.8,715.7,745.9,759.8,774.1,785.9,798.1,807.8,823.2,830.1,837.6,839.6,840.5,841.1,841.1,842.0,851.5,850.1,850.2,850.0,846.1,835.6,1271.0,1195.2,1172.3,1160.3,1156.4,1156.5,1160.9,1166.7,1171.2,1178.0,1190.4,1196.2,1198.7,1199.3,1195.6,1193.7,1192.7,1193.1,1195.1,1197.7,1210.8,1229.7,1251.5,1267.3,1269.1,1269.3,1269.1,1270.1,1275.0,1279.8,1310.7,1318.4,1343.9,1354.9,1376.1,1406.7,1453.4,1472.2,1489.0,1520.8,1542.1,1562.9,1586.7],"성남 중원구":[437.4,438.7,446.1,446.7,448.1,448.7,450.6,452.4,454.8,456.9,461.7,462.0,463.1,465.3,467.9,473.1,474.4,477.8,479.6,485.2,499.6,509.7,512.3,515.7,515.9,516.5,515.4,513.7,513.7,517.7,519.8,525.9,532.7,542.1,551.4,564.2,575.8,586.6,620.5,634.1,639.9,651.0,674.4,686.0,699.1,714.4,730.9,746.3,766.6,802.3,827.9,841.3,851.9,876.6,884.9,896.4,907.0,914.9,926.8,929.6,930.3,930.1,937.4,937.6,938.5,939.0,938.9,935.8,929.1,920.7,1015.8,992.4,966.6,946.1,917.6,907.0,897.2,891.9,890.9,894.8,898.3,900.5,929.0,928.7,927.3,925.2,923.3,922.0,919.8,919.3,966.8,979.6,986.8,991.9,994.0,995.5,994.9,994.4,995.4,995.7,1001.5,1006.4,1013.7,1019.8,1024.9,1039.7,1058.4,1070.1,1083.0,1108.7,1141.0,1164.7,1187.0],"성남 분당구":[670.6,672.1,674.1,676.6,679.5,689.8,699.4,715.2,722.7,730.4,740.6,752.1,781.7,802.7,829.0,846.1,855.3,861.2,866.1,874.3,935.1,960.3,966.6,965.6,947.4,947.5,945.3,942.8,940.3,939.3,941.9,948.4,952.9,958.6,965.5,988.4,1003.3,1018.5,1040.0,1045.3,1046.4,1057.8,1089.9,1115.6,1136.3,1161.5,1195.8,1228.3,1260.4,1320.5,1343.0,1369.6,1383.3,1404.3,1421.8,1439.3,1457.0,1466.2,1477.1,1486.3,1488.7,1491.0,1492.6,1501.6,1509.1,1513.0,1513.6,1512.2,1510.2,1502.7,1542.8,1527.3,1502.4,1478.8,1456.2,1424.7,1414.9,1414.8,1416.9,1420.9,1426.2,1430.6,1431.6,1432.6,1431.0,1430.3,1430.1,1429.1,1428.7,1430.2,1445.6,1457.2,1471.8,1479.6,1486.5,1494.5,1498.5,1501.4,1505.8,1519.0,1529.0,1563.7,1593.7,1606.3,1636.4,1705.8,1771.4,1817.0,1837.0,1878.8,1910.4,1931.1,1951.3],"고양 덕양구":[366.5,366.4,366.8,368.7,368.9,370.6,372.3,373.4,375.1,375.6,376.2,376.8,376.9,376.9,377.3,378.2,379.5,380.4,381.0,381.0,385.4,393.1,398.4,400.1,400.8,400.8,401.7,401.3,401.0,400.9,398.0,398.3,398.2,398.5,398.2,399.7,401.4,403.4,411.8,415.3,417.4,426.1,435.9,444.8,455.2,463.5,480.1,492.7,515.0,552.0,590.5,600.8,609.0,621.7,630.4,647.7,658.9,669.8,680.8,683.7,684.6,684.0,683.7,681.5,682.7,683.9,681.4,678.2,674.9,663.3,719.1,697.9,675.8,663.7,655.8,646.4,651.3,647.4,646.0,644.7,647.4,651.9,653.9,655.3,656.2,658.9,658.5,658.4,658.5,664.7,666.6,670.3,672.9,675.0,676.1,676.8,677.0,676.1,677.1,684.1,684.3,683.8,684.2,684.2,686.7,686.9,687.6,688.9,689.6,692.9,694.7,696.4,699.4],"고양 일산동구":[394.9,397.4,397.9,398.3,400.6,402.2,404.4,406.9,408.0,408.5,408.8,409.3,409.3,410.6,410.9,411.6,412.4,411.9,411.6,413.0,415.7,416.9,416.8,416.5,414.7,414.7,414.2,411.4,410.8,410.0,408.2,408.1,406.8,405.3,404.6,407.6,408.8,410.2,411.6,411.7,412.3,417.9,424.3,428.3,437.7,445.4,460.6,484.9,518.7,554.2,575.4,586.1,592.6,606.1,615.0,623.1,635.6,639.9,647.9,649.6,650.5,651.5,652.1,653.2,656.2,657.5,657.6,656.2,655.9,654.3,751.2,737.9,719.6,693.1,680.2,668.5,652.8,647.8,640.8,640.8,640.1,641.4,642.4,642.5,642.0,641.0,639.8,638.8,638.1,638.7,637.5,637.6,637.8,638.3,639.5,640.1,639.5,639.4,639.9,639.9,639.4,638.7,637.7,637.1,635.7,635.4,634.4,633.5,633.1,633.0,632.0,630.6,629.1],"고양 일산서구":[380.0,380.1,381.3,381.2,381.6,382.5,384.9,387.0,387.8,388.6,388.7,388.3,388.7,388.1,388.9,389.3,389.3,389.6,389.1,388.6,388.7,390.6,390.9,391.2,387.2,387.2,386.8,385.1,385.0,384.1,381.1,380.5,379.4,377.4,377.2,379.9,381.5,383.3,385.9,386.1,383.9,383.3,389.6,394.9,401.2,406.2,415.6,445.0,485.6,515.3,533.7,545.1,550.2,558.5,571.8,582.6,596.4,602.5,615.5,619.2,620.1,620.2,621.6,624.8,627.3,630.5,631.1,631.0,629.7,626.6,661.8,652.0,637.0,627.5,606.4,583.1,569.9,565.0,562.5,560.8,560.5,560.3,560.7,559.9,558.2,557.4,556.1,554.8,553.9,553.3,551.4,550.0,549.3,548.3,548.0,547.1,545.2,543.9,545.1,543.5,541.9,540.6,539.4,538.5,537.5,537.7,536.2,535.5,534.7,534.3,533.0,531.7,531.2],"안양 만안구":[422.0,421.2,422.0,422.0,424.8,428.4,433.1,443.0,445.7,447.3,450.4,453.3,455.1,456.3,458.5,460.1,462.5,464.4,467.6,468.7,484.0,496.4,500.0,500.3,502.2,502.5,502.9,502.4,501.7,500.6,503.0,503.1,505.2,506.5,508.9,516.2,521.1,532.7,548.7,554.5,558.9,571.2,583.5,590.4,600.7,604.2,617.1,622.9,635.3,646.2,666.5,677.1,685.5,704.5,719.1,733.2,766.8,783.4,790.3,792.7,799.2,799.2,800.4,800.6,802.8,804.6,804.6,797.4,792.9,782.6,798.9,783.9,760.1,750.9,746.2,737.5,733.2,732.8,731.5,732.7,741.4,742.6,742.9,742.3,741.3,740.0,739.5,736.4,735.8,735.5,735.2,737.0,740.5,741.8,743.8,750.1,748.8,748.5,748.9,749.9,749.4,749.8,750.0,750.8,752.1,757.4,765.5,771.0,775.4,783.4,795.1,801.3,808.3],"안양 동안구":[529.8,533.2,535.0,535.4,538.0,541.7,549.7,556.4,563.1,568.7,573.2,576.0,581.0,584.3,591.6,599.6,602.0,602.9,608.2,613.4,630.8,647.1,654.0,655.0,648.6,648.1,646.8,646.6,642.5,641.1,637.1,636.5,638.3,639.1,638.9,648.7,659.8,668.3,692.7,702.8,708.6,722.0,741.9,755.6,767.0,775.6,788.0,810.5,829.5,869.8,896.0,907.2,918.9,951.5,975.1,1017.6,1060.2,1074.5,1090.4,1091.0,1085.4,1083.1,1081.2,1078.4,1074.9,1070.5,1064.1,1056.1,1051.5,1035.8,1047.1,1025.9,985.7,964.9,955.5,933.4,918.0,917.3,918.2,921.7,926.3,929.0,933.8,937.2,936.0,935.2,932.7,928.5,928.0,929.4,932.5,937.9,944.6,949.7,952.3,956.0,956.8,956.8,964.5,975.3,978.3,988.6,1001.0,1006.7,1015.5,1029.6,1045.5,1057.2,1073.4,1103.9,1138.2,1155.9,1170.7],"부천 원미구":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,711.6,710.8,709.5,709.0,708.8,709.3,710.8,712.3,715.5,716.9,718.2,719.2,720.5,720.8,721.6,722.6,723.2,723.7,724.6,725.3,725.8,726.4,727.5,730.6,731.9,734.1,736.5,738.9,741.7],"부천 소사구":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,639.6,639.5,639.3,645.4,645.0,645.5,646.5,648.4,649.0,649.9,649.6,675.6,674.9,674.5,674.3,673.7,673.6,672.6,672.5,672.8,672.5,671.8,671.6,670.8,669.4,669.9,671.6,672.6,674.8],"부천 오정구":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,540.2,539.6,539.0,537.7,536.8,534.5,535.1,536.7,536.6,537.4,536.8,536.1,535.3,535.0,534.2,532.6,534.1,533.0,531.0,530.3,530.5,529.5,528.9,529.1,528.6,529.6,529.4,529.7,529.9],"의정부시":[310.7,310.9,311.6,312.0,312.5,312.7,312.7,313.4,314.2,314.1,313.9,314.8,314.9,314.7,315.6,318.3,319.2,319.5,319.0,319.0,318.9,319.5,320.4,320.6,320.8,320.7,320.4,319.5,318.8,318.5,318.5,318.9,318.9,319.1,319.8,321.5,322.4,323.3,325.1,325.8,327.1,328.3,332.0,339.7,346.2,349.9,357.0,369.8,383.3,402.9,429.7,449.1,457.2,474.3,484.9,500.1,511.1,525.5,536.0,541.1,543.0,542.9,542.5,543.8,544.3,544.5,542.3,538.6,536.8,529.7,555.3,539.3,528.4,520.9,508.5,500.6,495.3,488.6,486.6,491.8,491.7,491.4,490.6,489.9,488.8,490.0,488.7,488.1,487.8,487.5,488.6,488.5,490.7,491.1,490.9,490.5,484.3,483.7,483.2,485.0,485.2,484.2,486.4,487.6,487.6,487.7,488.1,489.6,489.9,490.4,490.8,490.6,490.6],"광명시":[586.6,586.7,587.5,587.2,591.7,597.7,601.1,603.7,607.6,610.7,615.5,619.2,624.1,627.2,633.1,640.7,642.9,647.7,657.9,691.5,758.6,776.1,778.4,773.5,764.2,763.7,760.4,756.8,755.4,757.3,761.1,766.3,769.3,772.5,778.7,789.0,796.9,804.9,822.9,826.0,828.0,841.9,881.9,912.1,952.8,967.8,978.9,986.7,995.6,1026.0,1048.0,1062.9,1073.3,1087.9,1104.1,1131.5,1160.5,1177.7,1187.0,1186.8,1185.5,1185.1,1184.9,1165.9,1165.6,1159.3,1155.6,1147.8,1139.7,1117.7,1101.5,1065.5,1003.4,983.5,966.6,951.1,946.8,947.3,949.9,960.3,967.6,983.9,987.1,986.7,985.0,984.5,982.4,984.1,992.6,992.6,995.6,998.9,1003.9,1008.2,1010.2,1009.3,1007.2,1005.6,1004.7,1003.4,1002.4,1006.7,1014.2,1016.9,1038.8,1053.6,1081.8,1091.9,1114.1,1145.1,1179.7,1220.7,1243.4],"평택시":[273.4,273.3,273.3,273.5,273.4,273.8,274.1,273.9,273.4,273.1,272.7,271.7,271.5,271.3,269.4,267.9,265.7,264.7,261.1,260.3,256.3,252.9,250.5,247.8,248.2,246.4,244.8,243.6,242.8,239.5,238.3,237.1,235.9,235.5,233.7,233.5,233.9,234.3,235.8,236.6,237.4,239.7,240.4,240.2,239.5,239.6,239.8,240.0,240.7,243.9,245.9,251.4,257.1,267.3,283.6,301.2,318.3,334.3,343.6,349.4,352.2,353.4,354.6,358.1,361.4,363.7,367.7,368.5,367.7,361.9,450.9,442.1,434.1,428.9,430.6,427.1,423.9,425.0,423.6,429.1,431.4,442.0,442.4,443.5,443.1,442.3,443.2,442.2,443.5,442.1,442.1,440.8,440.3,440.8,437.9,436.3,434.4,431.2,428.4,427.1,428.5,425.2,425.0,422.8,420.3,417.4,414.8,415.2,414.8,412.2,410.5,409.5,409.0],"안산 단원구":[395.3,395.7,395.4,395.1,395.5,396.0,396.4,398.6,398.8,399.5,399.2,399.3,399.4,399.2,398.1,397.1,394.6,393.2,388.8,387.9,387.6,382.5,381.1,379.3,377.4,377.0,372.1,370.6,369.4,367.4,367.5,367.3,366.8,366.6,366.0,367.8,371.0,376.5,391.5,395.7,399.6,408.7,413.8,414.4,416.9,418.5,420.7,422.3,429.2,438.8,463.2,494.9,525.3,548.1,565.4,582.0,601.6,608.6,627.2,634.7,635.8,637.9,638.5,642.0,644.9,645.8,645.8,644.5,641.7,639.4,718.4,702.5,673.9,654.8,637.1,627.2,625.8,625.4,624.1,631.8,635.7,638.9,641.5,642.1,642.1,641.9,641.4,641.2,640.4,640.3,639.5,641.1,643.2,645.6,646.9,647.4,646.8,652.3,652.8,652.2,652.0,652.4,652.9,653.0,652.8,653.1,653.2,654.5,655.5,656.9,657.4,660.3,662.1],"안산 상록구":[343.5,343.1,343.2,343.6,343.4,343.5,343.6,343.8,344.6,344.5,344.3,344.0,343.5,343.1,341.3,340.5,339.6,338.1,336.7,335.2,334.4,330.7,329.6,325.7,324.2,324.1,323.6,322.7,321.4,320.7,320.7,319.6,319.9,319.5,318.2,318.7,318.8,321.5,329.2,333.3,337.6,343.5,352.8,355.5,359.2,359.8,363.0,365.9,369.2,382.2,409.3,443.8,475.2,492.2,501.4,519.8,532.8,550.3,571.5,577.3,578.1,578.3,581.1,587.2,589.8,594.1,594.5,594.5,594.2,593.0,654.7,635.7,620.8,610.0,602.2,589.5,582.8,580.5,578.3,577.5,577.1,576.5,575.2,574.9,573.9,573.7,572.9,572.0,571.5,570.8,569.3,570.7,570.5,570.3,570.0,568.2,567.2,566.3,565.5,564.0,563.1,562.1,561.9,561.2,560.4,560.2,559.8,559.3,559.3,559.5,558.9,559.5,560.0],"과천시":[1129.7,1124.8,1125.2,1132.0,1144.6,1176.0,1194.6,1215.1,1210.3,1212.7,1220.9,1252.2,1323.1,1356.7,1382.2,1396.2,1398.8,1400.4,1400.3,1432.6,1505.4,1513.6,1515.0,1513.7,1355.5,1352.1,1351.6,1331.4,1327.1,1338.1,1351.9,1368.4,1380.5,1398.6,1423.1,1509.3,1590.7,1614.1,1614.0,1611.0,1600.7,1602.8,1621.3,1652.2,1664.4,1673.1,1673.3,1697.2,1733.9,1805.7,1812.0,1826.2,1884.1,1913.9,1933.1,1967.7,1991.2,2005.4,2041.0,2054.5,2057.8,2059.5,2058.8,2058.8,2061.9,2062.2,2060.9,2055.1,2037.6,2043.8,1982.9,1934.7,1869.8,1853.9,1825.7,1815.5,1809.4,1827.5,1846.9,1871.3,1944.2,1971.1,2011.3,2019.3,2022.5,2023.2,2024.1,2032.0,2037.0,2045.8,2101.4,2136.2,2186.5,2219.4,2299.3,2312.7,2318.2,2341.2,2379.5,2441.7,2478.0,2530.3,2603.8,2600.7,2624.2,2697.2,2750.1,2757.5,2777.9,2791.4,2788.2,2781.4,2776.7],"구리시":[442.6,443.4,444.8,445.9,447.2,452.2,456.2,460.5,465.0,465.8,468.5,470.4,473.3,475.4,479.9,483.6,486.8,489.0,493.4,498.5,508.6,519.0,522.3,527.0,526.5,529.2,532.1,534.0,534.7,535.4,537.9,540.2,540.2,542.1,545.0,547.3,558.8,565.8,596.0,608.3,619.1,636.5,662.8,687.3,711.7,727.0,739.5,749.1,765.4,784.0,797.6,815.5,828.2,838.0,851.0,876.5,888.8,904.7,917.3,921.1,920.8,920.2,920.2,921.4,923.7,924.7,923.9,923.0,922.1,918.9,957.6,945.9,920.0,911.9,907.8,901.4,895.2,889.8,886.3,884.3,885.7,885.6,884.0,883.1,882.7,881.9,881.5,881.1,880.7,880.6,879.9,882.1,885.6,887.7,889.6,889.7,887.9,888.1,888.6,888.9,889.1,889.2,889.9,891.3,892.2,898.8,903.4,913.3,918.8,930.9,949.8,968.1,980.8],"남양주시":[318.2,318.2,318.5,318.2,318.2,318.3,318.6,320.1,321.0,321.8,322.6,322.9,323.4,323.3,323.3,324.8,325.2,325.5,325.7,326.1,328.1,329.9,331.0,332.0,331.0,331.0,331.3,331.9,332.0,331.7,331.6,332.0,331.9,332.0,331.8,332.3,332.2,334.3,339.5,341.9,346.6,358.1,379.2,393.4,403.5,411.8,423.9,432.2,447.5,466.0,481.8,494.4,499.9,515.0,528.9,552.5,568.2,580.8,593.0,596.8,598.2,599.4,599.5,599.7,599.8,599.4,597.7,596.3,593.7,585.4,646.7,637.3,615.7,607.6,598.5,582.4,571.3,574.9,574.3,573.0,576.2,577.1,578.0,577.5,576.1,576.0,575.0,573.8,573.1,572.5,572.4,572.6,574.6,576.1,575.0,570.2,569.9,569.7,569.5,569.3,570.1,570.0,570.4,571.0,571.0,571.1,572.2,578.2,579.9,581.7,585.1,586.6,588.1],"용인 처인구":[248.0,248.1,248.2,248.4,248.4,248.4,248.5,248.5,248.3,247.2,246.2,245.0,244.3,243.9,243.6,243.7,243.0,242.3,241.9,241.6,241.5,240.7,240.4,240.3,240.2,240.2,239.9,238.9,238.5,237.2,234.8,234.7,234.7,234.7,235.1,235.2,235.5,235.6,237.3,237.6,237.9,239.2,241.0,241.9,244.6,246.6,247.5,253.9,257.3,262.3,268.2,277.9,281.3,293.1,308.5,322.1,338.3,346.2,353.9,357.7,359.0,359.8,360.6,361.7,369.0,370.2,370.8,372.5,372.4,373.1,514.0,503.1,488.0,479.5,465.2,465.2,463.4,463.2,463.6,463.9,464.7,465.1,466.9,467.0,466.9,466.5,465.6,464.7,464.1,463.6,462.8,461.9,461.9,462.2,462.6,459.2,458.3,456.3,456.3,470.0,469.9,469.3,469.7,470.3,471.4,482.1,496.3,501.7,503.3,511.0,519.8,521.0,541.0],"용인 기흥구":[358.1,358.0,358.0,358.4,358.3,358.7,359.4,359.6,359.6,360.2,359.8,360.1,359.8,359.8,361.1,363.1,364.9,367.0,371.5,373.4,379.5,390.2,395.9,397.9,396.8,396.0,395.5,394.3,394.6,394.0,393.5,394.2,394.8,395.0,396.0,398.1,401.6,407.7,422.2,428.5,431.8,444.4,458.8,475.3,493.1,501.7,520.8,538.9,559.8,581.4,593.0,603.1,610.8,626.0,646.2,663.4,681.5,693.9,701.5,705.7,707.4,707.4,708.3,708.7,709.2,709.6,709.8,709.3,708.5,702.6,720.4,703.8,686.6,675.8,655.0,642.3,629.9,625.9,623.3,626.4,628.4,630.4,631.4,632.3,631.9,631.4,630.5,630.2,631.4,630.7,630.6,631.8,634.2,636.5,637.1,635.2,634.4,633.9,633.6,633.6,634.5,635.2,636.2,637.6,639.1,640.2,644.5,648.9,653.1,658.0,665.4,680.2,688.3],"용인 수지구":[445.2,445.4,445.4,445.1,445.0,446.5,446.7,447.3,447.7,447.7,448.2,449.1,452.1,457.9,467.2,472.0,476.0,478.0,480.8,483.3,498.9,521.4,525.4,526.2,523.7,524.2,523.4,521.8,521.4,519.1,519.0,519.4,521.3,521.3,523.8,533.8,542.6,566.8,594.4,598.3,599.3,610.7,630.3,646.7,662.2,674.8,700.9,725.9,749.6,783.9,806.7,816.6,821.7,831.8,841.6,860.3,881.7,892.5,899.3,902.0,902.5,902.8,901.7,901.6,898.9,895.2,893.5,888.1,885.0,877.5,917.6,896.0,869.0,848.4,831.9,817.9,811.9,812.3,815.2,817.8,825.0,829.6,831.4,831.5,831.3,830.8,830.3,829.8,828.3,828.8,834.2,838.3,845.3,849.5,852.8,853.3,854.1,854.6,856.6,860.0,862.7,870.3,884.2,887.3,896.7,909.0,928.3,942.1,957.1,982.3,1012.2,1035.0,1048.5],"시흥시":[311.7,313.1,314.1,315.1,316.5,317.9,318.7,319.5,320.7,321.4,320.8,321.0,321.3,321.4,321.2,322.1,322.3,322.1,320.4,319.9,319.6,319.3,318.6,318.3,317.4,317.2,316.5,315.2,314.3,311.0,309.4,308.1,307.7,308.0,308.3,308.3,308.4,310.3,314.6,317.0,318.0,323.8,326.7,328.8,330.9,332.9,336.4,338.1,349.9,359.6,375.7,399.6,421.4,445.6,465.7,483.9,506.7,515.7,527.4,532.0,534.7,537.6,537.2,537.9,533.6,532.2,531.9,529.9,526.9,521.8,583.1,567.3,548.5,540.7,540.8,538.2,538.2,537.4,535.6,538.7,543.5,546.4,547.9,548.2,547.3,546.2,545.4,543.9,543.1,543.2,543.0,544.0,544.6,545.1,547.1,548.5,547.9,547.2,547.5,547.8,547.8,548.0,547.1,546.2,545.1,543.0,542.5,542.0,541.4,541.3,541.1,540.8,540.1],"군포시":[423.9,422.8,424.3,425.3,426.9,427.1,428.4,431.2,433.9,435.1,436.5,438.0,439.2,439.8,440.3,440.8,441.0,440.7,440.1,440.3,451.3,460.7,462.8,463.1,463.4,463.5,462.8,462.9,462.6,462.5,463.0,462.9,462.5,462.3,461.8,463.0,465.7,469.2,492.9,501.7,504.8,511.3,521.0,524.3,528.8,531.0,536.6,541.7,548.3,563.1,588.4,613.8,633.5,665.2,688.9,726.9,753.3,780.1,799.6,804.7,805.5,807.4,805.5,807.7,812.1,813.3,812.4,809.1,807.6,795.5,795.3,755.8,734.9,721.7,699.6,685.9,675.4,671.4,669.1,666.5,665.2,664.6,664.0,663.4,664.3,663.8,663.5,661.9,661.5,661.2,668.9,670.4,671.5,672.5,672.8,672.5,671.9,671.2,669.4,668.5,668.6,668.2,667.7,667.4,667.0,668.5,671.3,672.8,678.2,684.7,689.7,692.2,696.6],"의왕시":[448.4,448.7,450.0,450.2,449.8,450.7,452.0,456.7,458.1,462.1,464.0,466.2,469.1,470.9,476.0,481.0,482.6,484.4,487.2,489.2,500.4,512.8,517.4,518.4,518.5,516.2,515.2,514.2,512.5,512.0,510.5,509.2,510.3,511.4,515.1,523.8,532.6,547.0,563.5,570.0,573.7,580.1,593.3,604.2,612.6,616.4,627.3,644.7,660.1,688.0,719.6,741.2,758.4,783.8,804.4,836.9,869.5,883.3,907.4,911.7,912.1,912.3,909.0,909.7,907.4,903.2,896.8,888.3,884.6,875.1,944.4,919.4,886.9,869.4,853.3,839.1,829.1,823.6,819.2,817.0,816.0,816.9,825.3,825.6,824.3,823.5,822.0,821.1,818.1,818.5,818.7,820.8,826.6,828.7,830.1,829.0,827.4,827.7,829.5,832.4,832.6,837.4,820.4,843.5,846.0,849.2,852.7,858.9,861.8,866.1,876.7,889.1,893.7],"하남시":[443.3,444.0,443.1,443.1,444.2,445.5,447.9,455.9,458.7,462.8,465.7,467.5,471.3,471.9,479.8,481.2,484.2,486.4,488.7,494.9,506.5,515.2,523.1,526.3,527.3,530.0,531.2,531.9,530.5,530.1,529.9,530.0,530.3,530.7,533.9,538.7,544.3,570.4,596.4,611.6,616.3,632.9,653.0,677.4,698.3,723.0,740.7,753.1,768.2,807.2,838.8,842.4,845.8,851.2,856.5,864.5,871.4,876.4,885.6,887.3,887.8,890.0,890.1,890.0,891.5,888.9,888.0,885.4,883.3,877.5,1131.8,1104.6,1071.0,1046.8,1031.7,1023.0,1019.6,1021.3,1029.0,1037.4,1042.7,1049.5,1059.4,1060.4,1059.9,1061.1,1058.5,1058.7,1059.6,1061.9,1070.5,1088.9,1104.0,1111.4,1116.7,1119.6,1119.9,1120.9,1124.9,1129.5,1131.9,1139.5,1147.1,1154.1,1167.5,1187.0,1216.3,1233.6,1256.2,1282.7,1314.2,1334.2,1354.2],"오산시":[270.6,270.7,270.8,271.1,271.2,272.5,272.7,272.6,272.7,272.7,272.3,272.1,271.0,270.0,269.9,269.3,269.0,269.0,266.7,266.5,263.9,262.7,260.3,259.6,257.9,257.3,253.9,253.6,253.1,252.6,251.5,251.2,250.3,249.0,248.7,248.0,248.1,248.1,254.4,257.7,258.8,265.7,272.5,275.2,278.1,280.9,284.6,289.4,295.4,306.1,325.3,338.2,346.9,358.0,382.8,414.3,443.5,461.4,473.8,480.7,483.4,483.5,483.7,483.5,484.2,483.5,481.9,476.5,475.2,468.3,511.4,496.3,478.5,472.1,464.1,454.3,449.1,444.0,443.6,442.6,442.8,443.8,444.5,443.9,443.4,442.7,442.3,441.8,441.0,439.5,439.1,438.9,439.4,439.7,439.8,439.4,439.2,438.5,438.1,441.0,442.6,442.2,441.8,443.3,442.8,444.3,443.9,443.8,443.7,443.4,445.9,447.8,450.7],"파주시":[265.5,265.6,266.2,266.6,267.0,268.1,270.8,272.1,272.7,273.7,274.9,275.5,275.7,276.3,276.5,277.0,277.3,277.6,278.0,278.0,277.4,277.4,277.6,278.2,278.2,278.1,277.5,276.5,275.7,274.3,273.7,273.6,273.4,273.3,273.1,273.3,273.3,273.3,272.8,272.6,272.0,271.9,274.2,276.2,280.5,283.2,293.6,316.6,324.2,329.0,335.0,338.4,341.8,348.9,356.0,360.1,365.3,369.2,374.8,377.7,381.9,383.7,384.7,386.6,390.0,390.6,392.7,393.3,393.1,389.5,483.9,474.6,461.5,452.1,456.2,452.9,449.4,447.8,446.2,449.2,455.6,456.1,456.4,459.6,458.9,458.5,458.5,458.9,459.9,459.5,458.6,458.5,459.4,459.5,460.3,460.3,458.3,457.9,457.6,456.4,455.6,456.6,457.8,456.3,457.4,455.0,453.8,453.2,451.9,455.4,457.8,457.6,457.6],"이천시":[253.4,253.5,254.3,255.3,255.5,255.6,256.3,256.3,256.2,256.2,256.4,256.2,255.8,255.8,256.0,256.3,255.7,255.6,254.7,254.4,254.5,253.8,253.8,253.8,253.5,253.3,251.6,251.3,251.0,250.8,250.6,250.4,250.2,249.4,249.4,248.8,249.0,248.8,249.1,249.0,249.2,249.7,249.8,250.1,250.1,250.3,250.0,250.0,250.4,251.7,254.2,256.2,258.4,263.9,267.5,274.3,285.8,292.0,303.6,306.7,311.3,313.9,318.3,323.2,332.2,338.8,340.6,341.6,342.0,343.0,395.5,393.8,390.1,385.9,378.9,373.4,367.3,365.6,364.4,363.2,362.2,361.5,360.0,359.7,358.6,358.0,356.6,355.8,354.6,354.4,352.2,349.8,349.0,348.4,347.6,346.2,345.4,342.4,335.7,335.0,332.6,334.1,332.3,330.5,329.0,328.3,326.7,325.5,324.1,323.1,320.6,317.9,312.0],"안성시":[216.8,217.0,217.0,217.0,217.0,217.0,216.9,216.8,217.0,217.2,217.5,217.7,217.4,217.4,217.1,215.4,215.2,214.1,211.7,210.8,210.2,208.6,207.7,207.1,207.4,205.7,201.2,198.2,195.6,192.9,190.1,188.6,188.2,187.8,186.6,186.6,186.0,186.7,188.9,190.9,191.6,192.8,193.3,193.8,194.4,194.5,194.6,195.1,196.4,197.9,204.3,206.6,211.9,219.4,233.5,249.9,264.3,276.2,283.3,287.9,290.5,292.7,295.3,297.4,300.8,304.7,305.5,305.1,305.1,302.3,336.3,335.3,325.0,319.9,317.5,314.3,312.0,307.8,306.1,305.7,305.1,304.3,303.6,302.1,300.8,302.9,302.5,302.1,301.2,299.4,298.9,299.3,298.1,296.9,295.6,294.8,292.0,290.5,289.9,288.7,287.9,286.0,285.4,285.0,284.2,283.8,294.2,293.1,294.7,294.2,293.8,293.3,293.1],"김포시":[306.3,305.8,306.0,305.9,305.9,306.9,308.1,309.0,310.0,311.9,313.6,314.4,315.8,316.2,317.1,317.6,317.5,317.8,318.2,318.3,319.0,319.8,321.4,320.8,320.6,320.8,321.1,321.0,320.7,318.6,318.7,320.0,320.0,320.0,320.0,320.3,320.7,321.2,322.2,322.2,322.2,322.3,328.7,333.0,338.3,343.7,385.7,400.3,415.9,435.6,452.1,459.3,462.9,467.3,471.3,478.2,492.4,499.7,509.1,512.1,514.5,515.6,515.5,516.1,516.6,515.8,515.6,514.6,511.2,503.9,614.7,595.4,569.1,561.3,552.8,548.5,544.4,541.7,541.2,541.0,542.3,543.7,544.6,544.7,544.3,544.6,544.8,545.2,545.9,546.3,546.7,548.1,549.6,550.6,550.7,550.6,549.7,549.9,550.0,550.2,550.2,549.2,548.9,548.4,547.6,545.5,544.2,544.2,543.9,543.7,543.5,543.5,546.1],"양주시":[224.5,224.6,224.8,224.9,225.0,224.9,224.8,225.1,225.3,225.0,225.5,225.6,225.1,224.9,225.1,225.2,225.4,225.3,225.1,225.0,225.1,225.3,225.4,224.4,227.7,227.8,227.7,227.1,226.8,226.2,225.4,225.5,225.2,225.3,225.3,225.3,225.3,225.5,225.5,225.5,225.3,225.7,226.8,227.0,229.3,229.8,230.8,232.9,241.7,261.9,279.7,289.7,298.2,305.9,311.1,317.3,331.5,337.0,350.2,353.0,356.2,357.2,358.2,358.9,360.7,360.3,359.8,357.5,356.7,348.3,400.6,384.3,375.1,369.6,361.0,348.9,344.0,343.8,347.0,349.4,351.7,353.1,357.1,365.9,366.4,366.7,367.1,366.0,366.1,366.3,365.8,365.2,364.9,365.9,372.8,381.1,380.4,380.0,390.5,391.5,392.6,392.4,395.7,398.3,397.6,396.9,397.4,396.8,398.8,398.5,397.8,398.8,400.2],"동두천시":[192.7,193.0,193.2,193.1,193.2,193.0,192.9,193.1,193.1,193.3,193.6,193.4,193.3,193.2,193.3,193.8,194.0,194.0,193.6,193.1,193.2,192.8,192.6,192.6,193.1,193.0,193.0,191.4,191.1,191.1,189.8,189.6,189.6,189.6,189.1,188.9,188.9,188.9,188.9,188.9,188.8,188.8,188.8,188.8,188.6,188.6,188.5,186.9,188.2,197.8,205.3,215.4,225.6,244.8,254.9,266.0,282.9,285.2,287.9,289.3,290.5,289.7,290.5,291.2,292.0,293.9,294.2,294.6,294.1,294.1,333.4,326.9,319.4,313.6,300.3,291.4,285.7,281.4,280.7,278.8,278.0,277.0,276.1,274.4,272.2,274.6,272.8,269.6,266.9,265.1,266.1,263.8,262.5,262.8,263.5,264.3,261.3,259.8,253.9,252.8,252.3,251.7,251.0,250.1,249.0,247.7,247.2,244.3,243.9,243.7,243.8,243.4,243.2],"광주시(경기)":[298.6,298.8,298.6,298.5,298.8,299.0,299.1,299.2,299.2,298.2,297.8,296.8,296.3,297.2,297.8,297.8,297.7,297.7,295.2,294.3,295.0,295.1,295.2,295.3,295.1,295.1,293.1,292.0,291.3,291.1,288.0,287.4,287.1,286.7,286.1,286.6,287.0,287.1,289.1,289.8,290.2,295.4,299.2,305.0,316.1,320.3,333.0,345.7,352.1,362.7,374.1,380.4,396.0,405.8,417.7,432.2,452.5,465.0,473.6,477.7,479.7,481.7,481.7,481.9,484.4,484.5,485.5,484.7,482.9,478.6,562.0,549.8,538.7,531.9,523.9,516.4,509.3,505.3,503.1,502.7,509.7,509.1,508.8,508.3,508.6,507.1,506.5,505.9,506.4,505.7,505.1,504.2,510.6,510.2,510.5,509.8,508.7,507.5,504.9,503.1,502.7,504.3,506.5,506.9,510.8,511.6,517.6,519.6,531.9,533.1,533.8,534.7,534.8],"화성 만세구":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,490.4,488.8,488.3,485.2],"화성 효행구":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,482.5,484.3,488.4,489.1],"화성 병점구":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,558.8,560.7,562.4,563.8],"화성 동탄구":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,928.9,939.7,947.8,959.5]}};
+
+function fullSeries(name, live){
+  const map={};
+  const hi=TIER_HIST.data[name]||[];
+  TIER_HIST.months.forEach((ym,i)=>{ if(hi[i]!=null) map[ym]=hi[i]; });
+  Object.assign(map, live[name]||{});           // 시트 데이터가 우선
+  return Object.keys(map).sort().map(ym=>[ym, map[ym]]);
+}
+function hasFullHistory(name, live){
+  const s=fullSeries(name, live);
+  return s.length>0 && s[0][0]<=TIER_HIST.months[0];
+}
+function tierIndexOf(g, v){
+  const i=g.cuts.findIndex(c=>v>=c);
+  return i===-1?g.cuts.length:i;
+}
+function tierNameOf(g, ti){
+  return g.special?(ti===0?'특급지':`${ti}급지`):`${ti+1}급지`;
+}
+
+function renderHot(vals, live){
+  const sj=vals['세종시']; if(sj==null) return;
+  const groups=[
+    {title:'서울', match:n=>n.startsWith('서울 ')},
+    {title:'수도권', match:n=>!n.startsWith('서울 ')&&!/^(부산|대구|광주|대전|울산) /.test(n)&&n!=='세종시'},
+    {title:'광역시', match:n=>/^(부산|대구|광주|대전|울산) /.test(n)},
+  ];
+  const palette=['#e0484f','#d97706','#0f766e','#7c3aed','#0369a1','#be123c','#15803d','#b45309'];
+
+  const selected=new Set();
+  const cand=Object.entries(vals).filter(([n])=>hasFullHistory(n,live));
+  const pickAbove=g=>{
+    const a=cand.filter(([n,v])=>g.match(n)&&v>sj).sort((x,y)=>x[1]-y[1])[0];
+    return a?a[0]:null;
+  };
+  [pickAbove(groups[1]), pickAbove(groups[2])].forEach(n=>{ if(n) selected.add(n); });
+
+  const chipBox=document.getElementById('hotChips');
+  let chipHtml='';
+  for(const g of groups){
+    const list=cand.filter(([n])=>g.match(n)).sort((a,b)=>b[1]-a[1]);
+    if(!list.length) continue;
+    chipHtml+=`<div class="hgrp">${g.title}</div>`;
+    chipHtml+=list.map(([n,v])=>
+      `<span class="hchip${selected.has(n)?' on':''}" data-name="${n}">${n}<span class="v">${Math.round(v).toLocaleString()}</span></span>`).join('');
+  }
+  chipBox.innerHTML=chipHtml;
+
+  const colorMap={};
+  function drawChart(m){
+    let ci=0; Object.keys(colorMap).forEach(k=>{ if(!selected.has(k)) delete colorMap[k]; });
+    [...selected].forEach(n=>{ if(!colorMap[n]) colorMap[n]=palette[(ci++)%palette.length]; else ci++; });
+
+    const sjMap=Object.fromEntries(fullSeries('세종시', live));
+    const seriesMaps=[...selected].map(n=>[n, Object.fromEntries(fullSeries(n, live))]);
+    const allYms=new Set(Object.keys(sjMap));
+    seriesMaps.forEach(([,mp])=>Object.keys(mp).forEach(y=>allYms.add(y)));
+    const l=lastM([...allYms].sort(), m);
+    const ds=seriesMaps.map(([n,mp])=>({
+      label:n, data:l.map(ym=>mp[ym]??null), borderColor:colorMap[n],
+      borderWidth:2, pointRadius:0, tension:.25, spanGaps:true}));
+    ds.push({label:'세종시', data:l.map(ym=>sjMap[ym]??null), borderColor:'#5b6cff',
+      borderWidth:1.8, borderDash:[5,4], pointRadius:0, tension:.25, spanGaps:true});
+    plot('hotC1',{
+      type:'line', data:{labels:l, datasets:ds},
+      options:{responsive:true, maintainAspectRatio:false,
+        interaction:{mode:'index', intersect:false},
+        plugins:{legend:{labels:{usePointStyle:true, pointStyle:'line', boxWidth:20, font:{size:11.5}}}},
+        scales:{x:{grid:{display:false}, ticks:xt(l)},
+          y:{grid:{color:'#edf0f6'}, ticks:{callback:v=>v.toLocaleString()}}}}});
+  }
+
+  let curM=0;
+  addToggle('hotC1', m=>{ curM=m; drawChart(m); }, 0);
+
+  chipBox.addEventListener('click', e=>{
+    const c=e.target.closest('.hchip'); if(!c) return;
+    const n=c.dataset.name;
+    if(selected.has(n)) selected.delete(n); else selected.add(n);
+    c.classList.toggle('on');
+    drawChart(curM);
+  });
+}
+
+
+/* ===== 단지별 ㎡당 매매가 추이 (실거래) ===== */
+const MAEUL=['가락마을','가온마을','나릿재마을','해들마을','도램마을','수루배마을','호려울마을','산울마을','새뜸마을','새샘마을','범지기마을','한뜰마을','가재마을','새나루마을','첫마을','해밀마을'];
+const APT_OVERRIDE={
+  '중흥 그린카운티(13단지)':'도램마을 13단지',
+  '푸르지오(8단지)':'범지기마을 8단지',
+  '한신엘리트파크(범지기9단지)':'범지기마을 9단지',
+  '대우푸르지오(10단지)':'범지기마을 10단지',
+  '더샵센트럴시티':'한뜰마을 2단지',
+  '더샵레이크파크':'한뜰마을 3단지'
+};
+function cleanApt(name){
+  const s=String(name||'').trim();
+  if(APT_OVERRIDE[s]) return APT_OVERRIDE[s];
+  for(const m of MAEUL){
+    const x=s.match(new RegExp(m+'\\s*(\\d+)\\s*단지'));
+    if(x) return m+' '+x[1]+'단지';
+  }
+  return s.replace(/\\s*\\(.*?\\)\\s*/g,'').trim();   // 마을패턴 없으면 괄호만 제거
+}
+async function loadTrend(){
+  try{
+    const {labels, rows} = await gvizTable('(6개월) 단지별 ㎡당 시세추이');
+    const m2idx=[2,4,6,8], cntidx=[3,5,7,9];
+    const periods=m2idx.map(i=>String(labels[i]||'').replace(' ㎡당','').trim());
+    const data = rows.filter(r=>/동$/.test(String(r[0]).trim()))   // 동 지역만(읍·면 제외)
+      .map(r=>({ umd:r[0], apt:cleanApt(r[1]),
+        m2: m2idx.map(i=>r[i]===''||r[i]==null?null:Number(r[i])),
+        n:  cntidx.map(i=>Number(r[i])||0) }));
+    const byUmd={};
+    data.forEach(d=>{ (byUmd[d.umd]=byUmd[d.umd]||[]).push(d); });
+
+    // 1) 입지 산정용 기준: 실거래 거래건수 가중 평균
+    const avgReal={};
+    Object.keys(byUmd).forEach(umd=>{
+      const ds=byUmd[umd];
+      avgReal[umd]=periods.map((p,i)=>{
+        let sw=0, sn=0;
+        ds.forEach(d=>{ if(d.m2[i]!=null && d.n[i]>0){ sw+=d.m2[i]*d.n[i]; sn+=d.n[i]; } });
+        return sn ? sw/sn : null;
+      });
+    });
+
+    // 2) 단지 입지(동 평균 대비 비율) → 거래 없는 구간 보정값 = 동 수준 × 입지
+    data.forEach(d=>{
+      const R=avgReal[d.umd]||[];
+      let sr=0, cr=0;
+      periods.forEach((p,i)=>{ if(d.m2[i]!=null && R[i]!=null && R[i]>0){ sr+=d.m2[i]/R[i]; cr++; } });
+      const ratio = cr ? sr/cr : null;
+      d.disp=d.m2.slice(); d.imp=periods.map(()=>false);
+      periods.forEach((p,i)=>{
+        if(d.m2[i]!=null || R[i]==null || ratio==null) return;
+        d.disp[i]=R[i]*ratio; d.imp[i]=true;          // 입지만 반영(가장 가까운 구간 스케일 X)
+      });
+    });
+
+    // 3) 동별 평균: 보정값 포함, 단지 동일가중
+    const avg = Object.keys(byUmd).map(umd=>{
+      const ds=byUmd[umd];
+      const m2 = periods.map((p,i)=>{
+        let s=0, c=0;
+        ds.forEach(d=>{ if(d.disp[i]!=null){ s+=d.disp[i]; c++; } });
+        return c ? s/c : null;
+      });
+      return {umd, m2, cnt:ds.length};
+    });
+    window.__trend={data, avg, periods, sortKey:'umd', sortDir:1};
+    renderTrendAvg();
+    renderTrend();
+  }catch(e){
+    document.getElementById('trendTable').innerHTML='<tbody><tr><td class="l">추이 데이터를 불러오지 못했습니다.</td></tr></tbody>';
+  }
+}
+function trendSort(key){
+  const T=window.__trend; if(!T) return;
+  if(T.sortKey===key) T.sortDir*=-1; else { T.sortKey=key; T.sortDir=1; }
+  renderTrend();
+}
+function natCmp(a,b){
+  const re=/(\d+)|(\D+)/g;
+  const ax=String(a).match(re)||[], bx=String(b).match(re)||[];
+  const n=Math.min(ax.length,bx.length);
+  for(let i=0;i<n;i++){
+    const an=parseInt(ax[i],10), bn=parseInt(bx[i],10);
+    if(!isNaN(an)&&!isNaN(bn)){ if(an!==bn) return an-bn; }
+    else if(ax[i]!==bx[i]) return ax[i]<bx[i]?-1:1;
+  }
+  return ax.length-bx.length;
+}
+/* 값 + 전기 대비 변동률 셀 */
+function m2cell(v, prev, low, imp){
+  if(v==null) return '<td>-</td>';
+  let ch='';
+  if(prev!=null && prev>0){
+    const p=(v/prev-1)*100;
+    ch=`<div class="chg" style="color:${p>=0?'#e0484f':'#2563eb'}">${p>0?'+':''}${p.toFixed(1)}%</div>`;
+  }
+  const cls='m2c'+(imp?' imp':(low?' lown':''));
+  const tip=imp?'보정값(거래 없음 · 동 흐름·입지 반영)':(low?'거래 3건 미만(참고)':'');
+  const mark=imp?'≈':'';
+  return `<td class="${cls}"${tip?` title="${tip}"`:''}><div class="v">${mark}${Math.round(v).toLocaleString()}</div>${ch}</td>`;
+}
+function renderTrendAvg(){
+  const T=window.__trend; const {avg, periods}=T;
+  const li=periods.length-1;
+  const rank=avg.slice().sort((a,b)=>{ const x=a.m2[li]==null?-1:a.m2[li], y=b.m2[li]==null?-1:b.m2[li]; return y-x; });
+  // ── 급지 기준: 최신 동 평균 ㎡당가의 '중위값 대비 배수' 밴드 ──
+  // 가격대가 몰린 군집을 반영하며, 매 기간 중위값에 비례해 자동 스케일된다.
+  // TIER_MULT = 1·2·3·4급지의 하한(중위 대비 배수). 5급지 = 나머지.
+  const TIER_MULT=[1.18, 1.05, 0.965, 0.89];
+  const TINT=['#f4cccc','#f9dede','#fce9e9','#fef2f2','#fffafa'];   // 1~5급지 음영(진→옅)
+  const lat=rank.map(a=>a.m2[li]).filter(v=>v!=null).sort((x,y)=>x-y);
+  const L=lat.length, med=L?(L%2?lat[(L-1)/2]:(lat[L/2-1]+lat[L/2])/2):0;
+  const cut=TIER_MULT.map(m=>med*m);
+  const tierOf=v=>{ if(v==null) return 4; for(let t=0;t<4;t++){ if(v>=cut[t]) return t; } return 4; };
+  let html='<thead><tr><th class="l">법정동</th><th>단지수</th>'
+    + periods.map(p=>`<th>${p}</th>`).join('') + '</tr></thead><tbody>';
+  rank.forEach(a=>{
+    const t=tierOf(a.m2[li]);
+    html+=`<tr style="background:${TINT[t]}"><td class="l dong">${a.umd}</td><td>${a.cnt}</td>`
+      + a.m2.map((v,i)=> m2cell(v, i>0?a.m2[i-1]:null, false, false)).join('') + '</tr>';
+  });
+  html+='</tbody>';
+  document.getElementById('trendAvgTable').innerHTML=html;
+}
+function renderTrend(){
+  const T=window.__trend; const {data, periods, sortKey, sortDir}=T;
+  const numv=(d,k)=> d.disp[+k]==null?-1e9:d.disp[+k];
+  const sorted=data.slice().sort((a,b)=>{
+    if(sortKey==='umd'){ if(a.umd!==b.umd) return (a.umd<b.umd?-1:1)*sortDir; return natCmp(a.apt,b.apt); }
+    if(sortKey==='apt'){ return natCmp(a.apt,b.apt)*sortDir; }
+    const x=numv(a,sortKey), y=numv(b,sortKey);
+    if(x!==y) return (x-y)*sortDir;
+    return natCmp(a.apt,b.apt);
+  });
+  const ar=k=> sortKey===k?(sortDir>0?'▲':'▼'):'';
+  let html='<thead><tr>'
+    +`<th class="l" onclick="trendSort('umd')">법정동<span class="ar">${ar('umd')}</span></th>`
+    +`<th class="l" onclick="trendSort('apt')">단지<span class="ar">${ar('apt')}</span></th>`
+    + periods.map((p,i)=>`<th onclick="trendSort('${i}')">${p}<span class="ar">${ar(''+i)}</span></th>`).join('')
+    +'</tr></thead><tbody>';
+  let cur=null;
+  sorted.forEach(d=>{
+    const gstart=(sortKey==='umd') && (d.umd!==cur); if(gstart) cur=d.umd;
+    html+=`<tr${gstart?' class="gstart"':''}><td class="l dong">${d.umd}</td><td class="l">${d.apt}</td>`
+      + d.disp.map((v,i)=> m2cell(v, i>0?d.disp[i-1]:null, d.n[i]<3, d.imp[i])).join('')
+      + '</tr>';
+  });
+  html+='</tbody>';
+  document.getElementById('trendTable').innerHTML=html;
+  document.getElementById('trendDesc').textContent=
+    `최근 2년 · 6개월 구간 전용 ㎡당 중위 매매가(만원, 괄호 % = 전기 대비) · 동 지역 ${sorted.length}개 단지 · 옅은 값은 거래 3건 미만 · ≈는 거래없는 구간 보정값(동 흐름·입지 반영) · 헤더 클릭 정렬`;
+}
+loadTrend();
+
+loadTiers();
+</script>
+
+<script>(function(){var d=new Date(),p=function(n){return String(n).padStart(2,"0")},e=document.getElementById("heroDate");if(e)e.textContent=d.getFullYear()+"."+p(d.getMonth()+1)+"."+p(d.getDate());})();</script>
+</body>
+</html>
