@@ -37,20 +37,23 @@ function richLines(text){
 }
 function bodyToHtml(text){
   const lines = String(text||"").replace(/\r/g,"").split("\n");
-  const out=[]; let buf=[];
-  function flush(){ if(buf.length){ out.push("<ul>"+buf.map(function(x){return "<li>"+inline(esc(x))+"</li>";}).join("")+"</ul>"); buf=[]; } }
+  const out=[]; let buf=[]; let center=false;
+  function add(el){ out.push(center ? '<div class="a-center">'+el+'</div>' : el); }
+  function flush(){ if(buf.length){ add("<ul>"+buf.map(function(x){return "<li>"+inline(esc(x))+"</li>";}).join("")+"</ul>"); buf=[]; } }
   for(const raw of lines){
     const line=raw.trim();
+    if(line==="[[가운데]]"){ flush(); center=true; continue; }
+    if(line==="[[/가운데]]"){ flush(); center=false; continue; }
     if(line.startsWith("- ")){ buf.push(line.slice(2).trim()); continue; }
     flush();
-    if(line==="") continue;
-    if(line==="---"||line==="***"){ out.push('<hr class="a-hr">'); continue; }
+    if(line===""){ out.push('<div class="a-gap"></div>'); continue; }
+    if(line==="---"||line==="***"){ add('<hr class="a-hr">'); continue; }
     const im=line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
-    if(im){ const cap=im[1].trim(); out.push('<figure class="a-fig"><img src="'+esc(im[2].trim())+'" alt="'+esc(cap)+'">'+(cap?'<figcaption>'+inline(esc(cap))+'</figcaption>':'')+'</figure>'); continue; }
-    if(line.startsWith("## ")){ out.push("<h2>"+inline(esc(line.slice(3).trim()))+"</h2>"); continue; }
-    if(line.startsWith("### ")){ out.push("<h3>"+inline(esc(line.slice(4).trim()))+"</h3>"); continue; }
-    if(line.startsWith("# ")){ out.push('<p class="big">'+inline(esc(line.slice(2).trim()))+'</p>'); continue; }
-    out.push("<p>"+inline(esc(line))+"</p>");
+    if(im){ const cap=im[1].trim(); add('<figure class="a-fig"><img src="'+esc(im[2].trim())+'" alt="'+esc(cap)+'">'+(cap?'<figcaption>'+inline(esc(cap))+'</figcaption>':'')+'</figure>'); continue; }
+    if(line.startsWith("## ")){ add("<h2>"+inline(esc(line.slice(3).trim()))+"</h2>"); continue; }
+    if(line.startsWith("### ")){ add("<h3>"+inline(esc(line.slice(4).trim()))+"</h3>"); continue; }
+    if(line.startsWith("# ")){ add('<p class="big">'+inline(esc(line.slice(2).trim()))+'</p>'); continue; }
+    add("<p>"+inline(esc(line))+"</p>");
   }
   flush();
   return out.join("\n");
@@ -103,6 +106,8 @@ function buildPostHtml(f, BASE){
   article li{margin:6px 0}
   article strong{font-weight:800}
   .big{font-size:1.2em}
+  .a-gap{height:0.7em}
+  .a-center{text-align:center}
   hr.a-hr{border:none;border-top:1px solid var(--line);margin:26px 0}
   article img{max-width:100%;height:auto;display:block;border-radius:12px}
   .a-fig{margin:22px 0;text-align:center}

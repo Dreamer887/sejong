@@ -1172,12 +1172,13 @@ function renderTrendAvg(){
   const L=lat.length, med=L?(L%2?lat[(L-1)/2]:(lat[L/2-1]+lat[L/2])/2):0;
   const cut=TIER_MULT.map(m=>med*m);
   const tierOf=v=>{ if(v==null) return 4; for(let t=0;t<4;t++){ if(v>=cut[t]) return t; } return 4; };
+  const order=periods.map((_,i)=>i).reverse();
   let html='<thead><tr><th class="l">법정동</th><th>단지수</th>'
-    + periods.map(p=>`<th>${p}</th>`).join('') + '</tr></thead><tbody>';
+    + order.map(i=>`<th>${periods[i]}</th>`).join('') + '</tr></thead><tbody>';
   rank.forEach(a=>{
     const t=tierOf(a.m2[li]);
     html+=`<tr style="background:${TINT[t]}"><td class="l dong">${a.umd}</td><td>${a.cnt}</td>`
-      + a.m2.map((v,i)=> m2cell(v, i>0?a.m2[i-1]:null, false, false)).join('') + '</tr>';
+      + order.map(i=> m2cell(a.m2[i], i>0?a.m2[i-1]:null, false, false)).join('') + '</tr>';
   });
   html+='</tbody>';
   document.getElementById('trendAvgTable').innerHTML=html;
@@ -1196,13 +1197,13 @@ function renderTrend(){
   let html='<thead><tr>'
     +`<th class="l" onclick="trendSort('umd')">법정동<span class="ar">${ar('umd')}</span></th>`
     +`<th class="l" onclick="trendSort('apt')">단지<span class="ar">${ar('apt')}</span></th>`
-    + periods.map((p,i)=>`<th onclick="trendSort('${i}')">${p}<span class="ar">${ar(''+i)}</span></th>`).join('')
+    + periods.map((_,i)=>i).reverse().map(i=>`<th onclick="trendSort('${i}')">${periods[i]}<span class="ar">${ar(''+i)}</span></th>`).join('')
     +'</tr></thead><tbody>';
   let cur=null;
   sorted.forEach(d=>{
     const gstart=(sortKey==='umd') && (d.umd!==cur); if(gstart) cur=d.umd;
     html+=`<tr${gstart?' class="gstart"':''}><td class="l dong">${d.umd}</td><td class="l">${d.apt}</td>`
-      + d.disp.map((v,i)=> m2cell(v, i>0?d.disp[i-1]:null, d.n[i]<3, d.imp[i])).join('')
+      + periods.map((_,i)=>i).reverse().map(i=> m2cell(d.disp[i], i>0?d.disp[i-1]:null, d.n[i]<3, d.imp[i])).join('')
       + '</tr>';
   });
   html+='</tbody>';

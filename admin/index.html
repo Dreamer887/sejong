@@ -64,6 +64,8 @@
   .pv hr.a-hr{border:none;border-top:1px solid var(--line);margin:18px 0}
   .pv-lede p{margin:0 0 8px} .pv-lede p:last-child{margin-bottom:0}
   .pv-summary p{margin:6px 0 0}
+  .pv .a-center{text-align:center}
+  .pv .a-gap{height:0.7em}
 </style>
 </head>
 <body>
@@ -111,8 +113,9 @@
         <button type="button" data-wrap="__" title="밑줄"><u>밑줄</u></button>
         <button type="button" data-wrap="++" title="크게">큰글씨</button>
         <button type="button" id="hrbtn" title="구분선">— 구분선</button>
+        <button type="button" id="cbtn" title="가운데 정렬">가운데</button>
       </div>
-      <div class="hint">한 줄 = 한 문단(엔터로 간격) · "## " 소제목 · "### " 작은제목 · "- " 목록 · "---" 구분선 · 글자 선택 후 위 버튼으로 굵게·밑줄·크게</div>
+      <div class="hint">엔터 친 만큼 줄이 띄워집니다 · "## " 소제목 · "### " 작은제목 · "- " 목록 · "---" 구분선 · 글자/문단 선택 후 굵게·밑줄·크게·가운데</div>
       <button type="button" class="imgbtn" id="imgbtn" style="margin-top:8px">🖼 이미지/그래프 넣기</button>
       <input type="file" id="imgfile" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none">
       <div class="hint">사진·그래프 이미지를 고르면 커서 위치에 자동 삽입됩니다(5MB 이하).</div>
@@ -145,19 +148,22 @@ function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").repl
 function inline(t){return t.replace(/\+\+(.+?)\+\+/g,'<span class="big">$1</span>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/__(.+?)__/g,'<u>$1</u>');}
 function richLines(text){return String(text||"").replace(/\r/g,"").split("\n").filter(function(l){return l.trim()!=="";}).map(function(l){return "<p>"+inline(esc(l.trim()))+"</p>";}).join("");}
 function bodyToHtml(text){
-  const lines=String(text||"").replace(/\r/g,"").split("\n");const out=[];let buf=[];
-  function flush(){if(buf.length){out.push("<ul>"+buf.map(function(x){return "<li>"+inline(esc(x))+"</li>";}).join("")+"</ul>");buf=[];}}
+  const lines=String(text||"").replace(/\r/g,"").split("\n");const out=[];let buf=[];let center=false;
+  function add(el){out.push(center?'<div class="a-center">'+el+'</div>':el);}
+  function flush(){if(buf.length){add("<ul>"+buf.map(function(x){return "<li>"+inline(esc(x))+"</li>";}).join("")+"</ul>");buf=[];}}
   for(const raw of lines){const line=raw.trim();
+    if(line==="[[가운데]]"){flush();center=true;continue;}
+    if(line==="[[/가운데]]"){flush();center=false;continue;}
     if(line.startsWith("- ")){buf.push(line.slice(2).trim());continue;}
     flush();
-    if(line==="")continue;
-    if(line==="---"||line==="***"){out.push('<hr class="a-hr">');continue;}
+    if(line===""){out.push('<div class="a-gap"></div>');continue;}
+    if(line==="---"||line==="***"){add('<hr class="a-hr">');continue;}
     const im=line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
-    if(im){const cap=im[1].trim();out.push('<figure class="a-fig"><img src="'+esc(im[2].trim())+'" alt="'+esc(cap)+'">'+(cap?'<figcaption>'+inline(esc(cap))+'</figcaption>':'')+'</figure>');continue;}
-    if(line.startsWith("## ")){out.push("<h2>"+inline(esc(line.slice(3).trim()))+"</h2>");continue;}
-    if(line.startsWith("### ")){out.push("<h3>"+inline(esc(line.slice(4).trim()))+"</h3>");continue;}
-    if(line.startsWith("# ")){out.push('<p class="big">'+inline(esc(line.slice(2).trim()))+'</p>');continue;}
-    out.push("<p>"+inline(esc(line))+"</p>");}
+    if(im){const cap=im[1].trim();add('<figure class="a-fig"><img src="'+esc(im[2].trim())+'" alt="'+esc(cap)+'">'+(cap?'<figcaption>'+inline(esc(cap))+'</figcaption>':'')+'</figure>');continue;}
+    if(line.startsWith("## ")){add("<h2>"+inline(esc(line.slice(3).trim()))+"</h2>");continue;}
+    if(line.startsWith("### ")){add("<h3>"+inline(esc(line.slice(4).trim()))+"</h3>");continue;}
+    if(line.startsWith("# ")){add('<p class="big">'+inline(esc(line.slice(2).trim()))+'</p>');continue;}
+    add("<p>"+inline(esc(line))+"</p>");}
   flush();return out.join("\n");
 }
 const $=id=>document.getElementById(id);
@@ -237,6 +243,12 @@ Array.prototype.forEach.call(document.querySelectorAll(".rtbar [data-wrap]"),fun
 $("hrbtn").addEventListener("click",function(){
   const ta=$("body"),s=ta.selectionStart,v=ta.value,t="\n---\n";
   ta.value=v.slice(0,s)+t+v.slice(s);ta.focus();ta.selectionStart=ta.selectionEnd=s+t.length;render();
+});
+$("cbtn").addEventListener("click",function(){
+  const ta=$("body"),s=ta.selectionStart,e=ta.selectionEnd,v=ta.value;
+  const sel=v.slice(s,e)||"가운데 정렬할 내용";
+  const block="\n[[가운데]]\n"+sel+"\n[[/가운데]]\n";
+  ta.value=v.slice(0,s)+block+v.slice(e);ta.focus();render();
 });
 $("imgbtn").addEventListener("click",function(){
   if(!$("passcode").value){const m=$("msg");m.className="msg err";m.textContent="이미지 업로드 전에 패스코드를 먼저 입력하세요.";return;}
