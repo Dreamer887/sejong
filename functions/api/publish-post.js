@@ -7,7 +7,7 @@ function cfg(env){
     OWNER: env.GH_OWNER || "Dreamer887",
     REPO:  env.GH_REPO  || "sejong",
     BRANCH: env.GH_BRANCH || "main",
-    BASE: (env.SITE_BASE || "https://subtle-truffle-16dbff.netlify.app").replace(/\/$/, ""),
+    BASE: (env.SITE_BASE || "https://sebuin.com").replace(/\/$/, ""),
     TOKEN: env.GITHUB_TOKEN,
     PASS: env.BLOG_PASSCODE
   };
@@ -187,6 +187,24 @@ async function readPosts(C){
   if(!Array.isArray(posts)) posts=[];
   return {posts, sha:c.sha};
 }
+function buildSitemap(posts, BASE){
+  const sorted = posts.slice().sort(function(a,b){return (b.dateISO||"").localeCompare(a.dateISO||"");});
+  const today = new Date(Date.now()+9*3600*1000).toISOString().slice(0,10);
+  const newest = (sorted[0] && sorted[0].dateISO) || today;
+  const urls = [];
+  urls.push({loc:BASE+"/", lastmod: today});
+  urls.push({loc:BASE+"/blog/", lastmod: newest});
+  sorted.forEach(function(f){ urls.push({loc:BASE+"/blog/"+f.id, lastmod: f.dateISO||today}); });
+  const body = urls.map(function(u){
+    return "  <url>\n    <loc>"+esc(u.loc)+"</loc>\n    <lastmod>"+esc(u.lastmod)+"</lastmod>\n  </url>";
+  }).join("\n");
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+body+'\n</urlset>\n';
+}
+async function writeSitemap(C, posts){
+  const xml = buildSitemap(posts, C.BASE);
+  const existing = await getContent(C, "sitemap.xml");
+  await putFile(C, "sitemap.xml", xml, "seo: sitemap.xml 갱신", existing?existing.sha:undefined);
+}
 async function writePostsAndIndex(C, posts, postsSha){
   await putFile(C, "blog/posts.json", JSON.stringify(posts,null,2), "data: posts.json 갱신", postsSha);
   const idx=await getContent(C, "blog/index.html");
@@ -197,6 +215,7 @@ async function writePostsAndIndex(C, posts, postsSha){
       await putFile(C, "blog/index.html", newIdx, "list: 목록 갱신", idx.sha);
     }
   }
+  await writeSitemap(C, posts);
 }
 function json(obj, status){ return new Response(JSON.stringify(obj), {status:status||200, headers:{"Content-Type":"application/json"}}); }
 
