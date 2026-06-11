@@ -521,6 +521,7 @@ async function loadReports(){
       });
       let highs=[], topRise=null;
       data.forEach(r=>{                            // r=[법정동,아파트,동,층,전용,거래금액]
+        if(RURAL_RE.test(String(r[0]))) return;   // 읍·면(법정동 외) 제외
         const area=Number(r[4])||0, amt=Number(r[5])||0;
         if(!area||!amt) return;
         const arr=H[r[0]+'|'+r[1]+'|'+area.toFixed(2)];
