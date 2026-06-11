@@ -112,6 +112,8 @@ function buildPostHtml(f, BASE){
   .a-summary b{color:var(--indigo)}
   .a-summary p{font-size:15.5px;color:#2b3550;margin:8px 0 0}
   .a-source{margin-top:30px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--sub)}
+  .backlink{display:inline-block;margin:0 0 10px;font-size:13px;font-weight:700;color:var(--indigo);text-decoration:none}
+  .backlink:hover{text-decoration:underline}
   footer{margin-top:40px;color:#aab2c5;font-size:13px;text-align:center}
 </style>
 </head>
@@ -121,6 +123,7 @@ function buildPostHtml(f, BASE){
     <a class="brand" href="../index.html"><i>🏙</i> 세종 부동산 인사이트</a>
     <div class="navlinks"><a href="../index.html">대시보드</a><a href="./index.html" class="on">분석</a></div>
   </nav>
+  <a class="backlink" href="./index.html">← 분석 목록으로</a>
   <article>
     <span class="a-tag">${esc(f.tag)}</span>
     <h1>${esc(f.title)}</h1>
@@ -129,9 +132,10 @@ function buildPostHtml(f, BASE){
     <div class="ad-slot"><span class="adlabel">광고 영역 · Google AdSense</span></div>
     ${bodyToHtml(f.body)}
     ${summary}
-    <p class="a-source">데이터 출처: 국토교통부 실거래가 공개시스템(rt.molit.go.kr), KB부동산 시세. 본 글은 공개 데이터를 바탕으로 한 작성자의 해석이며 투자 권유가 아닙니다.</p>
+    <p class="a-source">데이터 출처: 국토교통부 실거래가 공개시스템(rt.molit.go.kr). 본 글은 공개 데이터를 바탕으로 한 작성자의 해석이며 투자 권유가 아닙니다.</p>
   </article>
   <div class="ad-slot"><span class="adlabel">광고 영역 · Google AdSense</span></div>
+  <a class="backlink" href="./index.html">← 분석 목록으로</a>
   <footer>작성: 투자되지 · 데이터 출처: 국토교통부 실거래가</footer>
 </div>
 </body>
