@@ -188,11 +188,6 @@ function render(){
 const now=new Date(Date.now()+9*3600*1000);
 $("date").value=now.toISOString().slice(0,10);
 ["tag","title","lede","body","summary","date"].forEach(id=>$(id).addEventListener("input",render));
-function scrollPvToLine(ln){var pv=$("preview");if(!pv)return;var els=pv.querySelectorAll('[data-ln]');var t=null;for(var i=0;i<els.length;i++){if(+els[i].getAttribute('data-ln')<=ln)t=els[i];else break;}pv.scrollTop=t?Math.max(0,t.offsetTop-8):0;}
-function caretLine(){var ta=$("body");var c=ta.selectionStart||0;return ta.value.slice(0,c).split("\n").length-1;}
-function scrollTopLine(){var ta=$("body");var lh=parseFloat(getComputedStyle(ta).lineHeight)||24;return Math.round(ta.scrollTop/lh);}
-$("body").addEventListener("scroll",function(){scrollPvToLine(scrollTopLine());});
-["keyup","click","input"].forEach(function(ev){$("body").addEventListener(ev,function(){scrollPvToLine(caretLine());});});
 render();
 
 let POSTS=[],editId=null;
