@@ -463,8 +463,8 @@ function renderHeroHighlights(nDong, nRural, highs, rise, period){
   // 3) 최대 상승률 — 상승률을 크게
   if(rise){
     tiles.push(`<div class="hcard up"><div class="hlabel">오늘의 최대 상승률(3개월 평균 대비)</div>`
-      +`<div class="hval">+${(rise.rise*100).toFixed(1)}%</div>`
-      +`<div class="hsub">${cleanApt(rise.apt).replace(/마을/g,'')} ${Math.floor(rise.area)}㎡ · ${wonMan(rise.amt)} · 직전평균가 ${wonMan(rise.avg)}</div></div>`);
+      +`<div class="hval">${cleanApt(rise.apt).replace(/마을/g,'')} ${Math.floor(rise.area)}㎡(+${(rise.rise*100).toFixed(1)}%)</div>`
+      +`<div class="hsub">${wonMan(rise.amt)} · 직전평균가 ${wonMan(rise.avg)}</div></div>`);
   }else{
     tiles.push(`<div class="hcard"><div class="hlabel">오늘의 최대 상승률(3개월 평균 대비)</div><div class="hval" style="font-size:18px;opacity:.85">해당 없음</div></div>`);
   }
