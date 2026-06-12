@@ -44,8 +44,9 @@ export async function onRequestGet(context){
   const hit = await cache.match(key);
   if(hit) return hit;
   const [realestate, general] = await Promise.all([fetchFeed(FEEDS.realestate, 5), fetchFeed(FEEDS.general, 5)]);
+  const hasData = realestate.length > 0 || general.length > 0;
   const body = JSON.stringify({ realestate, general, _at: new Date().toISOString() });
-  const res = new Response(body, { headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "public, max-age=900" } });
-  context.waitUntil(cache.put(key, res.clone()));
+  const res = new Response(body, { headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": hasData ? "public, max-age=900" : "no-store" } });
+  if(hasData) context.waitUntil(cache.put(key, res.clone()));
   return res;
 }
