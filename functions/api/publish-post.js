@@ -67,6 +67,8 @@ function buildPostHtml(f, BASE){
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>${esc(f.title)} | 세종 부동산 인사이트</title>
 <meta name="description" content="${esc(f.lede || f.title)}">
 <link rel="canonical" href="${url}">
@@ -74,6 +76,10 @@ function buildPostHtml(f, BASE){
 <meta property="og:title" content="${esc(f.title)}">
 <meta property="og:description" content="${esc(f.lede || f.title)}">
 <meta property="og:url" content="${url}">
+<meta property="og:image" content="https://sebuin.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Article","headline":${JSON.stringify(f.title)},"datePublished":"${f.dateISO}","author":{"@type":"Person","name":"투자되지"},"publisher":{"@type":"Organization","name":"세종 부동산 인사이트"}}
 </script>
@@ -126,7 +132,7 @@ function buildPostHtml(f, BASE){
 <body>
 <div class="wrap">
   <nav class="topnav">
-    <a class="brand" href="../index.html"><i>🏙</i> 세종 부동산 인사이트</a>
+    <a class="brand" href="../index.html"><svg width="48" height="48" viewBox="0 0 48 48" style="flex:none" aria-hidden="true"><defs><linearGradient id="blg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b6cff"/><stop offset="1" stop-color="#a06bff"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#blg)"/><rect x="9" y="13" width="13" height="25" rx="1.6" fill="#fff"/><rect x="11.4" y="16.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="16.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="11.4" y="21" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="21" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="11.4" y="25.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="25.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><circle cx="31" cy="27" r="7" fill="url(#blg)" stroke="#fff" stroke-width="2.6"/><line x1="36" y1="32" x2="40.5" y2="36.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg><span style="display:inline-block;line-height:1"><span style="display:block;font-family:'Jua','Apple SD Gothic Neo',sans-serif;font-size:36px;letter-spacing:-1px;background:linear-gradient(120deg,#4b46c4,#9a6bf2);-webkit-background-clip:text;background-clip:text;color:transparent">세부인</span><span style="display:block;font-size:10px;font-weight:600;color:#727e98;margin-top:4px;text-align:justify;text-align-last:justify">세종 부동산 인사이트</span></span></a>
     <div class="navlinks"><a href="../index.html">대시보드</a><a href="./index.html" class="on">분석</a></div>
   </nav>
   <a class="backlink" href="./index.html">← 분석 목록으로</a>
