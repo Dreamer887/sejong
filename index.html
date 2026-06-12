@@ -525,6 +525,7 @@ async function loadReports(){
         if(RURAL_RE.test(String(r[0]))) return;   // 읍·면(법정동 외) 제외
         const area=Number(r[4])||0, amt=Number(r[5])||0;
         if(!area||!amt) return;
+        if((Hapt[r[0]+'|'+r[1]]||[]).length < 5) return;   // 3개월 거래 5건 미만 단지 제외
         const arr=H[r[0]+'|'+r[1]+'|'+area.toFixed(2)];
         if(!arr||!arr.length) return;
         const maxAmt=Math.max.apply(null,arr.map(d=>d.amt));
