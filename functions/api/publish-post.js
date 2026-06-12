@@ -148,7 +148,7 @@ function buildPostHtml(f, BASE){
   </article>
   <div class="ad-slot"><span class="adlabel">광고 영역 · Google AdSense</span></div>
   <a class="backlink" href="./index.html">← 분석 목록으로</a>
-  <footer>작성: 투자되지 · 데이터 출처: 국토교통부 실거래가 공개시스템(rt.molit.go.kr)<br><a href="../privacy.html" style="color:#aab2c5;text-decoration:none;font-weight:600">개인정보처리방침</a> · <a href="../terms.html" style="color:#aab2c5;text-decoration:none;font-weight:600">이용약관</a></footer>
+  <footer>작성: 투자되지 · 데이터 출처: 국토교통부 실거래가 공개시스템(rt.molit.go.kr)<br><a href="../privacy.html" style="color:#aab2c5;text-decoration:none;font-weight:600">개인정보처리방침</a> · <a href="../terms.html" style="color:#aab2c5;text-decoration:none;font-weight:600">이용약관</a><br><span style="display:inline-block;margin-top:12px;line-height:1.6">세부인이 제공하는 정보는 무단 복제·배포·전송 등 이용할 수 없으며, 이를 무단 이용하는 경우 저작권법 등에 따라 법적 책임을 질 수 있습니다.</span><br><strong style="display:inline-block;margin-top:6px;color:#aab2c5">Copyright © 2026. 세부인(세종 부동산 인사이트) All Rights Reserved.</strong></footer>
 </div>
 </body>
 </html>
