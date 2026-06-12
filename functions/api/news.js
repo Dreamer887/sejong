@@ -38,15 +38,8 @@ async function fetchFeed(url, limit){
   }catch(e){ return []; }
 }
 export async function onRequestGet(context){
-  const cache = caches.default;
-  const url = new URL(context.request.url);
-  const key = new Request(url.origin + "/api/news", { method: "GET" });
-  const hit = await cache.match(key);
-  if(hit) return hit;
+  // 응답 자체는 캐시하지 않고(빈 응답 캐시 방지), 구글 RSS 호출만 엣지에서 15분 캐시(fetchFeed의 cf.cacheTtl)
   const [realestate, general] = await Promise.all([fetchFeed(FEEDS.realestate, 5), fetchFeed(FEEDS.general, 5)]);
-  const hasData = realestate.length > 0 || general.length > 0;
   const body = JSON.stringify({ realestate, general, _at: new Date().toISOString() });
-  const res = new Response(body, { headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": hasData ? "public, max-age=900" : "no-store" } });
-  if(hasData) context.waitUntil(cache.put(key, res.clone()));
-  return res;
+  return new Response(body, { headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
 }
