@@ -156,22 +156,23 @@ function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").repl
 function inline(t){return t.replace(/\+\+(.+?)\+\+/g,'<span class="big">$1</span>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/__(.+?)__/g,'<u>$1</u>');}
 function richLines(text){return String(text||"").replace(/\r/g,"").split("\n").map(function(l){var t=l.trim();return t===""?'<div class="a-gap"></div>':"<p>"+inline(esc(t))+"</p>";}).join("");}
 function bodyToHtml(text){
-  const lines=String(text||"").replace(/\r/g,"").split("\n");const out=[];let buf=[];let center=false;
-  function add(el){out.push(center?'<div class="a-center">'+el+'</div>':el);}
-  function flush(){if(buf.length){add("<ul>"+buf.map(function(x){return "<li>"+inline(esc(x))+"</li>";}).join("")+"</ul>");buf=[];}}
-  for(const raw of lines){const line=raw.trim();
+  const lines=String(text||"").replace(/\r/g,"").split("\n");const out=[];let buf=[];let bufLn=0;let center=false;
+  function tagln(el,ln){return el.replace(/^(<[a-zA-Z][\w-]*)/,'$1 data-ln="'+ln+'"');}
+  function add(el,ln){out.push(center?'<div class="a-center" data-ln="'+ln+'">'+el+'</div>':tagln(el,ln));}
+  function flush(){if(buf.length){add("<ul>"+buf.map(function(x){return "<li>"+inline(esc(x))+"</li>";}).join("")+"</ul>",bufLn);buf=[];}}
+  for(let i=0;i<lines.length;i++){const line=lines[i].trim();
     if(line==="[[가운데]]"){flush();center=true;continue;}
     if(line==="[[/가운데]]"){flush();center=false;continue;}
-    if(line.startsWith("- ")){buf.push(line.slice(2).trim());continue;}
+    if(line.startsWith("- ")){if(!buf.length)bufLn=i;buf.push(line.slice(2).trim());continue;}
     flush();
-    if(line===""){out.push('<div class="a-gap"></div>');continue;}
-    if(line==="---"||line==="***"){add('<hr class="a-hr">');continue;}
+    if(line===""){out.push('<div class="a-gap" data-ln="'+i+'"></div>');continue;}
+    if(line==="---"||line==="***"){add('<hr class="a-hr">',i);continue;}
     const im=line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
-    if(im){const cap=im[1].trim();add('<figure class="a-fig"><img src="'+esc(im[2].trim())+'" alt="'+esc(cap)+'">'+(cap?'<figcaption>'+inline(esc(cap))+'</figcaption>':'')+'</figure>');continue;}
-    if(line.startsWith("## ")){add("<h2>"+inline(esc(line.slice(3).trim()))+"</h2>");continue;}
-    if(line.startsWith("### ")){add("<h3>"+inline(esc(line.slice(4).trim()))+"</h3>");continue;}
-    if(line.startsWith("# ")){add('<p class="big">'+inline(esc(line.slice(2).trim()))+'</p>');continue;}
-    add("<p>"+inline(esc(line))+"</p>");}
+    if(im){const cap=im[1].trim();add('<figure class="a-fig"><img src="'+esc(im[2].trim())+'" alt="'+esc(cap)+'">'+(cap?'<figcaption>'+inline(esc(cap))+'</figcaption>':'')+'</figure>',i);continue;}
+    if(line.startsWith("## ")){add("<h2>"+inline(esc(line.slice(3).trim()))+"</h2>",i);continue;}
+    if(line.startsWith("### ")){add("<h3>"+inline(esc(line.slice(4).trim()))+"</h3>",i);continue;}
+    if(line.startsWith("# ")){add('<p class="big">'+inline(esc(line.slice(2).trim()))+'</p>',i);continue;}
+    add("<p>"+inline(esc(line))+"</p>",i);}
   flush();return out.join("\n");
 }
 const $=id=>document.getElementById(id);
@@ -187,8 +188,11 @@ function render(){
 const now=new Date(Date.now()+9*3600*1000);
 $("date").value=now.toISOString().slice(0,10);
 ["tag","title","lede","body","summary","date"].forEach(id=>$(id).addEventListener("input",render));
-function syncPreview(){var ta=$("body"),pv=$("preview");if(!ta||!pv)return;var tm=ta.scrollHeight-ta.clientHeight,pm=pv.scrollHeight-pv.clientHeight;pv.scrollTop=tm>0?(ta.scrollTop/tm)*pm:0;}
-["scroll","input","keyup","click"].forEach(function(ev){$("body").addEventListener(ev,syncPreview);});
+function scrollPvToLine(ln){var pv=$("preview");if(!pv)return;var els=pv.querySelectorAll('[data-ln]');var t=null;for(var i=0;i<els.length;i++){if(+els[i].getAttribute('data-ln')<=ln)t=els[i];else break;}pv.scrollTop=t?Math.max(0,t.offsetTop-8):0;}
+function caretLine(){var ta=$("body");var c=ta.selectionStart||0;return ta.value.slice(0,c).split("\n").length-1;}
+function scrollTopLine(){var ta=$("body");var lh=parseFloat(getComputedStyle(ta).lineHeight)||24;return Math.round(ta.scrollTop/lh);}
+$("body").addEventListener("scroll",function(){scrollPvToLine(scrollTopLine());});
+["keyup","click","input"].forEach(function(ev){$("body").addEventListener(ev,function(){scrollPvToLine(caretLine());});});
 render();
 
 let POSTS=[],editId=null;
