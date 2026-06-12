@@ -71,6 +71,9 @@
   .pv-summary p{margin:6px 0 0}
   .pv .a-center{text-align:center}
   .pv .a-gap{height:0.7em}
+  #pvpanel{position:sticky;top:16px;align-self:start}
+  #preview{max-height:calc(100vh - 96px);overflow-y:auto}
+  @media(max-width:900px){#pvpanel{position:static}#preview{max-height:none}}
 </style>
 </head>
 <body>
@@ -133,7 +136,7 @@
       <div class="msg" id="msg"></div>
     </div>
 
-    <div class="panel">
+    <div class="panel" id="pvpanel">
       <h2>미리보기</h2>
       <div class="pv" id="preview"></div>
     </div>
@@ -184,6 +187,8 @@ function render(){
 const now=new Date(Date.now()+9*3600*1000);
 $("date").value=now.toISOString().slice(0,10);
 ["tag","title","lede","body","summary","date"].forEach(id=>$(id).addEventListener("input",render));
+function syncPreview(){var ta=$("body"),pv=$("preview");if(!ta||!pv)return;var tm=ta.scrollHeight-ta.clientHeight,pm=pv.scrollHeight-pv.clientHeight;pv.scrollTop=tm>0?(ta.scrollTop/tm)*pm:0;}
+["scroll","input","keyup","click"].forEach(function(ev){$("body").addEventListener(ev,syncPreview);});
 render();
 
 let POSTS=[],editId=null;
@@ -239,21 +244,21 @@ async function loadList(){
 $("loadlist").addEventListener("click",loadList);
 
 function wrapSel(mark){
-  const ta=$("body"),s=ta.selectionStart,e=ta.selectionEnd,v=ta.value;
+  const ta=$("body"),s=ta.selectionStart,e=ta.selectionEnd,v=ta.value,top=ta.scrollTop;
   const sel=v.slice(s,e)||"텍스트";
   ta.value=v.slice(0,s)+mark+sel+mark+v.slice(e);
-  ta.focus();ta.selectionStart=s+mark.length;ta.selectionEnd=s+mark.length+sel.length;render();
+  ta.focus();ta.selectionStart=s+mark.length;ta.selectionEnd=s+mark.length+sel.length;ta.scrollTop=top;render();
 }
 Array.prototype.forEach.call(document.querySelectorAll(".rtbar [data-wrap]"),function(b){b.addEventListener("click",function(){wrapSel(b.dataset.wrap);});});
 $("hrbtn").addEventListener("click",function(){
-  const ta=$("body"),s=ta.selectionStart,v=ta.value,t="\n---\n";
-  ta.value=v.slice(0,s)+t+v.slice(s);ta.focus();ta.selectionStart=ta.selectionEnd=s+t.length;render();
+  const ta=$("body"),s=ta.selectionStart,v=ta.value,t="\n---\n",top=ta.scrollTop;
+  ta.value=v.slice(0,s)+t+v.slice(s);ta.focus();ta.selectionStart=ta.selectionEnd=s+t.length;ta.scrollTop=top;render();
 });
 $("cbtn").addEventListener("click",function(){
-  const ta=$("body"),s=ta.selectionStart,e=ta.selectionEnd,v=ta.value;
+  const ta=$("body"),s=ta.selectionStart,e=ta.selectionEnd,v=ta.value,top=ta.scrollTop;
   const sel=v.slice(s,e)||"가운데 정렬할 내용";
   const block="\n[[가운데]]\n"+sel+"\n[[/가운데]]\n";
-  ta.value=v.slice(0,s)+block+v.slice(e);ta.focus();render();
+  ta.value=v.slice(0,s)+block+v.slice(e);ta.focus();ta.selectionStart=ta.selectionEnd=s+block.length;ta.scrollTop=top;render();
 });
 $("imgbtn").addEventListener("click",function(){
   if(!$("passcode").value){const m=$("msg");m.className="msg err";m.textContent="이미지 업로드 전에 패스코드를 먼저 입력하세요.";return;}
@@ -267,9 +272,9 @@ $("imgfile").addEventListener("change",async function(e){
   try{
     const dataUrl=await new Promise(function(res,rej){const r=new FileReader();r.onload=function(){res(r.result);};r.onerror=rej;r.readAsDataURL(file);});
     const j=await fetch("/api/upload-image",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({passcode:$("passcode").value,dataUrl:dataUrl})}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||("오류 "+r.status));return j;});});
-    const ta=$("body"),pos=(ta.selectionStart!=null?ta.selectionStart:ta.value.length);
+    const ta=$("body"),top=ta.scrollTop,pos=(ta.selectionStart!=null?ta.selectionStart:ta.value.length);
     const snippet="\n\n![캡션을 입력하세요]("+j.url+")\n\n";
-    ta.value=ta.value.slice(0,pos)+snippet+ta.value.slice(pos);
+    ta.value=ta.value.slice(0,pos)+snippet+ta.value.slice(pos);ta.focus();ta.selectionStart=ta.selectionEnd=pos+snippet.length;ta.scrollTop=top;
     render();
     msg.className="msg ok";msg.textContent="이미지 삽입됨! 본문에서 '캡션을 입력하세요'를 원하는 설명으로 바꾸세요.";
   }catch(err){msg.className="msg err";msg.textContent="이미지 업로드 실패: "+err.message;}
