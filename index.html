@@ -358,6 +358,7 @@ footer{color:#aab2c5}
 <div class="pagehead"><h2>시장지표</h2><span class="gh-badge gh-month">2026년 5월 갱신</span></div>
 <div class="kpis" id="kpis"></div><section>
   <h2>매매 · 전세 가격 추이</h2>
+  <div class="toggle" id="priceMode" style="margin:0 0 8px"><button data-v="both" class="on">둘 다</button><button data-v="sale">매매</button><button data-v="jeonse">전세</button></div>
   <div class="card">
     <div class="chart-box tall"><canvas id="priceChart"></canvas></div>
   </div>
@@ -400,6 +401,7 @@ footer{color:#aab2c5}
 <script>
 /* ===== 설정 ===== */
 const FORECAST_SHEET = '매매, 전세 전망지수';   // 전망지수 탭 이름
+let priceMode='both',priceLastM=0,drawPriceFn=null;
 
 /* ===== data.json 우선 로더 (없으면 구글시트 직접 읽기로 자동 폴백) ===== */
 let DATA_JSON=null;
@@ -822,20 +824,22 @@ function render(DATA){
      <div class="delta ${k.cls}">${k.delta}</div>${k.ref?`<div class="ref">${k.ref}</div>`:''}</div>`).join('');
 
   /* 1. 가격 추이 */
-  addToggle('priceChart', m=>{
+  drawPriceFn=function(m){
+    priceLastM=m;
     const s=lastM(S,m), l=s.map(d=>d.ym);
+    const ds=[];
+    if(priceMode==='both'||priceMode==='sale') ds.push({label:'평균 매매가격', data:s.map(d=>d.sale), borderColor:'#5b6cff', backgroundColor:'rgba(91,108,255,.08)', fill:true});
+    if(priceMode==='both'||priceMode==='jeonse') ds.push({label:'평균 전세가격', data:s.map(d=>d.jeonse), borderColor:'#16c79a', backgroundColor:'rgba(22,199,176,.07)', fill:true});
     plot('priceChart',{
       type:'line',
-      data:{labels:l, datasets:[
-        {label:'평균 매매가격', data:s.map(d=>d.sale), borderColor:'#5b6cff',
-         backgroundColor:'rgba(91,108,255,.08)', fill:true},
-        {label:'평균 전세가격', data:s.map(d=>d.jeonse), borderColor:'#16c79a',
-         backgroundColor:'rgba(22,199,176,.07)', fill:true}]},
+      data:{labels:l, datasets:ds},
       options:{...baseOpts,
         plugins:{...baseOpts.plugins, tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmtEok(c.parsed.y)} (${c.parsed.y.toLocaleString()}만)`}}},
         scales:{x:{grid:{display:false}, ticks:xt(l)},
                 y:{grid:gridStyle, ticks:{callback:v=>(v/10000).toFixed(1)+'억'}}}}});
-  }, 0);
+  };
+  addToggle('priceChart', drawPriceFn, 0);
+  (function(){var pmEl=document.getElementById('priceMode'); if(pmEl && !pmEl.__bound){ pmEl.__bound=true; pmEl.addEventListener('click',function(e){ if(e.target.tagName!=='BUTTON') return; pmEl.querySelectorAll('button').forEach(function(b){b.classList.remove('on');}); e.target.classList.add('on'); priceMode=e.target.dataset.v; if(drawPriceFn) drawPriceFn(priceLastM); }); }})();
 
   /* 2. 월별 상승률 */
   addToggle('pctChart', m=>{
