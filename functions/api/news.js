@@ -1,6 +1,6 @@
-// Cloudflare Pages Function — 세종 뉴스 (네이버 뉴스 검색 API)
-// URL: /api/news · 환경변수: NAVER_ID, NAVER_SECRET (네이버 개발자센터 검색 API)
-const QUERIES = { realestate: "세종시 부동산", general: "세종시" };
+// Cloudflare Pages Function — 이 시각 세종 뉴스 (네이버 뉴스 검색 API)
+// URL: /api/news · 환경변수: NAVER_ID, NAVER_SECRET
+const QUERY = "세종시";
 
 function clean(s){
   return String(s || "")
@@ -28,10 +28,10 @@ async function search(env, query){
 export async function onRequestGet(context){
   const env = context.env;
   if(!env.NAVER_ID || !env.NAVER_SECRET){
-    return new Response(JSON.stringify({ realestate: [], general: [], error: "NAVER_ID/NAVER_SECRET 환경변수가 설정되지 않았습니다." }),
+    return new Response(JSON.stringify({ general: [], error: "NAVER_ID/NAVER_SECRET 환경변수가 설정되지 않았습니다." }),
       { headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
   }
-  const [realestate, general] = await Promise.all([search(env, QUERIES.realestate), search(env, QUERIES.general)]);
-  const body = JSON.stringify({ realestate: realestate, general: general, _at: new Date().toISOString() });
+  const general = await search(env, QUERY);
+  const body = JSON.stringify({ general: general, _at: new Date().toISOString() });
   return new Response(body, { headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
 }

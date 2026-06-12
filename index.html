@@ -204,7 +204,7 @@ section>.desc{color:#727e98}
 .tbl-wrap{border-radius:16px;border-color:#eef1f8}
 .summary{border-left-color:#5b6cff;border-radius:16px;border:1px solid #eef1f8;border-left:5px solid #5b6cff}
 .summary b{color:#5b6cff}
-/* ---- hero banner (오늘의 실거래) ---- */
+/* ---- hero banner (오늘의 세종) ---- */
 #heroSec{background:linear-gradient(135deg,#5b6cff 0%,#7b5cff 55%,#a06bff 100%);border:none;border-radius:28px;
   padding:30px 32px 32px;box-shadow:0 18px 48px -22px rgba(60,40,140,.55);color:#fff;margin-top:6px}
 #heroSec>h2{color:#fff}
@@ -288,7 +288,7 @@ footer{color:#aab2c5}
 
 <nav class="topnav">
   <div class="brand" onclick="showTab('trade');window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer" title="처음으로"><svg width="48" height="48" viewBox="0 0 48 48" style="flex:none" aria-hidden="true"><defs><linearGradient id="blg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b6cff"/><stop offset="1" stop-color="#a06bff"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#blg)"/><rect x="9" y="13" width="13" height="25" rx="1.6" fill="#fff"/><rect x="11.4" y="16.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="16.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="11.4" y="21" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="21" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="11.4" y="25.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="25.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><circle cx="31" cy="27" r="7" fill="url(#blg)" stroke="#fff" stroke-width="2.6"/><line x1="36" y1="32" x2="40.5" y2="36.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg><span style="display:inline-block;line-height:1"><span style="display:block;font-family:'Jua','Apple SD Gothic Neo',sans-serif;font-size:36px;letter-spacing:-1px;background:linear-gradient(120deg,#4b46c4,#9a6bf2);-webkit-background-clip:text;background-clip:text;color:transparent">세부인</span><span style="display:block;font-size:10px;font-weight:600;color:#727e98;margin-top:4px;text-align:justify;text-align-last:justify">세종 부동산 인사이트</span></span></div>
-  <div class="navlinks"><a data-tab="trade" class="on">오늘의 실거래</a><a data-tab="market">시장지표</a><a data-tab="trend">동·단지별 매매가 추이</a><a data-tab="position">전국 지역 비교</a><a class="navblog" href="./blog/">분석 ✦</a></div>
+  <div class="navlinks"><a data-tab="trade" class="on">오늘의 세종</a><a data-tab="market">시장지표</a><a data-tab="trend">동·단지별 매매가 추이</a><a data-tab="position">전국 지역 비교</a><a class="navblog" href="./blog/">분석 ✦</a></div>
   <button class="navcta">관심단지 ＋</button>
 </nav>
 
@@ -312,8 +312,7 @@ footer{color:#aab2c5}
   </div>
 </section>
 <section>
-  <h2>오늘의 세종 뉴스</h2>
-  <div class="toggle" id="newsTab" style="margin:0 0 8px"><button data-k="realestate" class="on">부동산</button><button data-k="general">세종 전반</button></div>
+  <h2>이 시각 세종 뉴스</h2>
   <div class="card"><div id="newsList" style="display:flex;flex-direction:column">불러오는 중…</div></div>
 </section><section>
   <h2>실거래 신고량 추이 (국토부)</h2>
@@ -1247,8 +1246,7 @@ loadTiers();
 function nesc(s){return String(s).replace(/[&<>"]/g,function(c){return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[c];});}
 function newsAgo(d){var t=new Date(d);if(isNaN(t))return"";var s=(Date.now()-t)/1000;if(s<3600)return Math.max(1,Math.floor(s/60))+"분 전";if(s<86400)return Math.floor(s/3600)+"시간 전";return Math.floor(s/86400)+"일 전";}
 function renderNews(k){var box=document.getElementById("newsList");if(!box)return;var list=(window.__news&&window.__news[k])||[];if(!list.length){box.innerHTML='<div style="color:#aab2c5;font-size:13px;padding:8px 2px">표시할 뉴스가 없습니다.</div>';return;}box.innerHTML=list.slice(0,5).map(function(n){return '<a href="'+n.link+'" target="_blank" rel="noopener" style="display:flex;justify-content:space-between;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink)"><span style="font-size:14px;font-weight:600;line-height:1.45">'+nesc(n.title)+'</span><span style="flex:none;font-size:12px;color:#aab2c5;white-space:nowrap;margin-top:2px">'+nesc(n.source||"")+(n.pubDate?" · "+newsAgo(n.pubDate):"")+'</span></a>';}).join("");}
-function loadNews(){var box=document.getElementById("newsList");if(!box)return;fetch("/api/news?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json();}).then(function(j){window.__news=j;var on=document.querySelector("#newsTab button.on");renderNews(on?on.dataset.k:"realestate");}).catch(function(){box.innerHTML='<div style="color:#aab2c5;font-size:13px;padding:8px 2px">뉴스를 불러오지 못했습니다.</div>';});}
-(function(){var nt=document.getElementById("newsTab");if(nt)nt.addEventListener("click",function(e){if(e.target.tagName!=="BUTTON")return;nt.querySelectorAll("button").forEach(function(b){b.classList.remove("on");});e.target.classList.add("on");renderNews(e.target.dataset.k);});})();
+function loadNews(){var box=document.getElementById("newsList");if(!box)return;fetch("/api/news?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json();}).then(function(j){window.__news=j;renderNews("general");}).catch(function(){box.innerHTML='<div style="color:#aab2c5;font-size:13px;padding:8px 2px">뉴스를 불러오지 못했습니다.</div>';});}
 loadNews();
 </script>
 
