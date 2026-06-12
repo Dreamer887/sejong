@@ -447,10 +447,10 @@ function renderHeroHighlights(nDong, nRural, highs, rise, period){
   // 2) 오늘의 신고가 — 금액을 크게
   if(highs && highs.length){
     const top=highs[0], rest=highs.slice(1);
-    let card=`<div class="hcard hi"><div class="hlabel">오늘의 신고가</div>`
+    let card=`<div class="hcard hi"><div class="hlabel">오늘의 신고가(3개월 중)</div>`
       +`<div class="hval">${wonMan(top.amt)}</div>`
       +`<div class="hsub">${cleanApt(top.apt).replace(/마을/g,'')} ${Math.floor(top.area)}㎡${top.prev?` · <span class="hprev">직전 ${wonMan(top.prev)}${top.prevArea?` ${Math.floor(top.prevArea)}㎡`:''}</span>`:''}</div>`
-      +`<div class="hmore-head">기록기간${period?`(${period}개월)`:''} 내 최고가 경신${highs.length>1?` ${highs.length}건`:''}</div>`;
+      +`<div class="hmore-head">오늘자 신고가 기록${highs.length>1?` ${highs.length}건`:''}</div>`;
     if(rest.length){
       const lines=rest.map(d=>`<div class="hline">${cleanApt(d.apt).replace(/마을/g,'')} <span class="ha">${Math.floor(d.area)}㎡</span> · ${wonMan(d.amt)}${d.prev?` · <span class="hprev">직전 ${wonMan(d.prev)}${d.prevArea?` ${Math.floor(d.prevArea)}㎡`:''}</span>`:''}</div>`).join('');
       card+=`<div class="hmore-list" style="display:none">${lines}</div>`
@@ -458,15 +458,15 @@ function renderHeroHighlights(nDong, nRural, highs, rise, period){
     }
     tiles.push(card+`</div>`);
   }else{
-    tiles.push(`<div class="hcard"><div class="hlabel">오늘의 신고가</div><div class="hval" style="font-size:18px;opacity:.85">오늘 없음</div></div>`);
+    tiles.push(`<div class="hcard"><div class="hlabel">오늘의 신고가(3개월 중)</div><div class="hval" style="font-size:18px;opacity:.85">오늘 없음</div></div>`);
   }
   // 3) 최대 상승률 — 상승률을 크게
   if(rise){
-    tiles.push(`<div class="hcard up"><div class="hlabel">최대 상승률</div>`
+    tiles.push(`<div class="hcard up"><div class="hlabel">오늘의 최대 상승률(3개월 평균 대비)</div>`
       +`<div class="hval">+${(rise.rise*100).toFixed(1)}%</div>`
-      +`<div class="hsub">${cleanApt(rise.apt)} ${Math.floor(rise.area)}㎡ · ${wonMan(rise.amt)} · 직전 평균比</div></div>`);
+      +`<div class="hsub">${cleanApt(rise.apt).replace(/마을/g,'')} ${Math.floor(rise.area)}㎡ · ${wonMan(rise.amt)} · 직전평균가 ${wonMan(rise.avg)}</div></div>`);
   }else{
-    tiles.push(`<div class="hcard"><div class="hlabel">최대 상승률</div><div class="hval" style="font-size:18px;opacity:.85">해당 없음</div></div>`);
+    tiles.push(`<div class="hcard"><div class="hlabel">오늘의 최대 상승률(3개월 평균 대비)</div><div class="hval" style="font-size:18px;opacity:.85">해당 없음</div></div>`);
   }
   el.innerHTML=tiles.join('');
 }
@@ -525,7 +525,7 @@ async function loadReports(){
         if(RURAL_RE.test(String(r[0]))) return;   // 읍·면(법정동 외) 제외
         const area=Number(r[4])||0, amt=Number(r[5])||0;
         if(!area||!amt) return;
-        if((Hapt[r[0]+'|'+r[1]]||[]).length < 5) return;   // 3개월 거래 5건 미만 단지 제외
+        if((Hapt[r[0]+'|'+r[1]]||[]).filter(d=>Math.abs(d.area-area)<=area*0.10).length < 3) return;   // 같은 단지 ±10% 평형 거래 3건 미만 제외
         const arr=H[r[0]+'|'+r[1]+'|'+area.toFixed(2)];
         if(!arr||!arr.length) return;
         const maxAmt=Math.max.apply(null,arr.map(d=>d.amt));
@@ -545,7 +545,7 @@ async function loadReports(){
           if(prior.length>=2){
             const avg=prior.reduce((s,d)=>s+d.amt,0)/prior.length;
             const rise=amt/avg-1;
-            if(rise>0 && (!topRise||rise>topRise.rise)) topRise={apt:r[1],area,amt,rise,n:prior.length};
+            if(rise>0 && (!topRise||rise>topRise.rise)) topRise={apt:r[1],area,amt,rise,n:prior.length,avg};
           }
         }
       });
