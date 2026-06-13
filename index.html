@@ -284,6 +284,18 @@ footer{color:#aab2c5}
 #heroSec .hline .ha{color:rgba(255,255,255,.8);font-weight:500}
 
 #heroSec .hmore-head{font-size:12.5px;font-weight:700;color:rgba(255,255,255,.92);margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.28)}
+  /* === 동별 거래량 팝업 === */
+  #volTable th.dclk{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+  #volTable th.dclk:hover{background:#eef1ff;color:#5b6cff}
+  .dmodal-mask{position:fixed;inset:0;background:rgba(20,28,46,.45);backdrop-filter:blur(3px);z-index:200;display:none;align-items:center;justify-content:center;padding:18px}
+  .dmodal-mask.on{display:flex}
+  .dmodal{background:var(--card);border:1px solid var(--line);border-radius:16px;width:min(560px,94vw);max-height:88vh;overflow:auto;box-shadow:0 24px 60px rgba(20,28,46,.28);padding:18px 20px}
+  .dmodal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+  .dmodal-head h3{font-size:16px;font-weight:800;color:var(--ink)}
+  .dmodal-close{border:none;background:#eef1f7;color:var(--sub);width:30px;height:30px;border-radius:9px;font-size:18px;line-height:1;cursor:pointer}
+  .dmodal-close:hover{background:#e2e6ef}
+  .dmodal-sub{font-size:12.5px;color:var(--sub);margin-bottom:12px}
+  .dmodal-cv{position:relative;height:300px}
 </style>
 </head>
 <body>
@@ -608,6 +620,11 @@ async function loadReports(){
     const ordered = dongC.concat(ruralC);
 
     const drows = rows.filter(r => /\d{4}\D+\d{1,2}\D+\d{1,2}/.test(String(r[0])));
+    // 동별 일별 거래량 시계열 저장(팝업용)
+    window.VOL_BY_DONG = {};
+    ordered.forEach(function(o){ window.VOL_BY_DONG[o.lb] =
+      drows.map(function(r){ return {ymd: parseYMD(r[0]), v: Number(r[o.i]) || 0}; })
+           .sort(function(a,b){ return a.ymd < b.ymd ? -1 : 1; }); });
 
     // --- 차트용 시계열(동 지역 합계, 오름차순) ---
     const series = drows.map(r => ({ ymd: parseYMD(r[0]),
@@ -636,7 +653,7 @@ async function loadReports(){
     // --- 도표(신고일 × 법정동, 최신이 위로) ---
     const sorted = drows.slice().sort((a, b) => parseYMD(a[0]) < parseYMD(b[0]) ? 1 : -1);
     let thtml = '<thead><tr><th class="l">신고일</th>'
-      + ordered.map(o => `<th${RURAL_RE.test(o.lb) ? ' style="color:#94a3b8"' : ''}>${o.lb}</th>`).join('')
+      + ordered.map(o => `<th class="dclk" data-dong="${o.lb}" onclick="openDongModal(this.dataset.dong)"${RURAL_RE.test(o.lb) ? ' style="color:#94a3b8"' : ''}>${o.lb}</th>`).join('')
       + '<th>동합계</th><th>전체합계</th></tr></thead><tbody>';
     sorted.forEach(r => {
       const dongSum = dongC.reduce((s, o) => s + (Number(r[o.i]) || 0), 0);
@@ -1277,5 +1294,41 @@ loadNews();
 
 <script>(function(){var d=new Date(),p=function(n){return String(n).padStart(2,"0")},e=document.getElementById("heroDate");if(e)e.textContent=d.getFullYear()+"."+p(d.getMonth()+1)+"."+p(d.getDate());})();</script>
 <script>(function(){var g=document.getElementById('btGrid');if(!g)return;function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}fetch('./blog/posts.json?t='+Date.now()).then(function(r){return r.ok?r.json():[];}).then(function(posts){if(!Array.isArray(posts)||!posts.length){var t=document.querySelector('.blogteaser');if(t)t.style.display='none';return;}posts=posts.slice().sort(function(a,b){return (b.dateISO||'').localeCompare(a.dateISO||'');}).slice(0,2);g.innerHTML=posts.map(function(p){var tc=(p.tag&&p.tag.indexOf('시세')>=0)?'t-price':'t-trade';return '<a class="bt-card" href="./blog/'+encodeURIComponent(p.id)+'"><span class="bt-tag '+tc+'">'+esc(p.tag||'분석')+'</span><h3>'+esc(p.title)+'</h3><p>'+esc((p.lede||'').slice(0,70))+'</p><div class="bt-date">'+esc(p.dateText||'')+'</div></a>';}).join('');}).catch(function(){var t=document.querySelector('.blogteaser');if(t)t.style.display='none';});})();</script>
+<div id="dongModalMask" class="dmodal-mask" onclick="if(event.target===this)closeDongModal()">
+  <div class="dmodal" role="dialog" aria-modal="true" aria-labelledby="dongModalTitle">
+    <div class="dmodal-head">
+      <h3 id="dongModalTitle">동별 거래량</h3>
+      <button type="button" class="dmodal-close" onclick="closeDongModal()" aria-label="닫기">&times;</button>
+    </div>
+    <div class="dmodal-sub" id="dongModalSub"></div>
+    <div class="dmodal-cv"><canvas id="dongModalChart"></canvas></div>
+  </div>
+</div>
+<script>
+var __dongChart=null;
+function openDongModal(name){
+  if(!name) return;
+  var series=(window.VOL_BY_DONG||{})[name]||[];
+  var total=series.reduce(function(s,d){return s+d.v;},0);
+  document.getElementById('dongModalTitle').textContent=name+' 일별 거래량';
+  document.getElementById('dongModalSub').textContent='신고일별 매매 거래 건수 \u00b7 전용 50\u33a1 이상 \u00b7 합계 '+total.toLocaleString()+'건';
+  document.getElementById('dongModalMask').classList.add('on');
+  if(__dongChart) __dongChart.destroy();
+  __dongChart=new Chart(document.getElementById('dongModalChart'),{
+    type:'bar',
+    data:{labels:series.map(function(d){return d.ymd;}),
+      datasets:[{label:name,data:series.map(function(d){return d.v;}),backgroundColor:'#5b6cff',borderRadius:5,maxBarThickness:48}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+(((c.parsed&&c.parsed.y)||0)).toLocaleString()+'건';}}}},
+      scales:{x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:true}},
+        y:{beginAtZero:true,grid:{color:'#edf0f6'},ticks:{precision:0,stepSize:1}}}}
+  });
+}
+function closeDongModal(){
+  document.getElementById('dongModalMask').classList.remove('on');
+  if(__dongChart){__dongChart.destroy();__dongChart=null;}
+}
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeDongModal(); });
+</script>
 </body>
 </html>
