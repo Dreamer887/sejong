@@ -1249,7 +1249,7 @@ function renderTrendAvg(){
   // 가격대가 몰린 군집을 반영하며, 매 기간 중위값에 비례해 자동 스케일된다.
   // TIER_MULT = 1·2·3·4급지의 하한(중위 대비 배수). 5급지 = 나머지.
   const TIER_MULT=[1.18, 1.05, 0.965, 0.89];
-  const TINT=['#f4cccc','#f9dede','#fce9e9','#fef2f2','#fffafa'];   // 1~5급지 음영(진→옅)
+  const TINT=['#F4CBBA','#F9DDCF','#FBE9E0','#FDF3EE','#FEFAF7'];   // 1~5급지 음영(차분한 코랄 톤, 진→옅)
   const lat=rank.map(a=>a.m2[li]).filter(v=>v!=null).sort((x,y)=>x-y);
   const L=lat.length, med=L?(L%2?lat[(L-1)/2]:(lat[L/2-1]+lat[L/2])/2):0;
   const cut=TIER_MULT.map(m=>med*m);
