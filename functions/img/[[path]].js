@@ -12,6 +12,7 @@ export async function onRequestGet(context){
   const headers = new Headers();
   obj.writeHttpMetadata(headers);
   headers.set("etag", obj.httpEtag);
+  headers.set("X-Content-Type-Options", "nosniff");
   if(!headers.has("Cache-Control")) headers.set("Cache-Control", "public, max-age=31536000, immutable");
   return new Response(obj.body, {headers});
 }

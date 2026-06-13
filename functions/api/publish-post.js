@@ -26,6 +26,7 @@ function b64dec(b64){
 function esc(s){
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
+function validId(id){ return typeof id==="string" && /^\d{4}-\d{2}-\d{2}-[a-z0-9]{6}\.html$/.test(id); }
 function inline(t){
   return t
     .replace(/\+\+(.+?)\+\+/g,'<span class="big">$1</span>')
@@ -81,7 +82,7 @@ function buildPostHtml(f, BASE){
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"Article","headline":${JSON.stringify(f.title)},"datePublished":"${f.dateISO}","author":{"@type":"Person","name":"투자되지"},"publisher":{"@type":"Organization","name":"세종 부동산 인사이트"}}
+${JSON.stringify({"@context":"https://schema.org","@type":"Article",headline:f.title,datePublished:f.dateISO,author:{"@type":"Person",name:"투자되지"},publisher:{"@type":"Organization",name:"세종 부동산 인사이트"}}).replace(/</g,"\\u003c")}
 </script>
 <style>
   :root{--bg:#f4f6fa;--card:#fff;--ink:#16203a;--sub:#727e98;--indigo:#5b6cff;--violet:#a06bff;--line:#e4e8f0}
@@ -238,7 +239,7 @@ export async function onRequestPost(context){
       return json({ok:true, posts});
     }
     if(action==="delete"){
-      if(!f.id) return json({error:"id가 필요합니다."}, 400);
+      if(!validId(f.id)) return json({error:"잘못된 글 id입니다."}, 400);
       const {posts, sha}=await readPosts(C);
       const fileC=await getContent(C, "blog/"+f.id);
       if(fileC) await deleteFile(C, "blog/"+f.id, "delete: "+f.id, fileC.sha);
@@ -247,14 +248,14 @@ export async function onRequestPost(context){
     }
     if(!f.title || !f.body) return json({error:"제목과 본문은 필수입니다."}, 400);
     const now=new Date(Date.now()+9*3600*1000);
-    f.dateISO=f.dateISO || now.toISOString().slice(0,10);
+    f.dateISO=(f.dateISO && /^\d{4}-\d{2}-\d{2}$/.test(f.dateISO)) ? f.dateISO : now.toISOString().slice(0,10);
     f.dateText=f.dateText || (now.getUTCFullYear()+". "+(now.getUTCMonth()+1)+". "+now.getUTCDate()+".");
     f.tag=f.tag || "분석";
     const entry={id:f.id, title:f.title, tag:f.tag, lede:f.lede||"", body:f.body, summary:f.summary||"", dateISO:f.dateISO, dateText:f.dateText};
     const {posts, sha}=await readPosts(C);
 
     if(action==="update"){
-      if(!f.id) return json({error:"id가 필요합니다."}, 400);
+      if(!validId(f.id)) return json({error:"잘못된 글 id입니다."}, 400);
       const existing=await getContent(C, "blog/"+f.id);
       await putFile(C, "blog/"+f.id, buildPostHtml(entry, C.BASE), "update: "+f.title, existing?existing.sha:undefined);
       let next=posts.map(function(p){return p.id===f.id?entry:p;});
