@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <meta name="naver-site-verification" content="7239cf3c478301c0fe1d52e5e575a4034612acdd" />
 <title>세종 부동산 인사이트</title>
 <meta name="description" content="세종시 아파트 실거래가·시세·급지별 데이터를 자동 집계해 보여주는 부동산 인사이트 대시보드.">
@@ -465,10 +468,10 @@ function renderHeroHighlights(nDong, nRural, highs, rise, period){
     const top=highs[0], rest=highs.slice(1);
     let card=`<div class="hcard hi"><div class="hlabel">오늘의 신고가(3개월 중)</div>`
       +`<div class="hval">${wonMan(top.amt)}</div>`
-      +`<div class="hsub">${cleanApt(top.apt).replace(/마을/g,'')} ${Math.floor(top.area)}㎡${top.prev?` · <span class="hprev">직전 ${wonMan(top.prev)}${top.prevArea?` ${Math.floor(top.prevArea)}㎡`:''}</span>`:''}</div>`
+      +`<div class="hsub">${cleanApt(top.apt).replace(/마을/g,'')} ${Math.floor(top.area)}㎡${top.prev?` · <span class="hprev">직전 ${wonMan(top.prev)}</span>`:''}</div>`
       +`<div class="hmore-head">오늘자 신고가 기록${highs.length>1?` ${highs.length}건`:''}</div>`;
     if(rest.length){
-      const lines=rest.map(d=>`<div class="hline">${cleanApt(d.apt).replace(/마을/g,'')} <span class="ha">${Math.floor(d.area)}㎡</span> · ${wonMan(d.amt)}${d.prev?` · <span class="hprev">직전 ${wonMan(d.prev)}${d.prevArea?` ${Math.floor(d.prevArea)}㎡`:''}</span>`:''}</div>`).join('');
+      const lines=rest.map(d=>`<div class="hline">${cleanApt(d.apt).replace(/마을/g,'')} <span class="ha">${Math.floor(d.area)}㎡</span> · ${wonMan(d.amt)}${d.prev?` · <span class="hprev">직전 ${wonMan(d.prev)}</span>`:''}</div>`).join('');
       card+=`<div class="hmore-list" style="display:none">${lines}</div>`
         +`<button type="button" class="hmore-btn" onclick="toggleHighs(this)">신고가 더보기 ${rest.length}건 <i class="ti ti-chevron-down"></i></button>`;
     }
