@@ -296,6 +296,11 @@ footer{color:#aab2c5}
   .dmodal-close:hover{background:#e2e6ef}
   .dmodal-sub{font-size:12.5px;color:var(--sub);margin-bottom:12px}
   .dmodal-cv{position:relative;height:300px}
+  /* === 지역비교: 세종 기준 칩 === */
+  .hot-chips .hchip.sjbase{border:2px solid #5b6cff;background:#e7eefc;color:#5b6cff}
+  .hot-chips .hchip.sjbase .v{color:#5b6cff}
+  .hot-chips .hchip.sjbase .sjtag{margin-left:5px;font-size:10px;font-weight:800;background:#5b6cff;color:#fff;border-radius:5px;padding:1px 6px;line-height:1.5;font-style:normal}
+  .hot-chips .hchip.sjbase:not(.on){opacity:.42}
 </style>
 </head>
 <body>
@@ -1080,9 +1085,12 @@ function renderHot(vals, live){
     return a?a[0]:null;
   };
   [pickAbove(groups[1]), pickAbove(groups[2])].forEach(n=>{ if(n) selected.add(n); });
+  selected.add('세종시');   // 기본 표시(토글로 끌 수 있음)
 
   const chipBox=document.getElementById('hotChips');
   let chipHtml='';
+  chipHtml+=`<div class="hgrp">기준</div>`+
+    `<span class="hchip sjbase${selected.has('세종시')?' on':''}" data-name="세종시">세종시<span class="v">${Math.round(sj).toLocaleString()}</span><i class="sjtag">기준</i></span>`;
   for(const g of groups){
     const list=cand.filter(([n])=>g.match(n)).sort((a,b)=>b[1]-a[1]);
     if(!list.length) continue;
@@ -1094,19 +1102,22 @@ function renderHot(vals, live){
 
   const colorMap={};
   function drawChart(m){
+    const others=[...selected].filter(n=>n!=='세종시');
     let ci=0; Object.keys(colorMap).forEach(k=>{ if(!selected.has(k)) delete colorMap[k]; });
-    [...selected].forEach(n=>{ if(!colorMap[n]) colorMap[n]=palette[(ci++)%palette.length]; else ci++; });
+    others.forEach(n=>{ if(!colorMap[n]) colorMap[n]=palette[(ci++)%palette.length]; else ci++; });
 
     const sjMap=Object.fromEntries(fullSeries('세종시', live));
-    const seriesMaps=[...selected].map(n=>[n, Object.fromEntries(fullSeries(n, live))]);
+    const seriesMaps=others.map(n=>[n, Object.fromEntries(fullSeries(n, live))]);
     const allYms=new Set(Object.keys(sjMap));
     seriesMaps.forEach(([,mp])=>Object.keys(mp).forEach(y=>allYms.add(y)));
     const l=lastM([...allYms].sort(), m);
     const ds=seriesMaps.map(([n,mp])=>({
       label:n, data:l.map(ym=>mp[ym]??null), borderColor:colorMap[n],
       borderWidth:2, pointRadius:0, tension:.25, spanGaps:true}));
-    ds.push({label:'세종시', data:l.map(ym=>sjMap[ym]??null), borderColor:'#5b6cff',
-      borderWidth:1.8, borderDash:[5,4], pointRadius:0, tension:.25, spanGaps:true});
+    if(selected.has('세종시')){
+      ds.push({label:'세종시', data:l.map(ym=>sjMap[ym]??null), borderColor:'#5b6cff',
+        borderWidth:2.2, borderDash:[5,4], pointRadius:0, tension:.25, spanGaps:true});
+    }
     plot('hotC1',{
       type:'line', data:{labels:l, datasets:ds},
       options:{responsive:true, maintainAspectRatio:false,
