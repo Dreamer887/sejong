@@ -70,6 +70,7 @@ function buildPostHtml(f, BASE){
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2234856624819574" crossorigin="anonymous"></script>
 <title>${esc(f.title)} | 세종 부동산 인사이트</title>
 <meta name="description" content="${esc(f.lede || f.title)}">
 <link rel="canonical" href="${url}">
