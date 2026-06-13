@@ -415,10 +415,29 @@ let priceMode='both',priceLastM=0,drawPriceFn=null;
 
 /* ===== data.json 우선 로더 (없으면 구글시트 직접 읽기로 자동 폴백) ===== */
 let DATA_JSON=null;
+/* ===== 수동 정정: 6/11·6/12 일별 거래량(사용자 실수로 12일에 몰림 → 엑셀 기준 분리).
+   HTML 표시값만 교체 — 구글시트/Apps Script 데이터는 건드리지 않음. ===== */
+const MANUAL_DAILY_FIX = {
+  '2026-06-11': {'고운동':1,'다정동':2,'도담동':1,'반곡동':1,'보람동':1,'산울동':1,'아름동':2,'어진동':1},
+  '2026-06-12': {'다정동':1,'반곡동':2,'보람동':1,'어진동':1,'종촌동':3,'한솔동':1,'해밀동':3,'조치원읍 죽림리':1}
+};
+function applyManualDailyFix_(d){
+  try{
+    const tab = d && d['(매일 자동) 국토부 실거래 자료'];
+    if(!tab || !Array.isArray(tab.labels) || !Array.isArray(tab.rows)) return;
+    const key = v => { const m=String(v).match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/); return m? m[1]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[3]).slice(-2):String(v); };
+    Object.keys(MANUAL_DAILY_FIX).forEach(function(date){
+      const fix = MANUAL_DAILY_FIX[date];
+      const row = tab.labels.map(function(lb,i){ return i===0 ? date : (fix[lb] || 0); });
+      const idx = tab.rows.findIndex(function(r){ return key(r[0])===date; });
+      if(idx>=0) tab.rows[idx]=row; else tab.rows.push(row);
+    });
+  }catch(e){}
+}
 async function loadDataJson(){
   try{
     const r=await fetch('./data.json?t='+Date.now(), {cache:'no-store'});
-    if(r.ok) DATA_JSON=await r.json();
+    if(r.ok){ DATA_JSON=await r.json(); applyManualDailyFix_(DATA_JSON); }
   }catch(e){ DATA_JSON=null; }
 }
 const DATA_READY = loadDataJson();
