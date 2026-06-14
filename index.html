@@ -545,6 +545,7 @@ async function loadReports(){
     const nDong = data.filter(r => !isRural(r[0])).length;
     const nRural = data.length - nDong;
     const dt = (title.match(/\d{4}-\d{2}-\d{2}/) || [''])[0];
+    const _hd=document.getElementById('heroDate'); if(_hd && dt) _hd.textContent=dt.replace(/-/g,'.');   // 배지를 데이터 날짜로(0건일엔 직전 날짜)
     document.getElementById('repDesc').textContent =
       `${dt ? dt + ' · ' : ''}동 지역 ${nDong}건${nRural ? ' · 읍·면 ' + nRural + '건' : ''} · 전용 50㎡ 이상`;
 
@@ -625,7 +626,8 @@ async function loadReports(){
     const ruralC = cols.filter(o =>  RURAL_RE.test(o.lb)).sort((a, b) => a.lb < b.lb ? -1 : 1);
     const ordered = dongC.concat(ruralC);
 
-    const drows = rows.filter(r => /\d{4}\D+\d{1,2}\D+\d{1,2}/.test(String(r[0])));
+    const drows = rows.filter(r => /\d{4}\D+\d{1,2}\D+\d{1,2}/.test(String(r[0])))
+      .filter(r => cols.reduce((s,o)=>s+(Number(r[o.i])||0),0) > 0);   // 공개자료 0건(공휴일+1)인 날 제외
     // 동별 일별 거래량 시계열 저장(팝업용)
     window.VOL_BY_DONG = {};
     ordered.forEach(function(o){ window.VOL_BY_DONG[o.lb] =
