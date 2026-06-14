@@ -48,6 +48,7 @@
   .mrow button{font-size:12.5px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer}
   .mrow .edit{color:var(--indigo)} .mrow .del{color:#c0392b}
   .pv-tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:#eef0ff;color:var(--indigo)}
+  .pv-tag.tg-analysis{color:#5b6cff;background:#eef0ff}.pv-tag.tg-trade{color:#0f6e56;background:#e1f5ee}.pv-tag.tg-price{color:#92510b;background:#faeeda}.pv-tag.tg-policy{color:#993556;background:#fbeaf0}
   .pv h1{font-size:23px;font-weight:800;line-height:1.35;margin:11px 0 6px}
   .pv .pv-meta{color:#aab2c5;font-size:12.5px;font-weight:600}
   .pv .pv-lede{background:#f6f7ff;border:1px solid #e3e6ff;border-left:5px solid var(--indigo);border-radius:12px;padding:14px 16px;margin:14px 0 18px}
@@ -179,7 +180,7 @@ const $=id=>document.getElementById(id);
 function fmtDate(iso){if(!iso)return"";const p=iso.split("-");return p[0]+". "+(+p[1])+". "+(+p[2])+".";}
 function render(){
   const tag=$("tag").value,title=$("title").value||"제목을 입력하세요",lede=$("lede").value,body=$("body").value,summary=$("summary").value,date=fmtDate($("date").value);
-  let h='<span class="pv-tag">'+esc(tag)+'</span><h1>'+esc(title)+'</h1><div class="pv-meta">'+esc(date)+' · 작성: 투자되지</div>';
+  let h='<span class="pv-tag '+(function(t){t=String(t||"");if(t.indexOf("거래")>=0)return"tg-trade";if(t.indexOf("시세")>=0)return"tg-price";if(t.indexOf("정책")>=0||t.indexOf("공급")>=0)return"tg-policy";return"tg-analysis";})(tag)+'">'+esc(tag)+'</span><h1>'+esc(title)+'</h1><div class="pv-meta">'+esc(date)+' · 작성: 투자되지</div>';
   if(lede)h+='<div class="pv-lede"><div class="a-cap">들어가며</div>'+richLines(lede)+'</div>';
   h+=bodyToHtml(body);
   if(summary)h+='<div class="pv-summary"><b>한 줄 요약</b>'+richLines(summary)+'</div>';

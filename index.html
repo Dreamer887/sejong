@@ -189,6 +189,10 @@ body{background:#f3f5fb;
 .bt-tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px}
 .bt-tag.t-trade{color:#5b6cff;background:#eef0ff}
 .bt-tag.t-price{color:#0f6e56;background:#e1f5ee}
+.bt-tag.tg-analysis{color:#5b6cff;background:#eef0ff}
+.bt-tag.tg-trade{color:#0f6e56;background:#e1f5ee}
+.bt-tag.tg-price{color:#92510b;background:#faeeda}
+.bt-tag.tg-policy{color:#993556;background:#fbeaf0}
 .bt-card h3{font-size:15.5px;font-weight:800;color:var(--ink);line-height:1.42;margin:10px 0 0}
 .bt-card p{font-size:12.5px;color:var(--sub);line-height:1.6;margin:7px 0 0}
 .bt-date{font-size:11.5px;color:#aab2c5;font-weight:600;margin-top:13px}
@@ -1318,7 +1322,7 @@ loadNews();
 </script>
 
 <script>(function(){var d=new Date(),p=function(n){return String(n).padStart(2,"0")},e=document.getElementById("heroDate");if(e)e.textContent=d.getFullYear()+"."+p(d.getMonth()+1)+"."+p(d.getDate());})();</script>
-<script>(function(){var g=document.getElementById('btGrid');if(!g)return;function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}fetch('./blog/posts.json?t='+Date.now()).then(function(r){return r.ok?r.json():[];}).then(function(posts){if(!Array.isArray(posts)||!posts.length){var t=document.querySelector('.blogteaser');if(t)t.style.display='none';return;}posts=posts.slice().sort(function(a,b){return (b.dateISO||'').localeCompare(a.dateISO||'');}).slice(0,2);g.innerHTML=posts.map(function(p){var tc=(p.tag&&p.tag.indexOf('시세')>=0)?'t-price':'t-trade';return '<a class="bt-card" href="./blog/'+encodeURIComponent(p.id)+'"><span class="bt-tag '+tc+'">'+esc(p.tag||'분석')+'</span><h3>'+esc(p.title)+'</h3><p>'+esc((p.lede||'').slice(0,70))+'</p><div class="bt-date">'+esc(p.dateText||'')+'</div></a>';}).join('');}).catch(function(){var t=document.querySelector('.blogteaser');if(t)t.style.display='none';});})();</script>
+<script>(function(){var g=document.getElementById('btGrid');if(!g)return;function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}fetch('./blog/posts.json?t='+Date.now()).then(function(r){return r.ok?r.json():[];}).then(function(posts){if(!Array.isArray(posts)||!posts.length){var t=document.querySelector('.blogteaser');if(t)t.style.display='none';return;}posts=posts.slice().sort(function(a,b){return (b.dateISO||'').localeCompare(a.dateISO||'');}).slice(0,2);g.innerHTML=posts.map(function(p){var tc=(function(t){t=String(t||"");if(t.indexOf("거래")>=0)return"tg-trade";if(t.indexOf("시세")>=0)return"tg-price";if(t.indexOf("정책")>=0||t.indexOf("공급")>=0)return"tg-policy";return"tg-analysis";})(p.tag);return '<a class="bt-card" href="./blog/'+encodeURIComponent(p.id)+'"><span class="bt-tag '+tc+'">'+esc(p.tag||'분석')+'</span><h3>'+esc(p.title)+'</h3><p>'+esc((p.lede||'').slice(0,70))+'</p><div class="bt-date">'+esc(p.dateText||'')+'</div></a>';}).join('');}).catch(function(){var t=document.querySelector('.blogteaser');if(t)t.style.display='none';});})();</script>
 <div id="dongModalMask" class="dmodal-mask" onclick="if(event.target===this)closeDongModal()">
   <div class="dmodal" role="dialog" aria-modal="true" aria-labelledby="dongModalTitle">
     <div class="dmodal-head">

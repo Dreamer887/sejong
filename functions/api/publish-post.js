@@ -27,6 +27,7 @@ function esc(s){
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 function validId(id){ return typeof id==="string" && /^\d{4}-\d{2}-\d{2}-[a-z0-9]{6}\.html$/.test(id); }
+function tagCls(t){ t=String(t||""); if(t.indexOf("거래")>=0) return "tg-trade"; if(t.indexOf("시세")>=0) return "tg-price"; if(t.indexOf("정책")>=0||t.indexOf("공급")>=0) return "tg-policy"; return "tg-analysis"; }
 function inline(t){
   return t
     .replace(/\+\+(.+?)\+\+/g,'<span class="big">$1</span>')
@@ -102,6 +103,7 @@ ${JSON.stringify({"@context":"https://schema.org","@type":"Article",headline:f.t
   article{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:38px 40px}
   @media(max-width:600px){article{padding:28px 22px}}
   .a-tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 11px;border-radius:99px;background:#eef0ff;color:var(--indigo)}
+  .a-tag.tg-analysis{color:#5b6cff;background:#eef0ff}.a-tag.tg-trade{color:#0f6e56;background:#e1f5ee}.a-tag.tg-price{color:#92510b;background:#faeeda}.a-tag.tg-policy{color:#993556;background:#fbeaf0}
   article h1{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1.35;margin:14px 0 10px}
   .a-meta{color:#aab2c5;font-size:13px;font-weight:600;margin-bottom:8px}
   .a-lede{background:#f6f7ff;border:1px solid #e3e6ff;border-left:5px solid var(--indigo);border-radius:14px;padding:18px 22px;margin:18px 0 26px}
@@ -139,7 +141,7 @@ ${JSON.stringify({"@context":"https://schema.org","@type":"Article",headline:f.t
   </nav>
   <a class="backlink" href="./index.html">← 분석 목록으로</a>
   <article>
-    <span class="a-tag">${esc(f.tag)}</span>
+    <span class="a-tag ${tagCls(f.tag)}">${esc(f.tag)}</span>
     <h1>${esc(f.title)}</h1>
     <div class="a-meta">${esc(f.dateText)} · 작성: 투자되지</div>
     ${lede}
@@ -159,7 +161,7 @@ ${JSON.stringify({"@context":"https://schema.org","@type":"Article",headline:f.t
 function renderCards(posts){
   const sorted = posts.slice().sort(function(a,b){return (b.dateISO||"").localeCompare(a.dateISO||"") || (b.id||"").localeCompare(a.id||"");});
   if(!sorted.length) return "\n    <p style=\"color:#aab2c5;font-size:14px;grid-column:1/-1\">아직 발행된 글이 없습니다.</p>\n  ";
-  return "\n" + sorted.map(function(f){return '    <a class="postcard" data-id="'+esc(f.id)+'" href="./'+esc(f.id)+'">\n      <span class="tag">'+esc(f.tag)+'</span>\n      <h2>'+esc(f.title)+'</h2>\n      <p class="excerpt">'+esc((f.lede||"").slice(0,95))+'</p>\n      <span class="meta">'+esc(f.dateText)+' · '+esc(f.tag)+'</span>\n    </a>';}).join("\n") + "\n  ";
+  return "\n" + sorted.map(function(f){return '    <a class="postcard" data-id="'+esc(f.id)+'" href="./'+esc(f.id)+'">\n      <span class="tag '+tagCls(f.tag)+'">'+esc(f.tag)+'</span>\n      <h2>'+esc(f.title)+'</h2>\n      <p class="excerpt">'+esc((f.lede||"").slice(0,95))+'</p>\n      <span class="meta">'+esc(f.dateText)+' · '+esc(f.tag)+'</span>\n    </a>';}).join("\n") + "\n  ";
 }
 async function gh(C, path, opts){
   opts=opts||{};
@@ -177,9 +179,16 @@ async function getContent(C, path){
   return {sha:r.json.sha, content:b64dec(r.json.content)};
 }
 async function putFile(C, path, str, message, sha){
-  const body={message, content:b64enc(str), branch:C.BRANCH};
-  if(sha) body.sha=sha;
-  const r=await gh(C, "/repos/"+C.OWNER+"/"+C.REPO+"/contents/"+path, {method:"PUT", body:JSON.stringify(body)});
+  async function attempt(useSha){
+    const body={message, content:b64enc(str), branch:C.BRANCH};
+    if(useSha) body.sha=useSha;
+    return await gh(C, "/repos/"+C.OWNER+"/"+C.REPO+"/contents/"+path, {method:"PUT", body:JSON.stringify(body)});
+  }
+  let r=await attempt(sha);
+  if(!r.ok && (r.status===409 || r.status===422)){   // sha 충돌 → 최신 sha 다시 읽어 1회 재시도
+    const cur=await getContent(C, path);
+    r=await attempt(cur?cur.sha:undefined);
+  }
   if(!r.ok) throw new Error("PUT "+path+" "+r.status+": "+(r.json.message||r.text));
   return r.json;
 }
