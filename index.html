@@ -477,6 +477,16 @@ async function gvizTable(sheet){
 
 /* ===== 국토부 실거래 신고 (오늘 내역 + 누적 신고량) ===== */
 const RURAL_RE = /[읍면]/;   // 읍·면 지역 제외(예: 조치원읍 남리)
+/* ===== 한국 공휴일(주말 제외 법정·대체·임시공휴일). '공휴일+1일' = 국토부 공개자료 없는 날. 매년 갱신·임시공휴일 추가 ===== */
+const KR_HOLIDAYS = {
+ '2026-01-01':1,'2026-02-16':1,'2026-02-17':1,'2026-02-18':1,'2026-03-02':1,
+ '2026-05-05':1,'2026-05-25':1,'2026-08-17':1,'2026-09-24':1,'2026-09-25':1,
+ '2026-09-28':1,'2026-10-05':1,'2026-10-09':1,'2026-12-25':1
+ /* ← 임시공휴일이 지정되면 'YYYY-MM-DD':1 형식으로 여기에 추가 */
+};
+function _ymdK(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function isKrHoliday(d){var g=d.getDay();if(g===0||g===6)return true;return !!KR_HOLIDAYS[_ymdK(d)];}
+function isHolidayPlusOne(s){var m=String(s).match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);if(!m)return false;var d=new Date(+m[1],+m[2]-1,+m[3]);d.setDate(d.getDate()-1);return isKrHoliday(d);}
 const wonMan = man => {
   man = Math.round(Number(man) || 0);
   const e = Math.floor(man / 10000), m = man - e * 10000;
@@ -627,7 +637,7 @@ async function loadReports(){
     const ordered = dongC.concat(ruralC);
 
     const drows = rows.filter(r => /\d{4}\D+\d{1,2}\D+\d{1,2}/.test(String(r[0])))
-      .filter(r => cols.reduce((s,o)=>s+(Number(r[o.i])||0),0) > 0);   // 공개자료 0건(공휴일+1)인 날 제외
+      .filter(r => !(cols.reduce((s,o)=>s+(Number(r[o.i])||0),0)===0 && isHolidayPlusOne(r[0])));   // 0건인 날 중 '공휴일+1일'만 제외
     // 동별 일별 거래량 시계열 저장(팝업용)
     window.VOL_BY_DONG = {};
     ordered.forEach(function(o){ window.VOL_BY_DONG[o.lb] =
