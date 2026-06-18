@@ -600,7 +600,16 @@ async function loadReports(){
         const arr=H[r[0]+'|'+r[1]+'|'+area.toFixed(2)];
         if(!arr||!arr.length) return;
         const maxAmt=Math.max.apply(null,arr.map(d=>d.amt));
-        if(amt>=maxAmt){
+        const isHigh=amt>=maxAmt;                       // 3개월 신고가(최고가) 여부
+        const months=[...new Set(arr.map(d=>d.ym))].sort();
+        let rise=null, avg=null, n=0;
+        if(months.length>=2){
+          const lastM=months[months.length-1];
+          const prior=arr.filter(d=>d.ym<lastM);
+          if(prior.length>=2){ avg=prior.reduce((s,d)=>s+d.amt,0)/prior.length; rise=amt/avg-1; n=prior.length; }
+        }
+        // 상승거래 = 3개월 평균보다 오른 거래(rise>0). 평균 산정 불가 시 신고가만 포함(폴백).
+        if(rise!==null ? rise>0 : isHigh){
           const below=arr.map(d=>d.amt).filter(a=>a<amt);
           let prev=below.length?Math.max.apply(null,below):null, prevArea=null;
           if(prev===null){
@@ -609,16 +618,7 @@ async function loadReports(){
           }
           highs.push({apt:r[1],area,amt,prev,prevArea});
         }
-        const months=[...new Set(arr.map(d=>d.ym))].sort();
-        if(months.length>=2){
-          const lastM=months[months.length-1];
-          const prior=arr.filter(d=>d.ym<lastM);
-          if(prior.length>=2){
-            const avg=prior.reduce((s,d)=>s+d.amt,0)/prior.length;
-            const rise=amt/avg-1;
-            if(rise>0 && (!topRise||rise>topRise.rise)) topRise={apt:r[1],area,amt,rise,n:prior.length,avg};
-          }
-        }
+        if(rise!==null && rise>0 && (!topRise||rise>topRise.rise)) topRise={apt:r[1],area,amt,rise,n,avg};
       });
       highs.sort((a,b)=>b.amt-a.amt);
       const _ym=hist.rows.map(r=>normYM(r[0])).filter(v=>/^\d{4}-\d{2}$/.test(v)).sort();
