@@ -49,6 +49,14 @@
   .ad-slot .adlabel{font-size:11px;color:#aab2c5;font-weight:600;letter-spacing:.08em}
   /* ---- post list ---- */
   .postlist{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+  .blogtabs{display:flex;gap:8px;margin:20px 0 2px}
+  .blogtabs .btab{border:1px solid var(--line);background:#fff;color:var(--sub);font-size:14px;font-weight:700;padding:8px 18px;border-radius:99px;cursor:pointer}
+  .blogtabs .btab.on{background:#5b6cff;border-color:#5b6cff;color:#fff}
+  .postlist .pc-hidden{display:none!important}
+  .blog-empty{grid-column:1/-1;color:#aab2c5;font-size:14px;padding:28px 4px;text-align:center}
+  .blog-more{grid-column:1/-1;display:flex;justify-content:center;margin-top:10px}
+  .blog-more button{border:1px solid var(--line);background:#fff;color:var(--ink);font-size:14px;font-weight:700;padding:10px 24px;border-radius:99px;cursor:pointer}
+  .blog-more button:hover{border-color:#c3cbe8}
   @media(max-width:760px){.postlist{grid-template-columns:1fr}}
   .postcard{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:18px;
     padding:22px 24px;text-decoration:none;transition:transform .12s ease,box-shadow .12s ease}
@@ -57,7 +65,7 @@
   .postcard .tag.tg-analysis{color:#5b6cff;background:#eef0ff}
   .postcard .tag.tg-trade{color:#0f6e56;background:#e1f5ee}
   .postcard .tag.tg-price{color:#92510b;background:#faeeda}
-  .postcard .tag.tg-policy{color:#993556;background:#fbeaf0}
+  .postcard .tag.tg-policy{color:#993556;background:#fbeaf0}.tag.tg-brief{color:#0b6b8f;background:#e0f2f9}
   .postcard h2{font-size:18px;font-weight:800;letter-spacing:-.3px;line-height:1.4}
   .postcard .excerpt{color:var(--sub);font-size:14px;margin-top:8px;flex:1}
   .postcard .meta{color:#aab2c5;font-size:12.5px;font-weight:600;margin-top:16px}
@@ -84,6 +92,10 @@
 
   <div class="ad-slot"><span class="adlabel">광고 영역 · Google AdSense</span></div>
 
+  <div class="blogtabs" id="blogtabs">
+    <button type="button" class="btab on" data-tab="분석글">분석글</button>
+    <button type="button" class="btab" data-tab="실거래 동향">실거래 동향</button>
+  </div>
   <!-- ===== 글 목록 (POSTS_START~END 사이는 /admin 에서 자동 생성·갱신됨. 직접 수정 금지) ===== -->
   <div class="postlist"><!--POSTS_START-->
     <a class="postcard" data-id="2026-06-14-tl6vg1.html" href="./2026-06-14-tl6vg1.html">
@@ -103,10 +115,10 @@
       <span class="meta">2026. 6. 14. · 분석</span>
     </a>
     <a class="postcard" data-id="2026-06-12-a22y2e.html" href="./2026-06-12-a22y2e.html">
-      <span class="tag tg-trade">거래 동향</span>
+      <span class="tag tg-analysis">분석</span>
       <h2>2026년 5월 세종시 아파트 시장 점검, 상승폭은 줄었지만 부담 지표는 여전히 무릎입니다</h2>
       <p class="excerpt">2026년 5월 말 기준 세종시 아파트 시장을 평균 매매·전세가격과 월별 상승률, 가격 부담 지표(PIR·J-PIR·전세가율), 동별 실거래 흐름, 그리고 수도권 주요 지</p>
-      <span class="meta">2026. 6. 12. · 거래 동향</span>
+      <span class="meta">2026. 6. 12. · 분석</span>
     </a>
     <a class="postcard" data-id="2026-06-11-c03x43.html" href="./2026-06-11-c03x43.html">
       <span class="tag tg-analysis">분석</span>
@@ -137,5 +149,26 @@
 
   <footer>작성: 투자되지 · 데이터 출처: 국토교통부 실거래가 공개시스템(rt.molit.go.kr)<br><a href="../privacy.html" style="color:#aab2c5;text-decoration:none;font-weight:600">개인정보처리방침</a> · <a href="../terms.html" style="color:#aab2c5;text-decoration:none;font-weight:600">이용약관</a> · <a href="../about.html" style="color:#aab2c5;text-decoration:none;font-weight:600">소개</a> · <a href="../contact.html" style="color:#aab2c5;text-decoration:none;font-weight:600">문의</a><br><span style="display:inline-block;margin-top:12px;line-height:1.6">세부인이 제공하는 정보는 무단 복제·배포·전송 등 이용할 수 없으며, 이를 무단 이용하는 경우 저작권법 등에 따라 법적 책임을 질 수 있습니다.</span><br><strong style="display:inline-block;margin-top:6px;color:#aab2c5">Copyright © 2026. 세부인(세종 부동산 인사이트) All Rights Reserved.</strong></footer>
 </div>
+<script>(function(){
+  var list=document.querySelector('.postlist'); if(!list) return;
+  var cards=[].slice.call(list.querySelectorAll('.postcard'));
+  function tagOf(c){var t=c.querySelector('.tag');return t?t.textContent.trim():'';}
+  var PER=12, tab='분석글', shown=PER;
+  var empty=document.createElement('div'); empty.className='blog-empty'; empty.textContent='아직 실거래 동향 글이 없습니다.'; empty.style.display='none'; list.appendChild(empty);
+  var moreWrap=document.createElement('div'); moreWrap.className='blog-more'; moreWrap.style.display='none';
+  var moreBtn=document.createElement('button'); moreBtn.type='button'; moreBtn.textContent='더 보기'; moreWrap.appendChild(moreBtn); list.appendChild(moreWrap);
+  function active(){return cards.filter(function(c){var b=tagOf(c)==='실거래 동향';return tab==='실거래 동향'?b:!b;});}
+  function render(){
+    var act=active();
+    cards.forEach(function(c){c.classList.add('pc-hidden');});
+    act.slice(0,shown).forEach(function(c){c.classList.remove('pc-hidden');});
+    empty.style.display=act.length?'none':'';
+    moreWrap.style.display=act.length>shown?'':'none';
+  }
+  moreBtn.addEventListener('click',function(){shown+=PER;render();});
+  var btns=[].slice.call(document.querySelectorAll('#blogtabs .btab'));
+  btns.forEach(function(b){b.addEventListener('click',function(){tab=b.getAttribute('data-tab');shown=PER;btns.forEach(function(x){x.classList.toggle('on',x===b);});render();});});
+  render();
+})();</script>
 </body>
 </html>
