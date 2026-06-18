@@ -585,19 +585,21 @@ async function loadReports(){
       const normYM = s => { const m=String(s).match(/(\d{4})\D+(\d{1,2})/); return m?`${m[1]}-${('0'+m[2]).slice(-2)}`:String(s); };
       const H={}, Hapt={};
       hist.rows.forEach(r=>{                       // r=[계약일,법정동,아파트,전용,동,층,거래금액]
+        if(String(r[7])==='직거래') return;   // 직거래 제외(상승거래·최대상승률 계산만)
         const apt=r[2], area=Number(r[3])||0, amt=Number(r[6])||0;
         if(!apt||!area||!amt) return;
-        const k=r[1]+'|'+apt+'|'+area.toFixed(2);
+        const k=r[1]+'|'+apt+'|'+Math.round(area);
         (H[k]=H[k]||[]).push({ym:normYM(r[0]), amt});
         const ak=r[1]+'|'+apt; (Hapt[ak]=Hapt[ak]||[]).push({area, amt});
       });
       let highs=[], topRise=null;
       data.forEach(r=>{                            // r=[법정동,아파트,동,층,전용,거래금액]
         if(RURAL_RE.test(String(r[0]))) return;   // 읍·면(법정동 외) 제외
+        if(String(r[6])==='직거래') return;   // 직거래 제외(상승거래·최대상승률 계산만)
         const area=Number(r[4])||0, amt=Number(r[5])||0;
         if(!area||!amt) return;
         if((Hapt[r[0]+'|'+r[1]]||[]).filter(d=>Math.abs(d.area-area)<=area*0.10).length < 3) return;   // 같은 단지 ±10% 평형 거래 3건 미만 제외
-        const arr=H[r[0]+'|'+r[1]+'|'+area.toFixed(2)];
+        const arr=H[r[0]+'|'+r[1]+'|'+Math.round(area)];
         if(!arr||!arr.length) return;
         const maxAmt=Math.max.apply(null,arr.map(d=>d.amt));
         const isHigh=amt>=maxAmt;                       // 3개월 신고가(최고가) 여부
@@ -626,9 +628,9 @@ async function loadReports(){
       if(_ym.length){const a=_ym[0],b=_ym[_ym.length-1];periodMonths=(+b.slice(0,4)-+a.slice(0,4))*12+(+b.slice(5,7)-+a.slice(5,7))+1;}
       window.RISE_DETAIL = topRise ? (function(){
         var ap=topRise.apt, ar=topRise.area, um=topRise.umd;
-        var ser=hist.rows.filter(function(r){return r[1]===um && r[2]===ap && (Number(r[3])||0).toFixed(2)===ar.toFixed(2);})
+        var ser=hist.rows.filter(function(r){return r[1]===um && r[2]===ap && Math.round(Number(r[3])||0)===Math.round(ar);})
           .map(function(r){return {date:String(r[0]), amt:Number(r[6])||0};}).filter(function(x){return x.amt;})
-          .sort(function(a,b){return a.date<b.date?-1:1;});
+          .sort(function(a,b){var na=normYM(a.date),nb=normYM(b.date);return na<nb?-1:1;});
         return {title:cleanApt(ap).replace(/마을/g,'')+' \u00b7 전용 '+Math.floor(ar)+'\u33a1', amt:topRise.amt, avg:topRise.avg, rise:topRise.rise, series:ser};
       })() : null;
       renderHeroHighlights(nDong, nRural, highs, topRise, periodMonths);
