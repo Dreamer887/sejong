@@ -603,13 +603,8 @@ async function loadReports(){
         if(!arr||!arr.length) return;
         const maxAmt=Math.max.apply(null,arr.map(d=>d.amt));
         const isHigh=amt>=maxAmt;                       // 3개월 신고가(최고가) 여부
-        const months=[...new Set(arr.map(d=>d.ym))].sort();
         let rise=null, avg=null, n=0;
-        if(months.length>=2){
-          const lastM=months[months.length-1];
-          const prior=arr.filter(d=>d.ym<lastM);
-          if(prior.length>=2){ avg=prior.reduce((s,d)=>s+d.amt,0)/prior.length; rise=amt/avg-1; n=prior.length; }
-        }
+        if(arr.length>=2){ avg=arr.reduce((s,d)=>s+d.amt,0)/arr.length; rise=amt/avg-1; n=arr.length; }   // 3개월 전체(직거래 제외) 평균 대비
         // 상승거래 = 3개월 평균보다 오른 거래(rise>0). 평균 산정 불가 시 신고가만 포함(폴백).
         if(rise!==null ? rise>0 : isHigh){
           const below=arr.map(d=>d.amt).filter(a=>a<amt);
@@ -1392,10 +1387,10 @@ function _riseSvg(d){
   sg+='<line x1="'+ML+'" y1="'+ay+'" x2="'+(CW-MR)+'" y2="'+ay+'" stroke="'+AVGC+'" stroke-width="1.2" stroke-dasharray="5 4"/>';
   sg+='<text x="'+(CW-MR+6)+'" y="'+(ay+4)+'" font-size="11.5" fill="'+AVGC+'">평균 '+wonMan(d.avg)+'</text>';
   sg+='<polyline points="'+ser.map(function(x,i){return px(i)+','+py(x.amt);}).join(' ')+'" fill="none" stroke="'+PRIOR+'" stroke-width="2"/>';
-  ser.forEach(function(x,i){var cx=px(i),cy=py(x.amt);
-    if(i===tIdx){sg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+cx+'" y2="'+ay+'" stroke="'+UP+'" stroke-width="1.2" stroke-dasharray="3 3"/><circle cx="'+cx+'" cy="'+cy+'" r="6" fill="'+BLUE+'"/><text x="'+cx+'" y="'+(cy-11)+'" font-size="12.5" font-weight="700" fill="'+BLUE+'" text-anchor="middle">'+wonMan(x.amt)+'</text>';}
-    else{sg+='<circle cx="'+cx+'" cy="'+cy+'" r="3.5" fill="'+PRIOR+'"/><text x="'+cx+'" y="'+(cy-9)+'" font-size="10" fill="'+LBL+'" text-anchor="middle">'+_riseShort(x.amt)+'</text>';}
-    sg+='<text x="'+cx+'" y="'+(CH-9)+'" font-size="10" fill="'+AVGC+'" text-anchor="middle">'+_riseDate(x.date)+'</text>';});
+  ser.forEach(function(x,i){var cx=px(i),cy=py(x.amt),an=cx<46?'start':(cx>CW-MR-46?'end':'middle');
+    if(i===tIdx){sg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+cx+'" y2="'+ay+'" stroke="'+UP+'" stroke-width="1.2" stroke-dasharray="3 3"/><circle cx="'+cx+'" cy="'+cy+'" r="6" fill="'+BLUE+'"/><text x="'+cx+'" y="'+(cy-11)+'" font-size="12.5" font-weight="700" fill="'+BLUE+'" text-anchor="'+an+'">'+wonMan(x.amt)+'</text>';}
+    else{sg+='<circle cx="'+cx+'" cy="'+cy+'" r="3.5" fill="'+PRIOR+'"/><text x="'+cx+'" y="'+(cy-9)+'" font-size="10" fill="'+LBL+'" text-anchor="'+an+'">'+_riseShort(x.amt)+'</text>';}
+    sg+='<text x="'+cx+'" y="'+(CH-9)+'" font-size="10" fill="'+AVGC+'" text-anchor="'+an+'">'+_riseDate(x.date)+'</text>';});
   return sg+'</svg>';
 }
 function openRiseModal(){
