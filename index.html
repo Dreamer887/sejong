@@ -395,6 +395,7 @@ footer{color:#aab2c5}
   </div>
 </section><section>
   <h2>월별 상승률</h2>
+  <div class="toggle" id="pctMode" style="margin:0 0 8px"><button data-v="both" class="on">둘 다</button><button data-v="sale">매매</button><button data-v="jeonse">전세</button></div>
   <div class="card"><div class="chart-box"><canvas id="pctChart"></canvas></div></div>
 </section><div class="ad-slot"><span class="adlabel">광고 영역 · Google AdSense</span></div>
 <section>
@@ -434,7 +435,7 @@ footer{color:#aab2c5}
 <script>
 /* ===== 설정 ===== */
 const FORECAST_SHEET = '매매, 전세 전망지수';   // 전망지수 탭 이름
-let priceMode='both',priceLastM=0,drawPriceFn=null;
+let priceMode='both',priceLastM=0,drawPriceFn=null,pctMode='both',pctLastM=0,drawPctFn=null;
 
 /* ===== data.json 우선 로더 (없으면 구글시트 직접 읽기로 자동 폴백) ===== */
 let DATA_JSON=null;
@@ -918,18 +919,22 @@ function render(DATA){
   (function(){var pmEl=document.getElementById('priceMode'); if(pmEl && !pmEl.__bound){ pmEl.__bound=true; pmEl.addEventListener('click',function(e){ if(e.target.tagName!=='BUTTON') return; pmEl.querySelectorAll('button').forEach(function(b){b.classList.remove('on');}); e.target.classList.add('on'); priceMode=e.target.dataset.v; if(drawPriceFn) drawPriceFn(priceLastM); }); }})();
 
   /* 2. 월별 상승률 */
-  addToggle('pctChart', m=>{
+  drawPctFn=function(m){
+    pctLastM=m;
     const s=lastM(S,m), l=s.map(d=>d.ym);
+    const ds=[];
+    if(pctMode==='both'||pctMode==='sale') ds.push({label:'매매 상승률(%)', data:s.map(d=>d.sale_pct), backgroundColor:'#5b6cff', borderRadius:4});
+    if(pctMode==='both'||pctMode==='jeonse') ds.push({label:'전세 상승률(%)', data:s.map(d=>d.jeonse_pct), backgroundColor:'#7fd8c6', borderRadius:4});
     plot('pctChart',{
       type:'bar',
-      data:{labels:l, datasets:[
-        {label:'매매 상승률(%)', data:s.map(d=>d.sale_pct), backgroundColor:'#5b6cff', borderRadius:4},
-        {label:'전세 상승률(%)', data:s.map(d=>d.jeonse_pct), backgroundColor:'#7fd8c6', borderRadius:4}]},
+      data:{labels:l, datasets:ds},
       options:{...baseOpts, interaction:{mode:'index'},
         plugins:{legend:{labels:{usePointStyle:true, pointStyle:'rect', boxWidth:14}}},
         scales:{x:{grid:{display:false}, ticks:xt(l)},
                 y:{grid:gridStyle, ticks:{callback:v=>v+'%'}}}}});
-  }, 12);
+  };
+  addToggle('pctChart', drawPctFn, 12);
+  (function(){var pmEl=document.getElementById('pctMode'); if(pmEl && !pmEl.__bound){ pmEl.__bound=true; pmEl.addEventListener('click',function(e){ if(e.target.tagName!=='BUTTON') return; pmEl.querySelectorAll('button').forEach(function(b){b.classList.remove('on');}); e.target.classList.add('on'); pctMode=e.target.dataset.v; if(drawPctFn) drawPctFn(pctLastM); }); }})();
 
   /* 3. PIR / J-PIR (매수 적기 음영 포함) */
   addToggle('pirChart', m=>{
