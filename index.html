@@ -607,8 +607,8 @@ async function loadReports(){
         const isHigh=amt>=maxAmt;                       // 3개월 신고가(최고가) 여부
         let rise=null, avg=null, n=0;
         if(arr.length>=2){ avg=arr.reduce((s,d)=>s+d.amt,0)/arr.length; rise=amt/avg-1; n=arr.length; }   // 3개월 전체(직거래 제외) 평균 대비
-        // 상승거래 = 3개월 평균보다 오른 거래(rise>0). 평균 산정 불가 시 신고가만 포함(폴백).
-        if(rise!==null ? rise>0 : isHigh){
+        // 상승거래 = 오늘 거래가가 최근 3개월(오늘 포함) 최고가인 경우만(신고가 갱신)
+        if(isHigh){
           const below=arr.map(d=>d.amt).filter(a=>a<amt);
           let prev=below.length?Math.max.apply(null,below):null, prevArea=null;
           if(prev===null){
