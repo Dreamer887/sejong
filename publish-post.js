@@ -26,6 +26,8 @@ function b64dec(b64){
 function esc(s){
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
+function validId(id){ return typeof id==="string" && /^\d{4}-\d{2}-\d{2}-[a-z0-9]{6}\.html$/.test(id); }
+function tagCls(t){ t=String(t||""); if(t.indexOf("실거래")>=0) return "tg-brief"; if(t.indexOf("거래")>=0) return "tg-trade"; if(t.indexOf("시세")>=0) return "tg-price"; if(t.indexOf("정책")>=0||t.indexOf("공급")>=0) return "tg-policy"; return "tg-analysis"; }
 function inline(t){
   return t
     .replace(/\+\+(.+?)\+\+/g,'<span class="big">$1</span>')
@@ -67,6 +69,9 @@ function buildPostHtml(f, BASE){
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2234856624819574" crossorigin="anonymous"></script>
 <title>${esc(f.title)} | 세종 부동산 인사이트</title>
 <meta name="description" content="${esc(f.lede || f.title)}">
 <link rel="canonical" href="${url}">
@@ -74,8 +79,12 @@ function buildPostHtml(f, BASE){
 <meta property="og:title" content="${esc(f.title)}">
 <meta property="og:description" content="${esc(f.lede || f.title)}">
 <meta property="og:url" content="${url}">
+<meta property="og:image" content="https://sebuin.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"Article","headline":${JSON.stringify(f.title)},"datePublished":"${f.dateISO}","author":{"@type":"Person","name":"투자되지"},"publisher":{"@type":"Organization","name":"세종 부동산 인사이트"}}
+${JSON.stringify({"@context":"https://schema.org","@type":"Article",headline:f.title,datePublished:f.dateISO,author:{"@type":"Person",name:"투자되지"},publisher:{"@type":"Organization",name:"세종 부동산 인사이트"}}).replace(/</g,"\\u003c")}
 </script>
 <style>
   :root{--bg:#f4f6fa;--card:#fff;--ink:#16203a;--sub:#727e98;--indigo:#5b6cff;--violet:#a06bff;--line:#e4e8f0}
@@ -91,9 +100,12 @@ function buildPostHtml(f, BASE){
   .topnav .navlinks a.on{background:#fff;color:#5b6cff;box-shadow:0 8px 22px -12px rgba(40,55,110,.55)}
   .ad-slot{margin:24px auto;min-height:90px;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px dashed #dde2ef;border-radius:20px}
   .ad-slot .adlabel{font-size:11px;color:#aab2c5;font-weight:600;letter-spacing:.08em}
+  /* 애드센스 승인 전: 빈 광고 자리 숨김 — 승인 후 이 줄 삭제 */
+  .ad-slot{display:none!important}
   article{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:38px 40px}
   @media(max-width:600px){article{padding:28px 22px}}
   .a-tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 11px;border-radius:99px;background:#eef0ff;color:var(--indigo)}
+  .a-tag.tg-analysis{color:#5b6cff;background:#eef0ff}.a-tag.tg-trade{color:#0f6e56;background:#e1f5ee}.a-tag.tg-price{color:#92510b;background:#faeeda}.a-tag.tg-policy{color:#993556;background:#fbeaf0}.a-tag.tg-brief{color:#0b6b8f;background:#e0f2f9}
   article h1{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1.35;margin:14px 0 10px}
   .a-meta{color:#aab2c5;font-size:13px;font-weight:600;margin-bottom:8px}
   .a-lede{background:#f6f7ff;border:1px solid #e3e6ff;border-left:5px solid var(--indigo);border-radius:14px;padding:18px 22px;margin:18px 0 26px}
@@ -126,12 +138,12 @@ function buildPostHtml(f, BASE){
 <body>
 <div class="wrap">
   <nav class="topnav">
-    <a class="brand" href="../index.html"><i>🏙</i> 세종 부동산 인사이트</a>
+    <a class="brand" href="../index.html"><svg width="48" height="48" viewBox="0 0 48 48" style="flex:none" aria-hidden="true"><defs><linearGradient id="blg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b6cff"/><stop offset="1" stop-color="#a06bff"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#blg)"/><rect x="9" y="13" width="13" height="25" rx="1.6" fill="#fff"/><rect x="11.4" y="16.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="16.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="11.4" y="21" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="21" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="11.4" y="25.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="25.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><circle cx="31" cy="27" r="7" fill="url(#blg)" stroke="#fff" stroke-width="2.6"/><line x1="36" y1="32" x2="40.5" y2="36.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg><span style="display:inline-block;line-height:1"><span style="display:block;font-family:'Jua','Apple SD Gothic Neo',sans-serif;font-size:36px;letter-spacing:-1px;background:linear-gradient(120deg,#4b46c4,#9a6bf2);-webkit-background-clip:text;background-clip:text;color:transparent">세부인</span><span style="display:block;font-size:10px;font-weight:600;color:#727e98;margin-top:4px;text-align:justify;text-align-last:justify">세종 부동산 인사이트</span></span></a>
     <div class="navlinks"><a href="../index.html">대시보드</a><a href="./index.html" class="on">분석</a></div>
   </nav>
   <a class="backlink" href="./index.html">← 분석 목록으로</a>
   <article>
-    <span class="a-tag">${esc(f.tag)}</span>
+    <span class="a-tag ${tagCls(f.tag)}">${esc(f.tag)}</span>
     <h1>${esc(f.title)}</h1>
     <div class="a-meta">${esc(f.dateText)} · 작성: 투자되지</div>
     ${lede}
@@ -142,7 +154,7 @@ function buildPostHtml(f, BASE){
   </article>
   <div class="ad-slot"><span class="adlabel">광고 영역 · Google AdSense</span></div>
   <a class="backlink" href="./index.html">← 분석 목록으로</a>
-  <footer>작성: 투자되지 · 데이터 출처: 국토교통부 실거래가 공개시스템(rt.molit.go.kr)<br><a href="../privacy.html" style="color:#aab2c5;text-decoration:none;font-weight:600">개인정보처리방침</a> · <a href="../terms.html" style="color:#aab2c5;text-decoration:none;font-weight:600">이용약관</a></footer>
+  <footer>작성: 투자되지 · 데이터 출처: 국토교통부 실거래가 공개시스템(rt.molit.go.kr)<br><a href="../privacy.html" style="color:#aab2c5;text-decoration:none;font-weight:600">개인정보처리방침</a> · <a href="../terms.html" style="color:#aab2c5;text-decoration:none;font-weight:600">이용약관</a> · <a href="../about.html" style="color:#aab2c5;text-decoration:none;font-weight:600">소개</a> · <a href="../contact.html" style="color:#aab2c5;text-decoration:none;font-weight:600">문의</a><br><span style="display:inline-block;margin-top:12px;line-height:1.6">세부인이 제공하는 정보는 무단 복제·배포·전송 등 이용할 수 없으며, 이를 무단 이용하는 경우 저작권법 등에 따라 법적 책임을 질 수 있습니다.</span><br><strong style="display:inline-block;margin-top:6px;color:#aab2c5">Copyright © 2026. 세부인(세종 부동산 인사이트) All Rights Reserved.</strong></footer>
 </div>
 </body>
 </html>
@@ -151,7 +163,7 @@ function buildPostHtml(f, BASE){
 function renderCards(posts){
   const sorted = posts.slice().sort(function(a,b){return (b.dateISO||"").localeCompare(a.dateISO||"") || (b.id||"").localeCompare(a.id||"");});
   if(!sorted.length) return "\n    <p style=\"color:#aab2c5;font-size:14px;grid-column:1/-1\">아직 발행된 글이 없습니다.</p>\n  ";
-  return "\n" + sorted.map(function(f){return '    <a class="postcard" data-id="'+esc(f.id)+'" href="./'+esc(f.id)+'">\n      <span class="tag">'+esc(f.tag)+'</span>\n      <h2>'+esc(f.title)+'</h2>\n      <p class="excerpt">'+esc((f.lede||"").slice(0,95))+'</p>\n      <span class="meta">'+esc(f.dateText)+' · '+esc(f.tag)+'</span>\n    </a>';}).join("\n") + "\n  ";
+  return "\n" + sorted.map(function(f){return '    <a class="postcard" data-id="'+esc(f.id)+'" href="./'+esc(f.id)+'">\n      <span class="tag '+tagCls(f.tag)+'">'+esc(f.tag)+'</span>\n      <h2>'+esc(f.title)+'</h2>\n      <p class="excerpt">'+esc((f.lede||"").slice(0,95))+'</p>\n      <span class="meta">'+esc(f.dateText)+' · '+esc(f.tag)+'</span>\n    </a>';}).join("\n") + "\n  ";
 }
 async function gh(C, path, opts){
   opts=opts||{};
@@ -169,9 +181,16 @@ async function getContent(C, path){
   return {sha:r.json.sha, content:b64dec(r.json.content)};
 }
 async function putFile(C, path, str, message, sha){
-  const body={message, content:b64enc(str), branch:C.BRANCH};
-  if(sha) body.sha=sha;
-  const r=await gh(C, "/repos/"+C.OWNER+"/"+C.REPO+"/contents/"+path, {method:"PUT", body:JSON.stringify(body)});
+  async function attempt(useSha){
+    const body={message, content:b64enc(str), branch:C.BRANCH};
+    if(useSha) body.sha=useSha;
+    return await gh(C, "/repos/"+C.OWNER+"/"+C.REPO+"/contents/"+path, {method:"PUT", body:JSON.stringify(body)});
+  }
+  let r=await attempt(sha);
+  if(!r.ok && (r.status===409 || r.status===422)){   // sha 충돌 → 최신 sha 다시 읽어 1회 재시도
+    const cur=await getContent(C, path);
+    r=await attempt(cur?cur.sha:undefined);
+  }
   if(!r.ok) throw new Error("PUT "+path+" "+r.status+": "+(r.json.message||r.text));
   return r.json;
 }
@@ -232,7 +251,7 @@ export async function onRequestPost(context){
       return json({ok:true, posts});
     }
     if(action==="delete"){
-      if(!f.id) return json({error:"id가 필요합니다."}, 400);
+      if(!validId(f.id)) return json({error:"잘못된 글 id입니다."}, 400);
       const {posts, sha}=await readPosts(C);
       const fileC=await getContent(C, "blog/"+f.id);
       if(fileC) await deleteFile(C, "blog/"+f.id, "delete: "+f.id, fileC.sha);
@@ -241,14 +260,14 @@ export async function onRequestPost(context){
     }
     if(!f.title || !f.body) return json({error:"제목과 본문은 필수입니다."}, 400);
     const now=new Date(Date.now()+9*3600*1000);
-    f.dateISO=f.dateISO || now.toISOString().slice(0,10);
+    f.dateISO=(f.dateISO && /^\d{4}-\d{2}-\d{2}$/.test(f.dateISO)) ? f.dateISO : now.toISOString().slice(0,10);
     f.dateText=f.dateText || (now.getUTCFullYear()+". "+(now.getUTCMonth()+1)+". "+now.getUTCDate()+".");
     f.tag=f.tag || "분석";
     const entry={id:f.id, title:f.title, tag:f.tag, lede:f.lede||"", body:f.body, summary:f.summary||"", dateISO:f.dateISO, dateText:f.dateText};
     const {posts, sha}=await readPosts(C);
 
     if(action==="update"){
-      if(!f.id) return json({error:"id가 필요합니다."}, 400);
+      if(!validId(f.id)) return json({error:"잘못된 글 id입니다."}, 400);
       const existing=await getContent(C, "blog/"+f.id);
       await putFile(C, "blog/"+f.id, buildPostHtml(entry, C.BASE), "update: "+f.title, existing?existing.sha:undefined);
       let next=posts.map(function(p){return p.id===f.id?entry:p;});
