@@ -200,6 +200,15 @@ body{background:#f3f5fb;
 /* ---- ad slot ---- */
 .ad-slot{border:1.5px dashed #dde2ef;border-radius:20px;background:#fff}
 .ad-slot .adlabel{color:#aab2c5;font-weight:600}
+/* 애드센스 승인 전: 빈 광고 자리 숨김 — 승인 후 아래 한 줄만 삭제 */
+.ad-slot{display:none!important}
+/* 자동 해석·코멘트 텍스트 */
+.today-insight{background:linear-gradient(135deg,#eef0ff,#f6f1ff);border:1px solid #e4e6ff;border-radius:16px;padding:15px 18px;margin:14px 0 2px;font-size:14.5px;line-height:1.78;color:#2b3350}
+.today-insight b{color:#4a4fd0;font-weight:800}
+.today-insight .ti-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.04em;color:#6b73ff;background:#fff;border:1px solid #dfe3ff;border-radius:99px;padding:3px 11px;margin-bottom:9px}
+.sec-note{font-size:13px;line-height:1.7;color:#6b7387;margin:-2px 0 10px}
+.sec-comment{font-size:13px;line-height:1.65;color:#475066;background:#f7f8fb;border-left:3px solid #8b93ff;border-radius:0 8px 8px 0;padding:8px 12px;margin:12px 0 2px}
+.sec-comment b{color:#4a4fd0;font-weight:800}
 /* ---- sections as soft rounded cards ---- */
 section{background:#fff;border:none;border-radius:24px;padding:24px 26px;box-shadow:0 10px 30px -16px rgba(40,55,110,.26);margin-top:18px}
 section>h2{font-size:20px;font-weight:800;letter-spacing:-.4px}
@@ -324,11 +333,13 @@ footer{color:#aab2c5}
   <h1 class="herotitle">세종의 모든 거래를,<br>매일 가장 먼저 만나보세요</h1>
   <p class="herolede">국토부 실거래가를 자동으로 모아드려요. 어렵게 찾을 필요 없이, 오늘의 상승거래·상승률·급지까지 한눈에.</p>
   <div id="heroToday" class="hero-grid"><div class="hcard"><div class="hlabel">불러오는 중…</div></div></div>
+  <div class="today-insight" id="todayInsight" style="display:none"></div>
 </section>
 
 <section>
   <h2>오늘 신고내역</h2>
   <p class="desc" id="repDesc">법정동 오름차순 · 전용 50㎡ 이상</p>
+  <p class="sec-comment" id="cmtReport" style="display:none"></p>
   <div class="card">
     <div class="tbl-wrap">
       <table class="dtable" id="repTable"><tbody><tr><td>불러오는 중…</td></tr></tbody></table>
@@ -343,6 +354,7 @@ footer{color:#aab2c5}
 <section>
   <h2>실거래 신고량 추이 (국토부)</h2>
   <p class="desc">신고일별 매매 거래 건수(동 지역 + 읍·면) · 전용 50㎡ 이상</p>
+  <p class="sec-comment" id="cmtVol" style="display:none"></p>
   <div class="card">
     <p class="rep-meta" id="volMeta">불러오는 중…</p>
     <div class="chart-box tall"><canvas id="volChart"></canvas></div>
@@ -389,12 +401,15 @@ footer{color:#aab2c5}
 <div class="pagehead"><h2>시장지표</h2><span class="gh-badge gh-month">2026년 5월 갱신</span></div>
 <div class="kpis" id="kpis"></div><section>
   <h2>매매 · 전세 가격 추이</h2>
+  <p class="sec-note">세종 아파트 전체의 월별 평균 매매가·전세가 추이입니다. 토글로 매매·전세를 따로 볼 수 있습니다.</p>
   <div class="toggle" id="priceMode" style="margin:0 0 8px"><button data-v="both" class="on">둘 다</button><button data-v="sale">매매</button><button data-v="jeonse">전세</button></div>
+  <p class="sec-comment" id="cmtMarket" style="display:none"></p>
   <div class="card">
     <div class="chart-box tall"><canvas id="priceChart"></canvas></div>
   </div>
 </section><section>
   <h2>월별 상승률</h2>
+  <p class="sec-note">전월 대비 매매·전세 가격의 변동률(%)입니다. 0보다 크면 상승, 작으면 하락입니다.</p>
   <div class="toggle" id="pctMode" style="margin:0 0 8px"><button data-v="both" class="on">둘 다</button><button data-v="sale">매매</button><button data-v="jeonse">전세</button></div>
   <div class="card"><div class="chart-box"><canvas id="pctChart"></canvas></div></div>
 </section><div class="ad-slot"><span class="adlabel">광고 영역 · Google AdSense</span></div>
@@ -509,6 +524,7 @@ function toggleHighs(btn){
   btn.innerHTML=(open?'접기':'더보기 '+list.children.length+'건')+' <i class="ti ti-chevron-'+(open?'up':'down')+'"></i>';
 }
 function renderHeroHighlights(nDong, nRural, highs, rise, period){
+  try{window.TODAY_STATS={nDong:nDong||0,nRural:nRural||0,riseCount:(highs&&highs.length)||0,topSaleAmt:(highs&&highs[0]&&highs[0].amt)||0,topRiseApt:rise?(cleanApt(rise.apt).replace(/마을/g,'')+' '+Math.floor(rise.area)+'\u33a1'):null,topRisePct:rise?rise.rise*100:0};}catch(e){}
   const el=document.getElementById('heroToday'); if(!el) return;
   const tiles=[];
   // 1) 오늘 신고 건수 — 동 지역 / 읍·면 / 합계
@@ -847,6 +863,7 @@ function addToggle(canvasId, draw, def=0){
 function render(DATA){
   const S=DATA.series;
   const last=S[S.length-1];
+  try{window.MARKET_LAST=last;}catch(e){}
   const fmtEok=v=>(v/10000).toFixed(2)+'억';
   const fmtPrice=v=>{const e=Math.floor(v/10000);const man=Math.round(v-e*10000);
     return `${e}억 ${man.toLocaleString()}만`;};
@@ -1335,7 +1352,7 @@ loadNews();
 </script>
 
 <script>(function(){var d=new Date(),p=function(n){return String(n).padStart(2,"0")},e=document.getElementById("heroDate");if(e)e.textContent=d.getFullYear()+"."+p(d.getMonth()+1)+"."+p(d.getDate());})();</script>
-<script>(function(){var g=document.getElementById('btGrid');if(!g)return;function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}fetch('./blog/posts.json?t='+Date.now()).then(function(r){return r.ok?r.json():[];}).then(function(posts){if(!Array.isArray(posts))posts=[];posts=posts.filter(function(p){return String(p&&p.tag||'')!=='실거래 동향';});if(!posts.length){var t=document.querySelector('.blogteaser');if(t)t.style.display='none';return;}posts=posts.slice().sort(function(a,b){return (b.dateISO||'').localeCompare(a.dateISO||'');}).slice(0,2);g.innerHTML=posts.map(function(p){var tc=(function(t){t=String(t||"");if(t.indexOf("실거래")>=0)return"tg-brief";if(t.indexOf("거래")>=0)return"tg-trade";if(t.indexOf("시세")>=0)return"tg-price";if(t.indexOf("정책")>=0||t.indexOf("공급")>=0)return"tg-policy";return"tg-analysis";})(p.tag);return '<a class="bt-card" href="./blog/'+encodeURIComponent(p.id)+'"><span class="bt-tag '+tc+'">'+esc(p.tag||'분석')+'</span><h3>'+esc(p.title)+'</h3><p>'+esc((p.lede||'').slice(0,70))+'</p><div class="bt-date">'+esc(p.dateText||'')+'</div></a>';}).join('');}).catch(function(){var t=document.querySelector('.blogteaser');if(t)t.style.display='none';});})();</script>
+<script>(function(){var g=document.getElementById('btGrid');if(!g)return;function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}fetch('./blog/posts.json?t='+Date.now()).then(function(r){return r.ok?r.json():[];}).then(function(posts){if(!Array.isArray(posts))posts=[];posts=posts.filter(function(p){return String(p&&p.tag||'')!=='실거래 동향';});if(!posts.length){var t=document.querySelector('.blogteaser');if(t)t.style.display='none';return;}posts=posts.slice().sort(function(a,b){return (b.dateISO||'').localeCompare(a.dateISO||'');}).slice(0,6);g.innerHTML=posts.map(function(p){var tc=(function(t){t=String(t||"");if(t.indexOf("실거래")>=0)return"tg-brief";if(t.indexOf("거래")>=0)return"tg-trade";if(t.indexOf("시세")>=0)return"tg-price";if(t.indexOf("정책")>=0||t.indexOf("공급")>=0)return"tg-policy";return"tg-analysis";})(p.tag);return '<a class="bt-card" href="./blog/'+encodeURIComponent(p.id)+'"><span class="bt-tag '+tc+'">'+esc(p.tag||'분석')+'</span><h3>'+esc(p.title)+'</h3><p>'+esc((p.lede||'').slice(0,70))+'</p><div class="bt-date">'+esc(p.dateText||'')+'</div></a>';}).join('');}).catch(function(){var t=document.querySelector('.blogteaser');if(t)t.style.display='none';});})();</script>
 <div id="dongModalMask" class="dmodal-mask" onclick="if(event.target===this)closeDongModal()">
   <div class="dmodal" role="dialog" aria-modal="true" aria-labelledby="dongModalTitle">
     <div class="dmodal-head">
@@ -1411,6 +1428,55 @@ function openRiseModal(){
 }
 function closeRiseModal(){document.getElementById('riseModalMask').classList.remove('on');}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeRiseModal();});
+</script>
+<script>
+/* ===== 자동 해석 텍스트(섹션 코멘트 + 오늘 짚어볼 점) — thin content 대응, 규칙 기반 ===== */
+(function(){
+  function eok(man){man=Math.round(Number(man)||0);var e=Math.floor(man/10000),m=man-e*10000;return e>0?(e+'\uc5b5'+(m?' '+m.toLocaleString()+'\ub9cc':'')):(man.toLocaleString()+'\ub9cc');}
+  function setHTML(id,html){var el=document.getElementById(id);if(!el)return;if(html){el.innerHTML=html;el.style.display='';}else{el.style.display='none';}}
+  function volComment(){
+    try{
+      var v=window.VOL_BY_DONG;if(!v)return null;
+      var byDay={};Object.keys(v).forEach(function(name){if(/[\uc74d\uba74]/.test(name))return;(v[name]||[]).forEach(function(pt){byDay[pt.ymd]=(byDay[pt.ymd]||0)+(pt.v||0);});});
+      var days=Object.keys(byDay).sort();if(days.length<2)return null;
+      var today=byDay[days[days.length-1]];
+      var prev=days.slice(Math.max(0,days.length-15),days.length-1);
+      if(!prev.length)return null;
+      var avg=prev.reduce(function(s,d){return s+byDay[d];},0)/prev.length;
+      var diff=avg?Math.round((today/avg-1)*100):0;
+      var word=diff>=15?'<b>\ud3c9\uc18c\ubcf4\ub2e4 \ub9ce\uc740</b>':diff<=-15?'<b>\ud3c9\uc18c\ubcf4\ub2e4 \uc801\uc740</b>':'<b>\ud3c9\uc18c\uc640 \ube44\uc2b7\ud55c</b>';
+      return '\ucd5c\uadfc \uac70\ub798\ub7c9 \uae30\uc900 \uc624\ub298 \uc2e0\uace0\ubd84\uc740 '+word+' \uc218\uc900\uc785\ub2c8\ub2e4(\uc9c1\uc804 2\uc8fc \ud3c9\uade0 \ub300\ube44 '+(diff>0?'+':'')+diff+'%).';
+    }catch(e){return null;}
+  }
+  function run(){
+    var T=window.TODAY_STATS, M=window.MARKET_LAST;
+    if(!T && !M) return false;
+    if(T){
+      var parts=[];
+      parts.push('\uc624\ub298 \uc138\uc885\uc2dc\uc5d0\uc11c\ub294 \ub3d9 \uc9c0\uc5ed <b>'+T.nDong+'\uac74</b>'+(T.nRural?' \u00b7 \uc74d\u00b7\uba74 '+T.nRural+'\uac74':'')+'\uc758 \ub9e4\ub9e4 \uc2e0\uace0\uac00 \uc9d1\uacc4\ub410\uc2b5\ub2c8\ub2e4.');
+      if(T.riseCount>0 && T.topRiseApt){
+        parts.push('\uc774 \uac00\uc6b4\ub370 \ucd5c\uadfc 3\uac1c\uc6d4 \ucd5c\uace0\uac00\ub97c \uc0c8\ub85c \uc4f4 \uac70\ub798\ub294 <b>'+T.riseCount+'\uac74</b>\uc774\uba70, \uac00\uc7a5 \ud070 \uc0c1\uc2b9\uc740 <b>'+T.topRiseApt+'</b>\uc5d0\uc11c \uc9c1\uc804 \uace0\uc810 \ub300\ube44 <b>+'+T.topRisePct.toFixed(1)+'%</b> \ub098\uc654\uc2b5\ub2c8\ub2e4.');
+      }else{
+        parts.push('\uc624\ub298\uc740 \ucd5c\uadfc 3\uac1c\uc6d4 \ucd5c\uace0\uac00\ub97c \uacbd\uc2e0\ud55c \uac70\ub798\uac00 \ub450\ub4dc\ub7ec\uc9c0\uc9c0 \uc54a\uc558\uc2b5\ub2c8\ub2e4.');
+      }
+      if(M){
+        var sp=M.sale_pct, jp=M.jeonse_pct;
+        var trend=(sp>0.3)?'<b>\uc644\ub9cc\ud55c \uc0c1\uc2b9</b>':(sp<-0.3)?'<b>\uc870\uc815</b>':'<b>\ubcf4\ud569</b>';
+        parts.push('\uc6d4\uac04 \uc9c0\ud45c\uc0c1 '+M.ym+' \uc138\uc885 \uc544\ud30c\ud2b8 \ud3c9\uade0 \ub9e4\ub9e4\uac00\ub294 \uc804\uc6d4 \ub300\ube44 <b>'+(sp>0?'+':'')+sp+'%</b>'+(jp!=null?', \uc804\uc138\uac00\ub294 '+(jp>0?'+':'')+jp+'%':'')+'\ub85c '+trend+' \ud750\ub984\uc774 \uc774\uc5b4\uc9c0\uace0 \uc788\uc2b5\ub2c8\ub2e4.');
+      }
+      setHTML('todayInsight','<span class="ti-tag">\uc624\ub298 \uc9da\uc5b4\ubcfc \uc810</span>'+parts.join(' '));
+      var c='\uc624\ub298 \uc2e0\uace0\ub294 \ub3d9 \uc9c0\uc5ed <b>'+T.nDong+'\uac74</b>'+(T.nRural?', \uc74d\u00b7\uba74 '+T.nRural+'\uac74':'')+'.';
+      if(T.riseCount>0)c+=' \ucd5c\uadfc 3\uac1c\uc6d4 \uc2e0\uace0\uac00 \uacbd\uc2e0 <b>'+T.riseCount+'\uac74</b>'+(T.topSaleAmt?', \ucd5c\uace0\uac00 \uac70\ub798 '+eok(T.topSaleAmt):'')+'.';
+      setHTML('cmtReport',c);
+    }
+    var vc=volComment();if(vc)setHTML('cmtVol',vc);
+    if(M){
+      setHTML('cmtMarket','\ucd5c\uadfc\uc6d4('+M.ym+') \ub9e4\ub9e4 <b>'+(M.sale_pct>0?'+':'')+M.sale_pct+'%</b>, \uc804\uc138 <b>'+(M.jeonse_pct>0?'+':'')+M.jeonse_pct+'%</b>'+(M.jsr!=null?' \u00b7 \uc804\uc138\uac00\uc728 '+M.jsr+'%':'')+'.');
+    }
+    return true;
+  }
+  var k=0,iv=setInterval(function(){ if(run()||++k>40) clearInterval(iv); },300);
+})();
 </script>
 </body>
 </html>

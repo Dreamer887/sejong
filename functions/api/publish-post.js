@@ -100,6 +100,8 @@ ${JSON.stringify({"@context":"https://schema.org","@type":"Article",headline:f.t
   .topnav .navlinks a.on{background:#fff;color:#5b6cff;box-shadow:0 8px 22px -12px rgba(40,55,110,.55)}
   .ad-slot{margin:24px auto;min-height:90px;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px dashed #dde2ef;border-radius:20px}
   .ad-slot .adlabel{font-size:11px;color:#aab2c5;font-weight:600;letter-spacing:.08em}
+  /* 애드센스 승인 전: 빈 광고 자리 숨김 — 승인 후 이 줄 삭제 */
+  .ad-slot{display:none!important}
   article{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:38px 40px}
   @media(max-width:600px){article{padding:28px 22px}}
   .a-tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 11px;border-radius:99px;background:#eef0ff;color:var(--indigo)}
