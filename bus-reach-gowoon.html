@@ -152,7 +152,7 @@ function showComplex(c){
     const sw=new kakao.maps.LatLng(ci*LAT_STEP, cj*LNG_STEP);
     const ne=new kakao.maps.LatLng((ci+1)*LAT_STEP,(cj+1)*LNG_STEP);
     const op=0.12+0.54*(cnt/maxC);
-    overlays.push(new kakao.maps.Rectangle({bounds:new kakao.maps.LatLngBounds(sw,ne),fillColor:'#1d4ed8',fillOpacity:op,strokeWeight:0}));
+    overlays.push(new kakao.maps.Rectangle({map,bounds:new kakao.maps.LatLngBounds(sw,ne),fillColor:'#1d4ed8',fillOpacity:op,strokeWeight:0}));
   }
   // 500m 원 (음영 위에)
   overlays.push(new kakao.maps.Circle({map,center,radius:RADIUS_M,strokeWeight:2,strokeColor:'#e11d48',strokeOpacity:.9,fillColor:'#e11d48',fillOpacity:.05}));
