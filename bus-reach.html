@@ -26,7 +26,7 @@
   .stat .box span{font-size:10.5px;color:var(--sub)}
   .ttl{font-weight:800;font-size:13px;margin:14px 0 7px}
   .legend{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--sub);margin:2px 0 6px}
-  .legend .bar{flex:1;height:12px;border-radius:6px;background:linear-gradient(90deg, rgba(220,38,38,.14), rgba(220,38,38,.72))}
+  .legend .bar{flex:1;height:12px;border-radius:6px;background:linear-gradient(90deg, rgb(44,123,182), rgb(127,205,187), rgb(255,255,140), rgb(253,141,60), rgb(189,0,38))}
   .rlist{font-size:12px;color:#475066;line-height:1.7}
   .ctrl{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px}
   .btn{flex:1;border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px;font-size:13px;font-weight:700;cursor:pointer}
@@ -172,6 +172,7 @@ function buildDensity(c){
 let rafPending=false;
 function scheduleDraw(){ if(rafPending)return; rafPending=true; requestAnimationFrame(()=>{rafPending=false; drawHeat();}); }
 
+function heatColor(t){var S=[[0,[44,123,182]],[0.35,[127,205,187]],[0.6,[255,255,140]],[0.8,[253,141,60]],[1,[189,0,38]]];for(var i=1;i<S.length;i++){if(t<=S[i][0]){var a=S[i-1],b=S[i],f=(b[0]-a[0])?(t-a[0])/(b[0]-a[0]):0;return [0,1,2].map(function(k){return Math.round(a[1][k]+(b[1][k]-a[1][k])*f);});}}return S[S.length-1][1];}
 function drawHeat(){
   const cv=document.getElementById('heat'), mapDiv=document.getElementById('map');
   const w=mapDiv.clientWidth, h=mapDiv.clientHeight, dpr=window.devicePixelRatio||1;
@@ -189,7 +190,8 @@ function drawHeat(){
     const b=px(new kakao.maps.LatLng((ci+1)*LAT_STEP,(cj+1)*LNG_STEP));
     const x=Math.min(a.x,b.x), y=Math.min(a.y,b.y), rw=Math.abs(b.x-a.x)+1, rh=Math.abs(b.y-a.y)+1;
     if(x>w||y>h||x+rw<0||y+rh<0) continue;
-    octx.fillStyle='rgba(220,38,38,'+(0.22+0.74*Math.sqrt(Math.min(1,cnt/ABS_CAP))).toFixed(3)+')';
+    const t=Math.min(1,cnt/ABS_CAP), col=heatColor(t);
+    octx.fillStyle='rgba('+col[0]+','+col[1]+','+col[2]+','+(0.55+0.33*t).toFixed(3)+')';
     octx.fillRect(x,y,rw,rh);
   }
   ctx.filter='blur('+BLUR_PX+'px)'; ctx.drawImage(off,0,0,w,h); ctx.filter='none';
@@ -207,7 +209,7 @@ function renderPanel(d){
   const p=document.getElementById('panel');
   let h=`<div class="ttl" style="font-size:15px">${d.name}</div>`;
   h+=`<div class="stat"><div class="box"><b>${d.nNear}</b><span>500m 내 정류장</span></div><div class="box"><b>${d.nRoutes}</b><span>경유 노선</span></div><div class="box"><b>${d.nReach}</b><span>무환승 도달 정류장</span></div></div>`;
-  h+=`<div class="ttl">환승 없이 닿는 범위</div><div class="legend"><span>적음</span><span class="bar"></span><span>많음</span></div>`;
+  h+=`<div class="ttl">환승 없이 닿는 범위</div><div class="legend"><span>0</span><span class="bar"></span><span>48개+</span></div>`;
   h+=`<p class="ph" style="margin:2px 0 12px">음영이 진할수록 노선이 많이 겹칩니다 — 한 지점에 48개 이상 겹치면 최고 농도(세종 전체 공통 기준). 이 단지 최대 ${d.maxC}개.</p>`;
   if(d.nRoutes){ h+=`<div class="ttl">경유 노선 ${d.nRoutes}개</div><div class="rlist">${names.join(' · ')}</div>`; }
   else { h+='<p class="ph">500m 내 정류장이 없습니다.</p>'; }
