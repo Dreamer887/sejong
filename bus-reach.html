@@ -81,9 +81,11 @@ const DONGS = {
 /* 고운동 검증 좌표 시드(즉시 표시) */
 const SEED={"고운동":{1:[36.503643,127.233536],2:[36.502845,127.23539],3:[36.506168,127.235988],4:[36.507222,127.236892],5:[36.507442,127.238528],6:[36.50322,127.239127],7:[36.504596,127.239645],8:[36.507217,127.240212],9:[36.511049,127.229022],10:[36.513863,127.227797],11:[36.5117,127.231003],12:[36.511727,127.232541],13:[36.513786,127.230454],14:[36.51379,127.232102],15:[36.516701,127.236999],16:[36.516118,127.23861],17:[36.518037,127.236574],18:[36.521068,127.235105],19:[36.523419,127.232934],20:[36.5163,127.239998],21:[36.518002,127.240997],22:[36.519501,127.240997]}};
 
-let map, ps, busData=null, markers=[], density=null, off=null;
+let map, ps, busData=null, markers=[], density=null, off=null, ROUTE_W=[];
 
 function hav(a,b,c,d){const R=6371000,t=Math.PI/180,dLat=(c-a)*t,dLng=(d-b)*t;const x=Math.sin(dLat/2)**2+Math.cos(a*t)*Math.cos(c*t)*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(x));}
+/* 노선 중요도 가중치: BRT(A·B) 10, 광역 M 6, 1000번대 5, 일반 시내 3, 마을버스 1 */
+function routeW(n){n=(n||'').trim();return /^[AB]\d/i.test(n)?10:/^M\d/i.test(n)?6:/^10\d\d/.test(n)?5:/^\d/.test(n)?3:1;}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function setStatus(t){document.getElementById('status').textContent=t;}
 function loadCache(){try{return JSON.parse(localStorage.getItem('busgeo')||'{}');}catch(e){return {};}}
@@ -101,6 +103,7 @@ async function boot(){
   map=new kakao.maps.Map(document.getElementById('map'),{center:new kakao.maps.LatLng(36.50,127.27),level:7});
   ps=new kakao.maps.services.Places();
   busData=await fetch('./bus_sejong.json').then(r=>r.json());
+  ROUTE_W=busData.routes.map(r=>routeW(r.name));
   const sel=document.getElementById('dongSel');
   Object.keys(DONGS).forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o);});
   sel.onchange=()=>loadDong(sel.value);
@@ -165,7 +168,7 @@ function buildDensity(c){
         for(let k=0;k<=nn;k++){ const t=k/nn, la=prev.lat+(s.lat-prev.lat)*t, ln=prev.lng+(s.lng-prev.lng)*t;
           const key=Math.floor(la/LAT_STEP)+'_'+Math.floor(ln/LNG_STEP); (sets[key]=sets[key]||new Set()).add(ri); } }
       prev=s; } });
-  const cells={}; let maxC=1; for(const k in sets){ const v=sets[k].size; cells[k]=v; if(v>maxC)maxC=v; }
+  const cells={}; let maxC=1; for(const k in sets){ let v=0; sets[k].forEach(ri=>v+=ROUTE_W[ri]); cells[k]=v; if(v>maxC)maxC=v; }
   // 분위수: 셀들을 겹침수로 정렬해 같은 개수씩 등급(0~1) 부여 → 색 고르게 분배
   const vals=Object.values(cells), M=vals.length, counts={}; vals.forEach(v=>counts[v]=(counts[v]||0)+1);
   const pmap={}; let cum=0; Object.keys(counts).map(Number).sort((a,b)=>a-b).forEach(v=>{const c=counts[v]; pmap[v]=M>1?(cum+(c-1)/2)/(M-1):1; cum+=c;});
@@ -215,7 +218,7 @@ function renderPanel(d){
   let h=`<div class="ttl" style="font-size:15px">${d.name}</div>`;
   h+=`<div class="stat"><div class="box"><b>${d.nNear}</b><span>500m 내 정류장</span></div><div class="box"><b>${d.nRoutes}</b><span>경유 노선</span></div><div class="box"><b>${d.nReach}</b><span>무환승 도달 정류장</span></div></div>`;
   h+=`<div class="ttl">환승 없이 닿는 범위</div><div class="legend"><span>하위</span><span class="bar"></span><span>상위</span></div>`;
-  h+=`<p class="ph" style="margin:2px 0 12px">이 단지 안에서 노선이 상대적으로 많이 겹치는 곳일수록 붉게 표시됩니다(분위수 기준). 최대 ${d.maxC}개 겹침.</p>`;
+  h+=`<p class="ph" style="margin:2px 0 12px">노선 중요도 가중(BRT 10·M 6·1000번대 5·시내 3·마을 1)을 합산한 밀도의 분위수로 색을 나눴습니다. 붉을수록 중요 노선이 몰리는 곳입니다.</p>`;
   if(d.nRoutes){ h+=`<div class="ttl">경유 노선 ${d.nRoutes}개</div><div class="rlist">${names.join(' · ')}</div>`; }
   else { h+='<p class="ph">500m 내 정류장이 없습니다.</p>'; }
   p.innerHTML=h;
