@@ -56,7 +56,7 @@
 <script>
 const KAKAO_JS_KEY = "01636a6af4b49e1612cc9d682edb5a63";
 const RADIUS_M = 500;
-const CELL_M = 110, SAMPLE_M = 55, BLUR_PX = 6;
+const CELL_M = 110, SAMPLE_M = 55, BLUR_PX = 6, ABS_CAP = 48;  /* 셀 노선겹침 48 이상이면 최고 농도(절대 스케일) */
 const LAT_STEP = CELL_M/111000, LNG_STEP = CELL_M/(111000*Math.cos(36.51*Math.PI/180));
 
 /* 동: 대표마을 m, 최대 단지번호 max, 동 중심 c[lat,lng] */
@@ -189,7 +189,7 @@ function drawHeat(){
     const b=px(new kakao.maps.LatLng((ci+1)*LAT_STEP,(cj+1)*LNG_STEP));
     const x=Math.min(a.x,b.x), y=Math.min(a.y,b.y), rw=Math.abs(b.x-a.x)+1, rh=Math.abs(b.y-a.y)+1;
     if(x>w||y>h||x+rw<0||y+rh<0) continue;
-    octx.fillStyle='rgba(220,38,38,'+(0.12+0.58*(cnt/maxC)).toFixed(3)+')';
+    octx.fillStyle='rgba(220,38,38,'+(0.22+0.74*Math.sqrt(Math.min(1,cnt/ABS_CAP))).toFixed(3)+')';
     octx.fillRect(x,y,rw,rh);
   }
   ctx.filter='blur('+BLUR_PX+'px)'; ctx.drawImage(off,0,0,w,h); ctx.filter='none';
@@ -208,7 +208,7 @@ function renderPanel(d){
   let h=`<div class="ttl" style="font-size:15px">${d.name}</div>`;
   h+=`<div class="stat"><div class="box"><b>${d.nNear}</b><span>500m 내 정류장</span></div><div class="box"><b>${d.nRoutes}</b><span>경유 노선</span></div><div class="box"><b>${d.nReach}</b><span>무환승 도달 정류장</span></div></div>`;
   h+=`<div class="ttl">환승 없이 닿는 범위</div><div class="legend"><span>적음</span><span class="bar"></span><span>많음</span></div>`;
-  h+=`<p class="ph" style="margin:2px 0 12px">음영이 진할수록 그 지역을 지나는 노선이 많습니다 (최대 ${d.maxC}개 노선 겹침).</p>`;
+  h+=`<p class="ph" style="margin:2px 0 12px">음영이 진할수록 노선이 많이 겹칩니다 — 한 지점에 48개 이상 겹치면 최고 농도(세종 전체 공통 기준). 이 단지 최대 ${d.maxC}개.</p>`;
   if(d.nRoutes){ h+=`<div class="ttl">경유 노선 ${d.nRoutes}개</div><div class="rlist">${names.join(' · ')}</div>`; }
   else { h+='<p class="ph">500m 내 정류장이 없습니다.</p>'; }
   p.innerHTML=h;
