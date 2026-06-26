@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>세종 버스 무환승 도달권</title>
+<style>
+  :root{--ink:#16203a;--sub:#6b7387;--line:#e4e8f0;--blue:#2563eb;--blue-d:#1e40af;--bg:#f4f6fa}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard','Malgun Gothic',system-ui,sans-serif;color:var(--ink);background:var(--bg)}
+  .wrap{display:flex;height:100vh;overflow:hidden}
+  #map{flex:1;height:100%;position:relative}
+  #heat{position:absolute;left:0;top:0;pointer-events:none;z-index:5}
+  .side{width:340px;flex:none;background:#fff;border-left:1px solid var(--line);display:flex;flex-direction:column}
+  .side h1{font-size:16px;padding:16px 18px 4px;font-weight:800}
+  .side .sub{font-size:12px;color:var(--sub);padding:0 18px 12px;line-height:1.6}
+  .dongrow{padding:0 18px 14px;border-bottom:1px solid var(--line)}
+  .dongrow label{font-size:11px;font-weight:700;color:var(--sub);display:block;margin-bottom:5px}
+  #dongSel{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;font-size:14px;font-weight:700;color:var(--ink);background:#fff}
+  #status{font-size:11.5px;color:var(--sub);margin-top:7px}
+  .panel{flex:1;overflow:auto;padding:14px 18px}
+  .ph{color:var(--sub);font-size:13px;line-height:1.7}
+  .stat{display:flex;gap:8px;margin:4px 0 14px}
+  .stat .box{flex:1;background:#fdeef0;border:1px solid #f7d4d9;border-radius:10px;padding:10px 6px;text-align:center}
+  .stat .box b{display:block;font-size:20px;color:#b91c1c;line-height:1.2}
+  .stat .box span{font-size:10.5px;color:var(--sub)}
+  .ttl{font-weight:800;font-size:13px;margin:14px 0 7px}
+  .legend{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--sub);margin:2px 0 6px}
+  .legend .bar{flex:1;height:12px;border-radius:6px;background:linear-gradient(90deg, rgba(220,38,38,.14), rgba(220,38,38,.72))}
+  .rlist{font-size:12px;color:#475066;line-height:1.7}
+  .ctrl{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px}
+  .btn{flex:1;border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px;font-size:13px;font-weight:700;cursor:pointer}
+  .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .keywarn{position:absolute;top:12px;left:12px;z-index:50;background:#fff3cd;border:1px solid #ffe08a;color:#7a5b00;padding:10px 14px;border-radius:10px;font-size:13px;max-width:520px;line-height:1.6;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+  .badge{display:inline-block;font-size:11px;font-weight:700;color:#b91c1c;background:#fdeef0;border-radius:99px;padding:2px 8px;margin-left:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="map"><canvas id="heat"></canvas><div class="keywarn" id="keywarn" style="display:none"></div></div>
+  <div class="side">
+    <h1>세종 버스 무환승 도달권 <span class="badge">세종 전체</span></h1>
+    <div class="sub">동을 고르고 단지를 클릭하면, 중심 500m 내 정류장에서 환승 없이 닿는 범위를 히트맵으로 보여줍니다.</div>
+    <div class="dongrow">
+      <label>동 선택</label>
+      <select id="dongSel"></select>
+      <div id="status">지도를 불러오는 중…</div>
+    </div>
+    <div class="panel" id="panel"><p class="ph">위에서 <b>동</b>을 고른 뒤, 지도의 <b>단지 마커</b>를 클릭하세요.<br><br>· 빨간 원: 500m 반경<br>· 음영: 환승 없이 닿는 범위(진할수록 노선 多)</p></div>
+    <div class="ctrl">
+      <button class="btn" id="clearBtn">음영 지우기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KAKAO_JS_KEY = "01636a6af4b49e1612cc9d682edb5a63";
+const RADIUS_M = 500;
+const CELL_M = 110, SAMPLE_M = 55, BLUR_PX = 6;
+const LAT_STEP = CELL_M/111000, LNG_STEP = CELL_M/(111000*Math.cos(36.51*Math.PI/180));
+
+/* 동: 대표마을 m, 최대 단지번호 max, 동 중심 c[lat,lng] */
+const DONGS = {
+"고운동":{m:"가락마을",max:22,c:[36.512089,127.235952]},
+"아름동":{m:"범지기마을",max:12,c:[36.513701,127.247805]},
+"종촌동":{m:"가재마을",max:12,c:[36.503436,127.247825]},
+"도담동":{m:"도램마을",max:20,c:[36.513755,127.260736]},
+"어진동":{m:"한뜰마을",max:6,c:[36.501229,127.263036]},
+"해밀동":{m:"해밀마을",max:2,c:[36.527319,127.2674]},
+"다정동":{m:"가온마을",max:12,c:[36.495046,127.247088]},
+"새롬동":{m:"새뜸마을",max:14,c:[36.485854,127.251106]},
+"나성동":{m:"나릿재마을",max:6,c:[36.486851,127.260707]},
+"한솔동":{m:"첫마을",max:7,c:[36.47803,127.254565]},
+"대평동":{m:"해들마을",max:6,c:[36.472385,127.276631]},
+"보람동":{m:"호려울마을",max:10,c:[36.479056,127.290141]},
+"소담동":{m:"새샘마을",max:9,c:[36.484899,127.301523]},
+"반곡동":{m:"수루배마을",max:6,c:[36.495211,127.309355]},
+"산울동":{m:"산울마을",max:8,c:[36.530995,127.261501]},
+"집현동":{m:"새나루마을",max:11,c:[36.496528,127.326435]}
+};
+/* 고운동 검증 좌표 시드(즉시 표시) */
+const SEED={"고운동":{1:[36.503643,127.233536],2:[36.502845,127.23539],3:[36.506168,127.235988],4:[36.507222,127.236892],5:[36.507442,127.238528],6:[36.50322,127.239127],7:[36.504596,127.239645],8:[36.507217,127.240212],9:[36.511049,127.229022],10:[36.513863,127.227797],11:[36.5117,127.231003],12:[36.511727,127.232541],13:[36.513786,127.230454],14:[36.51379,127.232102],15:[36.516701,127.236999],16:[36.516118,127.23861],17:[36.518037,127.236574],18:[36.521068,127.235105],19:[36.523419,127.232934],20:[36.5163,127.239998],21:[36.518002,127.240997],22:[36.519501,127.240997]}};
+
+let map, ps, busData=null, markers=[], density=null, off=null;
+
+function hav(a,b,c,d){const R=6371000,t=Math.PI/180,dLat=(c-a)*t,dLng=(d-b)*t;const x=Math.sin(dLat/2)**2+Math.cos(a*t)*Math.cos(c*t)*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(x));}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function setStatus(t){document.getElementById('status').textContent=t;}
+function loadCache(){try{return JSON.parse(localStorage.getItem('busgeo')||'{}');}catch(e){return {};}}
+function saveCache(o){try{localStorage.setItem('busgeo',JSON.stringify(o));}catch(e){}}
+
+function loadKakao(cb){
+  const s=document.createElement('script');
+  s.src=`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&libraries=services&autoload=false`;
+  s.onload=()=>kakao.maps.load(cb);
+  s.onerror=()=>{const w=document.getElementById('keywarn');w.style.display='block';w.textContent='카카오 지도 SDK 로드 실패 — 키/도메인/카카오맵 활성화를 확인하세요.';};
+  document.head.appendChild(s);
+}
+
+async function boot(){
+  map=new kakao.maps.Map(document.getElementById('map'),{center:new kakao.maps.LatLng(36.50,127.27),level:7});
+  ps=new kakao.maps.services.Places();
+  busData=await fetch('./bus_sejong.json').then(r=>r.json());
+  const sel=document.getElementById('dongSel');
+  Object.keys(DONGS).forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o);});
+  sel.onchange=()=>loadDong(sel.value);
+  ['bounds_changed','zoom_changed'].forEach(ev=>kakao.maps.event.addListener(map,ev,scheduleDraw));
+  window.addEventListener('resize',scheduleDraw);
+  document.getElementById('clearBtn').onclick=()=>{density=null;drawHeat();document.getElementById('panel').innerHTML='<p class="ph">단지 마커를 클릭하세요.</p>';};
+  loadDong('고운동');
+}
+
+function clearMarkers(){markers.forEach(m=>m.setMap(null));markers=[];}
+
+function geocode(dong,m,n,c){
+  return new Promise(res=>{
+    ps.keywordSearch(dong+' '+m+n+'단지',(data,st)=>{
+      if(st!==kakao.maps.services.Status.OK||!data.length){res(null);return;}
+      const tag=(m+n+'단지').replace(/\s/g,'');
+      let best=null,bd=6000;
+      data.forEach(d=>{
+        if(!d.place_name.replace(/\s/g,'').includes(tag)) return;  // 마을+번호 정확 일치
+        const dist=hav(c[0],c[1],+d.y,+d.x);
+        if(dist<bd){bd=dist;best=[+d.y,+d.x];}
+      });
+      res(best);
+    },{location:new kakao.maps.LatLng(c[0],c[1]),radius:6000});
+  });
+}
+
+async function loadDong(dong){
+  clearMarkers(); density=null; drawHeat();
+  document.getElementById('panel').innerHTML='<p class="ph">단지 마커를 클릭하세요.</p>';
+  const D=DONGS[dong];
+  map.setCenter(new kakao.maps.LatLng(D.c[0],D.c[1])); map.setLevel(5);
+  setStatus(dong+' 단지 좌표 불러오는 중…');
+  const cache=loadCache(); cache[dong]=cache[dong]||{};
+  if(SEED[dong]) for(const k in SEED[dong]) cache[dong][k]=cache[dong][k]||SEED[dong][k];
+  const bounds=new kakao.maps.LatLngBounds(); let cnt=0;
+  for(let n=1;n<=D.max;n++){
+    let co=cache[dong][n];
+    if(!co){ co=await geocode(dong,D.m,n,D.c); if(co) cache[dong][n]=co; await sleep(140); }
+    if(!co) continue;
+    const pos=new kakao.maps.LatLng(co[0],co[1]); const name=D.m+n+'단지';
+    const mk=new kakao.maps.Marker({position:pos,map,title:name});
+    kakao.maps.event.addListener(mk,'click',()=>showComplex({lat:co[0],lng:co[1],name}));
+    markers.push(mk); bounds.extend(pos); cnt++;
+  }
+  saveCache(cache);
+  if(cnt) map.setBounds(bounds);
+  setStatus(dong+' · '+cnt+'개 단지 — 마커를 클릭하세요');
+}
+
+/* ===== 밀도/히트맵 ===== */
+function buildDensity(c){
+  const near=[];
+  busData.stops.forEach((s,i)=>{ if(hav(c.lat,c.lng,s.lat,s.lng)<=RADIUS_M) near.push(i); });
+  const rs=new Set(); near.forEach(i=>busData.stops[i].r.forEach(ri=>rs.add(ri)));
+  const routeIdxs=[...rs];
+  const reach=new Set(); routeIdxs.forEach(ri=>busData.routes[ri].seq.forEach(si=>reach.add(si)));
+  const sets={};
+  routeIdxs.forEach(ri=>{ const seq=busData.routes[ri].seq; let prev=null;
+    for(const si of seq){ const s=busData.stops[si];
+      if(prev){ const d=hav(prev.lat,prev.lng,s.lat,s.lng), nn=Math.max(1,Math.ceil(d/SAMPLE_M));
+        for(let k=0;k<=nn;k++){ const t=k/nn, la=prev.lat+(s.lat-prev.lat)*t, ln=prev.lng+(s.lng-prev.lng)*t;
+          const key=Math.floor(la/LAT_STEP)+'_'+Math.floor(ln/LNG_STEP); (sets[key]=sets[key]||new Set()).add(ri); } }
+      prev=s; } });
+  const cells={}; let maxC=1; for(const k in sets){ const v=sets[k].size; cells[k]=v; if(v>maxC)maxC=v; }
+  return {center:{lat:c.lat,lng:c.lng}, name:c.name, cells, maxC, nNear:near.length, nRoutes:routeIdxs.length, nReach:reach.size, routeIdxs};
+}
+
+let rafPending=false;
+function scheduleDraw(){ if(rafPending)return; rafPending=true; requestAnimationFrame(()=>{rafPending=false; drawHeat();}); }
+
+function drawHeat(){
+  const cv=document.getElementById('heat'), mapDiv=document.getElementById('map');
+  const w=mapDiv.clientWidth, h=mapDiv.clientHeight, dpr=window.devicePixelRatio||1;
+  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);cv.style.width=w+'px';cv.style.height=h+'px';}
+  const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
+  if(!density||!map) return;
+  const proj=map.getProjection(); const px=ll=>proj.containerPointFromCoords(ll);
+  if(!off) off=document.createElement('canvas');
+  off.width=cv.width; off.height=cv.height;
+  const octx=off.getContext('2d'); octx.setTransform(dpr,0,0,dpr,0,0); octx.clearRect(0,0,w,h);
+  const {cells,maxC}=density;
+  for(const key in cells){
+    const cnt=cells[key], p=key.split('_'), ci=+p[0], cj=+p[1];
+    const a=px(new kakao.maps.LatLng(ci*LAT_STEP, cj*LNG_STEP));
+    const b=px(new kakao.maps.LatLng((ci+1)*LAT_STEP,(cj+1)*LNG_STEP));
+    const x=Math.min(a.x,b.x), y=Math.min(a.y,b.y), rw=Math.abs(b.x-a.x)+1, rh=Math.abs(b.y-a.y)+1;
+    if(x>w||y>h||x+rw<0||y+rh<0) continue;
+    octx.fillStyle='rgba(220,38,38,'+(0.12+0.58*(cnt/maxC)).toFixed(3)+')';
+    octx.fillRect(x,y,rw,rh);
+  }
+  ctx.filter='blur('+BLUR_PX+'px)'; ctx.drawImage(off,0,0,w,h); ctx.filter='none';
+  const cpx=px(new kakao.maps.LatLng(density.center.lat,density.center.lng));
+  const npx=px(new kakao.maps.LatLng(density.center.lat+RADIUS_M/111000,density.center.lng));
+  const rPx=Math.hypot(cpx.x-npx.x,cpx.y-npx.y);
+  ctx.beginPath(); ctx.arc(cpx.x,cpx.y,rPx,0,Math.PI*2);
+  ctx.strokeStyle='rgba(15,23,42,.85)'; ctx.lineWidth=2; ctx.stroke();
+}
+
+function showComplex(c){ density=buildDensity(c); drawHeat(); renderPanel(density); }
+
+function renderPanel(d){
+  const names=d.routeIdxs.map(ri=>busData.routes[ri].name.replace(/\s*\(.*$/,'')).sort();
+  const p=document.getElementById('panel');
+  let h=`<div class="ttl" style="font-size:15px">${d.name}</div>`;
+  h+=`<div class="stat"><div class="box"><b>${d.nNear}</b><span>500m 내 정류장</span></div><div class="box"><b>${d.nRoutes}</b><span>경유 노선</span></div><div class="box"><b>${d.nReach}</b><span>무환승 도달 정류장</span></div></div>`;
+  h+=`<div class="ttl">환승 없이 닿는 범위</div><div class="legend"><span>적음</span><span class="bar"></span><span>많음</span></div>`;
+  h+=`<p class="ph" style="margin:2px 0 12px">음영이 진할수록 그 지역을 지나는 노선이 많습니다 (최대 ${d.maxC}개 노선 겹침).</p>`;
+  if(d.nRoutes){ h+=`<div class="ttl">경유 노선 ${d.nRoutes}개</div><div class="rlist">${names.join(' · ')}</div>`; }
+  else { h+='<p class="ph">500m 내 정류장이 없습니다.</p>'; }
+  p.innerHTML=h;
+}
+
+loadKakao(boot);
+</script>
+</body>
+</html>
