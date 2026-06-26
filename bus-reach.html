@@ -191,11 +191,13 @@ function drawHeat(){
     const cnt=cells[key], p=key.split('_'), ci=+p[0], cj=+p[1];
     const a=px(new kakao.maps.LatLng(ci*LAT_STEP, cj*LNG_STEP));
     const b=px(new kakao.maps.LatLng((ci+1)*LAT_STEP,(cj+1)*LNG_STEP));
-    const x=Math.min(a.x,b.x), y=Math.min(a.y,b.y), rw=Math.abs(b.x-a.x)+1, rh=Math.abs(b.y-a.y)+1;
-    if(x>w||y>h||x+rw<0||y+rh<0) continue;
-    const t=density.pmap[cnt], col=heatColor(t);
-    octx.fillStyle='rgba('+col[0]+','+col[1]+','+col[2]+','+(0.5+0.38*t).toFixed(3)+')';
-    octx.fillRect(x,y,rw,rh);
+    const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2, rad=Math.max(Math.abs(b.x-a.x),Math.abs(b.y-a.y))*1.5;
+    if(cx+rad<0||cy+rad<0||cx-rad>w||cy-rad>h) continue;
+    const t=density.pmap[cnt], col=heatColor(t), al=0.45+0.4*t;
+    const g=octx.createRadialGradient(cx,cy,0,cx,cy,rad);
+    g.addColorStop(0,'rgba('+col[0]+','+col[1]+','+col[2]+','+al.toFixed(3)+')');
+    g.addColorStop(1,'rgba('+col[0]+','+col[1]+','+col[2]+',0)');
+    octx.fillStyle=g; octx.beginPath(); octx.arc(cx,cy,rad,0,6.2832); octx.fill();
   }
   ctx.filter='blur('+BLUR_PX+'px)'; ctx.drawImage(off,0,0,w,h); ctx.filter='none';
   const cpx=px(new kakao.maps.LatLng(density.center.lat,density.center.lng));
