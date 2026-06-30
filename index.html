@@ -398,7 +398,7 @@ footer{color:#aab2c5}
 </section>
 </div>
 <div class="tabpage" id="page-market">
-<div class="pagehead"><h2>시장지표</h2><span class="gh-badge gh-month">2026년 5월 갱신</span></div>
+<div class="pagehead"><h2>시장지표</h2><span class="gh-badge gh-month" id="mktMonth">2026년 5월 갱신</span></div>
 <div class="kpis" id="kpis"></div><section>
   <h2>매매 · 전세 가격 추이</h2>
   <p class="sec-note">세종 아파트 전체의 월별 평균 매매가·전세가 추이입니다. 토글로 매매·전세를 따로 볼 수 있습니다.</p>
@@ -869,6 +869,7 @@ function render(DATA){
     return `${e}억 ${man.toLocaleString()}만`;};
   const fmtPct=v=>v==null?'-':(v>0?'+':'')+v.toFixed(2)+'%';
   const [yy,mm]=last.ym.split('-');
+  {const _mm=document.getElementById("mktMonth"); if(_mm) _mm.textContent=(+yy)+"년 "+(+mm)+"월 갱신";}
 
   // 전세가율 장기평균은 신도시 거래 본격화(2017-09) 이후 구간으로 직접 계산
   const jsrValid=S.filter(d=>d.ym>='2017-09' && d.jsr!=null);
