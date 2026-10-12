@@ -1127,7 +1127,9 @@ function renderHot(vals, live){
   const palette=['#e0484f','#d97706','#0f766e','#7c3aed','#0369a1','#be123c','#15803d','#b45309'];
 
   const selected=new Set();
-  const cand=Object.entries(vals).filter(([n])=>hasFullHistory(n,live));
+  const cand=Object.entries(vals).filter(([n])=>hasFullHistory(n,live));   // 자동 선택은 2017년부터 이력이 있는 지역만
+  const allList=Object.entries(vals);                                       // 칩 목록은 신설 구 포함 전체
+  const sinceOf=n=>{ const s=fullSeries(n,live); return s.length?s[0][0]:null; };
   const pickAbove=g=>{
     const a=cand.filter(([n,v])=>g.match(n)&&v>sj).sort((x,y)=>x[1]-y[1])[0];
     return a?a[0]:null;
@@ -1140,11 +1142,12 @@ function renderHot(vals, live){
   chipHtml+=`<div class="hgrp">기준</div>`+
     `<span class="hchip sjbase${selected.has('세종시')?' on':''}" data-name="세종시">세종시<span class="v">${Math.round(sj).toLocaleString()}</span><i class="sjtag">기준</i></span>`;
   for(const g of groups){
-    const list=cand.filter(([n])=>g.match(n)).sort((a,b)=>b[1]-a[1]);
+    const list=allList.filter(([n])=>g.match(n)).sort((a,b)=>b[1]-a[1]);
     if(!list.length) continue;
     chipHtml+=`<div class="hgrp">${g.title}</div>`;
     chipHtml+=list.map(([n,v])=>
-      `<span class="hchip${selected.has(n)?' on':''}" data-name="${n}">${n}<span class="v">${Math.round(v).toLocaleString()}</span></span>`).join('');
+      { const sc=sinceOf(n), short=sc && sc>TIER_HIST.months[0];
+        return `<span class="hchip${selected.has(n)?' on':''}" data-name="${n}"${short?` title="${sc}부터 집계(신설 구)"`:''}>${n}<span class="v">${Math.round(v).toLocaleString()}</span></span>`; }).join('');
   }
   chipBox.innerHTML=chipHtml;
 
