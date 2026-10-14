@@ -213,6 +213,7 @@ function buildSitemap(posts, BASE){
   const urls = [];
   urls.push({loc:BASE+"/", lastmod: today});
   urls.push({loc:BASE+"/blog/", lastmod: newest});
+  urls.push({loc:BASE+"/complex", lastmod: today});
   sorted.forEach(function(f){ urls.push({loc:BASE+"/blog/"+f.id, lastmod: f.dateISO||today}); });
   const body = urls.map(function(u){
     return "  <url>\n    <loc>"+esc(u.loc)+"</loc>\n    <lastmod>"+esc(u.lastmod)+"</lastmod>\n  </url>";
