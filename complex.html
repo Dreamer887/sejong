@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2234856624819574" crossorigin="anonymous"></script>
+<title>단지 정보 | 세종 부동산 인사이트</title>
+<meta name="description" content="세종시 동 지역 아파트 단지별 입주민 후기 요약, 대중교통 강도, 이번 달 관심도 순위를 한곳에서 봅니다.">
+<link rel="canonical" href="https://sebuin.com/complex">
+<meta property="og:type" content="website">
+<meta property="og:title" content="단지 정보 | 세종 부동산 인사이트">
+<meta property="og:description" content="세종 동 지역 단지별 후기 요약·대중교통 강도·관심도 순위">
+<meta property="og:url" content="https://sebuin.com/complex">
+<meta property="og:image" content="https://sebuin.com/og-image.png">
+<style>
+  :root{
+    --bg:#f3f5fb; --card:#ffffff; --ink:#16203a; --sub:#727e98; --line:#e8ecf5;
+    --indigo:#5b6cff; --violet:#a06bff; --indigo-soft:#eef0ff; --amber:#ff8a5c; --amber-soft:#fff3ec;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:var(--ink);line-height:1.6;word-break:keep-all;
+    background:#f3f5fb;
+    background-image:radial-gradient(820px 480px at 90% -12%,rgba(160,107,255,.10),transparent 60%),radial-gradient(760px 520px at -10% 2%,rgba(91,108,255,.10),transparent 58%);
+    background-attachment:fixed}
+  a{color:inherit}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+  /* nav : 세부인 공통 */
+  .topnav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:rgba(243,245,251,.82);backdrop-filter:blur(12px);padding:14px 2px 12px;margin-bottom:6px}
+  .topnav .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+  .topnav .navlinks{display:flex;background:#e7eaf5;border-radius:99px;padding:4px;gap:3px;overflow-x:auto;scrollbar-width:none}
+  .topnav .navlinks::-webkit-scrollbar{display:none}
+  .topnav .navlinks a{border-radius:99px;padding:8px 15px;font-size:13px;color:#727e98;font-weight:700;text-decoration:none;white-space:nowrap}
+  .topnav .navlinks a:hover{color:#16203a}
+  .topnav .navlinks a.on{background:#fff;color:#5b6cff;box-shadow:0 8px 22px -12px rgba(40,55,110,.55)}
+  .topnav .navlinks a.navblog{color:#fff;background:linear-gradient(135deg,#5b6cff,#a06bff)}
+  @media(max-width:860px){.topnav{flex-direction:column;align-items:flex-start}.topnav .navlinks{max-width:100%}}
+  /* hero */
+  .hero{padding:18px 0 14px}
+  .hero .badge{display:inline-block;font-size:12px;font-weight:700;color:#5b6cff;background:#eef0ff;padding:4px 11px;border-radius:99px}
+  .hero h1{font-size:clamp(24px,4vw,30px);font-weight:800;letter-spacing:-.5px;margin:10px 0 6px}
+  .hero p{color:var(--sub);font-size:14.5px;max-width:46em}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px}
+  /* TOP 20 */
+  .rank{padding:18px 20px;margin:14px 0 18px}
+  .rank-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:10px}
+  .rank-h h2{font-size:17px;font-weight:800}
+  .rank-h p{font-size:12px;color:var(--sub)}
+  .rank-h button{margin-left:auto;font:inherit;font-size:12.5px;font-weight:700;color:#5b6cff;background:none;border:0;cursor:pointer}
+  .ranks{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 26px}
+  @media(max-width:720px){.ranks{grid-template-columns:1fr}}
+  .ranks li{border-top:1px solid var(--line)}
+  .rk{display:grid;grid-template-columns:28px minmax(0,1fr) 90px 32px;align-items:center;gap:10px;width:100%;font:inherit;background:none;border:0;color:var(--ink);padding:8px 0;text-align:left;cursor:pointer}
+  .rk .no{font-weight:800;color:#5b6cff;font-variant-numeric:tabular-nums}
+  .rk b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rk small{font-size:11.5px;color:var(--sub)}
+  .rk .bar{height:7px;border-radius:99px;background:#eef0ff;overflow:hidden}
+  .rk .bar i{display:block;height:100%;background:linear-gradient(90deg,#5b6cff,#a06bff)}
+  .rk .sc{font-size:12.5px;color:var(--sub);text-align:right;font-variant-numeric:tabular-nums}
+  .rk:hover b{color:#5b6cff}
+  .spike{font-style:normal;font-size:10.5px;font-weight:700;color:var(--amber);background:var(--amber-soft);border-radius:99px;padding:1px 7px;margin-left:4px;white-space:nowrap}
+  .ranks.fold li:nth-child(n+11){display:none}
+  /* layout */
+  .app{display:grid;grid-template-columns:290px minmax(0,1fr);gap:24px;align-items:start}
+  @media(max-width:860px){.app{grid-template-columns:1fr}}
+  .side{position:sticky;top:84px;display:flex;flex-direction:column;gap:10px;height:calc(100vh - 100px);min-width:0}
+  @media(max-width:860px){.side{position:static;height:auto}}
+  #q{width:100%;font:inherit;font-size:14px;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+  #q:focus-visible{outline:2px solid #5b6cff;outline-offset:1px}
+  .dongs{display:flex;flex-wrap:wrap;gap:5px}
+  .dongs button{font:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--line);background:#fff;color:var(--sub);padding:4px 11px;border-radius:99px;cursor:pointer}
+  .dongs button[aria-pressed="true"]{background:#16203a;border-color:#16203a;color:#fff}
+  .count{font-size:12px;color:var(--sub)}
+  .list{flex:1 1 auto;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:14px;min-height:120px}
+  @media(max-width:860px){.list{max-height:300px}}
+  .grp{font-size:11.5px;font-weight:700;color:var(--sub);padding:10px 14px 4px;position:sticky;top:0;background:#fff}
+  .item{display:grid;grid-template-columns:1fr auto;gap:8px;width:100%;text-align:left;font:inherit;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);padding:9px 14px;cursor:pointer}
+  .grp+.item{border-top:0}
+  .item b{font-size:14px}
+  .item small{display:block;color:var(--sub);font-size:12px;line-height:1.4}
+  .item .hh{font-size:12px;color:var(--sub);align-self:center;font-variant-numeric:tabular-nums}
+  .item[aria-current="true"]{background:#eef0ff}.item[aria-current="true"] b{color:#5b6cff}
+  .item:hover{background:#f6f7fd}
+  /* detail card */
+  .detail{display:grid;gap:26px;padding:24px 26px 22px;min-width:0}
+  @media(max-width:560px){.detail{padding:20px 16px}}
+  .crumb{font-size:12.5px;color:var(--sub);display:flex;gap:6px;flex-wrap:wrap}
+  .crumb b{color:var(--ink);font-weight:600}
+  .head{display:grid;gap:8px}
+  .eyebrow{font-size:12.5px;font-weight:700;color:#5b6cff}
+  .head h2{font-size:clamp(24px,4.4vw,32px);font-weight:800;letter-spacing:-.6px;line-height:1.25}
+  .head h2 small{display:block;font-size:15px;font-weight:600;color:var(--sub);letter-spacing:0;margin-top:4px}
+  .lede{font-size:15.5px;max-width:40em}
+  .tbadge{display:inline-flex;width:fit-content;font-size:12.5px;font-weight:700;color:#fff;background:linear-gradient(135deg,#5b6cff,#a06bff);padding:4px 12px;border-radius:99px}
+  h3{font-size:17px;font-weight:800;margin:0 0 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .sub{font-size:12.5px;color:var(--sub);margin:-6px 0 12px}
+  .spec{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .spec div{padding:12px 14px;border-right:1px solid var(--line);min-width:0}
+  .spec div:last-child{border-right:0}
+  .spec dt{font-size:11.5px;color:var(--sub)}
+  .spec dd{margin-top:2px;font-weight:700;font-size:15px;overflow-wrap:anywhere}
+  .spec dd span{font-size:12.5px;font-weight:500;color:var(--sub)}
+  @media(max-width:560px){.spec{grid-template-columns:repeat(2,1fr)}.spec div:nth-child(2n){border-right:0}.spec div:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+  .conf{font-size:11px;font-weight:700;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:1px 8px}
+  .pros{border:1px solid var(--line);border-radius:14px}
+  .pro{display:grid;grid-template-columns:116px 1fr;gap:14px;padding:14px 18px;border-top:1px solid var(--line)}
+  .pro:first-child{border-top:0}
+  .pro h4{font-size:14px;font-weight:800;color:#5b6cff}
+  .pro p{font-size:14.5px}
+  @media(max-width:560px){.pro{grid-template-columns:1fr;gap:2px}}
+  .empty{color:var(--sub);font-size:14px;padding:14px 18px}
+  .check{background:var(--amber-soft);border-radius:14px;padding:16px 20px}
+  .check ul{list-style:none;display:grid;gap:8px}
+  .check li{display:grid;grid-template-columns:16px 1fr;gap:8px;font-size:14.5px}
+  .check li::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--amber);margin-top:9px}
+  /* 대중교통 */
+  .transit{display:grid;grid-template-columns:190px minmax(0,1fr);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .transit .score{background:linear-gradient(160deg,#eef0ff,#f4eeff);padding:20px 18px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+  .transit .lab{font-size:12.5px;font-weight:700;color:#5b6cff}
+  .transit .num{font-size:60px;font-weight:800;line-height:1.05;letter-spacing:-2px;background:linear-gradient(135deg,#5b6cff,#a06bff);-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums}
+  .transit .num small{font-size:14px;font-weight:600;letter-spacing:0;color:var(--sub);-webkit-text-fill-color:var(--sub);margin-left:2px}
+  .transit .rk2{font-size:13px;font-weight:600}
+  .transit .mt{font-size:12px;color:var(--sub)}
+  .transit .routes{padding:16px 18px;display:grid;gap:12px;min-width:0}
+  .rg h4{font-size:11.5px;font-weight:700;color:var(--sub);margin-bottom:6px}
+  .rg ul{list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+  .rg li{font-size:13px;padding:4px 10px;border:1px solid var(--line);border-radius:99px;background:#fafbfe;overflow-wrap:anywhere}
+  .rg li b{font-weight:800}
+  .rg.brt li{border-color:#cdd3ff;background:#eef0ff}.rg.brt li b{color:#5b6cff}
+  @media(max-width:560px){.transit{grid-template-columns:1fr}.transit .num{font-size:50px}}
+  .more{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .more a{font-size:13px;font-weight:700;color:#5b6cff;text-decoration:none;background:#eef0ff;border:1px solid #d9ddff;padding:6px 13px;border-radius:99px}
+  .more a:hover{filter:brightness(.97)}
+  .hot{background:#f7f8fd;border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:8px}
+  .hot .meter{height:9px;border-radius:99px;background:#eef0ff;overflow:hidden;max-width:420px}
+  .hot .meter i{display:block;height:100%;background:linear-gradient(90deg,#5b6cff,#a06bff)}
+  .hot small{font-size:12px;color:var(--sub)}
+  .near{display:flex;flex-wrap:wrap;gap:6px}
+  .near button{font:inherit;font-size:13px;font-weight:600;background:#fff;border:1px solid var(--line);border-radius:99px;padding:5px 12px;cursor:pointer;color:var(--ink)}
+  .near button:hover{border-color:#5b6cff;color:#5b6cff}
+  .ad-slot{border:1px dashed #d8deea;border-radius:14px;padding:12px;text-align:center}
+  .ad-slot .adlabel{font-size:11px;color:#b8c0cc;letter-spacing:.08em}
+  .foot{font-size:11.5px;color:var(--sub);border-top:1px solid var(--line);padding-top:12px;display:grid;gap:4px}
+  .sitefoot{margin-top:40px;font-size:12px;color:#8a93a8;display:flex;flex-wrap:wrap;gap:14px}
+  .sitefoot a{text-decoration:none;font-weight:600}
+  .loading{padding:40px;text-align:center;color:var(--sub)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="topnav">
+    <a class="brand" href="/" title="처음으로"><svg width="48" height="48" viewBox="0 0 48 48" style="flex:none" aria-hidden="true"><defs><linearGradient id="blg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b6cff"/><stop offset="1" stop-color="#a06bff"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#blg)"/><rect x="9" y="13" width="13" height="25" rx="1.6" fill="#fff"/><rect x="11.4" y="16.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="16.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="11.4" y="21" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="21" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="11.4" y="25.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="25.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><circle cx="31" cy="27" r="7" fill="url(#blg)" stroke="#fff" stroke-width="2.6"/><line x1="36" y1="32" x2="40.5" y2="36.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg><span style="display:inline-block;line-height:1"><span style="display:block;font-family:'Jua','Apple SD Gothic Neo',sans-serif;font-size:36px;letter-spacing:-1px;background:linear-gradient(120deg,#4b46c4,#9a6bf2);-webkit-background-clip:text;background-clip:text;color:transparent">세부인</span><span style="display:block;font-size:10px;font-weight:600;color:#727e98;margin-top:4px;text-align:justify;text-align-last:justify">세종 부동산 인사이트</span></span></a>
+    <div class="navlinks">
+      <a href="/#trade">오늘의 세종</a><a href="/#market">시장지표</a><a href="/#trend">동·단지별 매매가 추이</a><a href="/#position">전국 지역 비교</a><a href="/complex" class="on">단지 정보</a><a class="navblog" href="/blog/">분석 ✦</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <span class="badge">단지 정보</span>
+    <h1>세종 동 지역 단지, 한눈에 살펴보기</h1>
+    <p id="heroMeta">입주민 후기에서 자주 나온 장점, 단지 주변 버스 사정, 이번 달 관심도를 단지별로 정리했어요.</p>
+  </section>
+
+  <section class="card rank" aria-labelledby="rk-h" id="rankSec" hidden>
+    <div class="rank-h"><h2 id="rk-h"></h2><p id="rk-sub"></p><button type="button" id="rkToggle">전체 20위 보기</button></div>
+    <ol class="ranks fold" id="ranks"></ol>
+  </section>
+
+  <div class="app">
+    <aside class="side">
+      <input id="q" type="search" placeholder="단지명·브랜드 검색" aria-label="단지 검색">
+      <div class="dongs" id="dongs" role="group" aria-label="동 선택"></div>
+      <div class="count" id="count"></div>
+      <div class="list" id="list"></div>
+    </aside>
+    <main class="card detail" id="card"><div class="loading">불러오는 중…</div></main>
+  </div>
+
+  <div class="sitefoot"><a href="./about.html">소개</a><a href="./contact.html">문의</a><a href="./privacy.html">개인정보처리방침</a><a href="./terms.html">이용약관</a></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const enc = s => encodeURIComponent(s);
+let DATA = [], BUILT = "", TR = null, IT = null, topIdx = {}, TOPMAX = 100, curDong = "전체", curId = 0;
+
+Promise.all([
+  fetch("/complexes.json").then(r => r.json()),
+  fetch("/transit.json").then(r => r.json()).catch(() => null),
+  fetch("/interest.json").then(r => r.json()).catch(() => null)
+]).then(([c, t, i]) => {
+  DATA = c.data; BUILT = c.built; TR = t; IT = i;
+  init();
+}).catch(() => { $("#card").innerHTML = `<div class="loading">데이터를 불러오지 못했어요. 잠시 후 다시 열어주세요.</div>`; });
+
+function init() {
+  const dongOrder = [...new Set(DATA.map(d => d.동))];
+  $("#heroMeta").textContent = `${dongOrder.length}개 동 ${DATA.length}개 단지 · 입주민 후기에서 자주 나온 장점, 단지 주변 버스 사정, 이번 달 관심도를 단지별로 정리했어요.`;
+  $("#dongs").innerHTML = ["전체", ...dongOrder].map(d => `<button type="button" aria-pressed="${d===curDong}" data-d="${esc(d)}">${esc(d)}</button>`).join("");
+  $("#dongs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; curDong = b.dataset.d; document.querySelectorAll("#dongs button").forEach(x => x.setAttribute("aria-pressed", x === b)); renderList(); });
+  $("#q").addEventListener("input", renderList);
+  $("#list").addEventListener("click", e => { const b = e.target.closest(".item"); if (b) show(+b.dataset.i, true); });
+  if (IT && IT.top && IT.top.length) {
+    TOPMAX = Math.max(100, ...IT.top.map(t => t.지수));
+    IT.top.forEach(t => { const i = DATA.findIndex(d => d.이름 === t.이름); if (i >= 0) topIdx[i] = t; });
+    $("#rk-h").textContent = `${IT.month} 관심도 TOP ${IT.top.length}`;
+    $("#rk-sub").textContent = `${IT.basis} · 지수 ${IT.index_base}`;
+    $("#ranks").innerHTML = IT.top.map(t => { const i = DATA.findIndex(d => d.이름 === t.이름), d = DATA[i] || {};
+      return `<li><button class="rk" type="button" data-i="${i}"><span class="no">${t.순위}</span><span><b>${esc(t.이름)}</b><small>${esc(d.동 || "")}${t.급증 ? `<em class="spike" title="${esc(t.급증)} 검색이 평소보다 크게 늘었어요">검색 급증</em>` : ""}</small></span><span class="bar" aria-hidden="true"><i style="width:${Math.round(t.지수 / TOPMAX * 100)}%"></i></span><span class="sc">${t.지수}</span></button></li>`; }).join("");
+    $("#ranks").addEventListener("click", e => { const b = e.target.closest(".rk"); if (b && +b.dataset.i >= 0) show(+b.dataset.i, true); });
+    $("#rkToggle").addEventListener("click", () => { const f = $("#ranks").classList.toggle("fold"); $("#rkToggle").textContent = f ? `전체 ${IT.top.length}위 보기` : "접기"; });
+    $("#rankSec").hidden = false;
+  }
+  const h = decodeURIComponent(location.hash.slice(1));
+  let start = DATA.findIndex(d => d.이름 === h);
+  if (start < 0) start = Math.max(0, DATA.findIndex(d => IT && IT.top && d.이름 === IT.top[0].이름));
+  renderList(); show(start, false);
+  window.addEventListener("hashchange", () => { const i = DATA.findIndex(d => d.이름 === decodeURIComponent(location.hash.slice(1))); if (i >= 0 && i !== curId) show(i, true); });
+}
+function matches(d) {
+  const q = $("#q").value.trim().replace(/\s/g, "");
+  if (curDong !== "전체" && d.동 !== curDong) return false;
+  return !q || (d.이름 + d.브랜드 + d.동 + d.마을).replace(/\s/g, "").includes(q);
+}
+function renderList() {
+  const rows = DATA.map((d, i) => [d, i]).filter(([d]) => matches(d));
+  $("#count").textContent = `${rows.length}개 단지`;
+  let html = "", last = "";
+  for (const [d, i] of rows) {
+    if (d.동 !== last) { html += `<div class="grp">${esc(d.동)} · ${esc(d.생활권)}생활권</div>`; last = d.동; }
+    html += `<button class="item" type="button" data-i="${i}" aria-current="${i===curId}"><span><b>${esc(d.이름)}</b><small>${esc(d.브랜드 || " ")}</small></span><span class="hh">${d.세대수.toLocaleString()}세대</span></button>`;
+  }
+  $("#list").innerHTML = html || `<div class="empty">검색 결과가 없어요.</div>`;
+}
+function transitHTML(d) {
+  const t = TR && TR.data[d.이름];
+  if (!t) return `<section><h3>대중교통</h3><div class="pros"><p class="empty">이 단지의 버스 정보는 준비 중이에요.</p></div></section>`;
+  const [score, rank, nStop, nos] = t;
+  const isBrt = n => /^[AB]\d/.test(n), isWide = n => /^M\d/.test(n) || /^10\d\d$/.test(n), ord = (a, b) => a.localeCompare(b, "ko", {numeric: true});
+  const grp = [["BRT", nos.filter(isBrt).sort(ord), "brt"], ["광역버스", nos.filter(isWide).sort(ord), ""], ["시내·마을버스", nos.filter(n => !isBrt(n) && !isWide(n)).sort(ord), ""]].filter(g => g[1].length);
+  const item = n => { const lb = TR.labels[n] || n, k = lb.indexOf("("); return `<li><b>${esc(k > 0 ? lb.slice(0, k) : lb)}</b>${esc(k > 0 ? lb.slice(k) : "")}</li>`; };
+  return `<section>
+    <h3>대중교통</h3>
+    <p class="sub">단지 중심 500m 안 정류장에 서는 버스 기준이에요.</p>
+    <div class="transit">
+      <div class="score"><span class="lab">대중교통 강도</span><span class="num">${score}<small>/100</small></span><span class="rk2">${TR.n}개 단지 중 ${rank}위</span><span class="mt">500m 내 정류장 ${nStop}곳 · 노선 ${nos.length}개</span></div>
+      <div class="routes">${grp.length ? grp.map(([h, list, cls]) => `<div class="rg ${cls}"><h4>${h} ${list.length}</h4><ul>${list.map(item).join("")}</ul></div>`).join("") : `<p class="empty" style="padding:0">500m 안에 서는 버스가 없어요.</p>`}</div>
+    </div>
+    <div class="more"><a href="/bus-reach#${enc(d.이름)}">버스로 환승 없이 갈 수 있는 범위 지도로 보기 →</a></div>
+  </section>`;
+}
+function show(i, scroll) {
+  curId = i; const d = DATA[i]; if (!d) return;
+  document.querySelectorAll(".item").forEach(x => x.setAttribute("aria-current", +x.dataset.i === i));
+  try { history.replaceState(null, "", "#" + enc(d.이름)); } catch (e) {}
+  document.title = `${d.이름} | 단지 정보 | 세종 부동산 인사이트`;
+  const pros = d.장점.length ? `<div class="pros">${d.장점.map(p => `<div class="pro"><h4>${esc(p.제목)}</h4><p>${esc(p.내용)}</p></div>`).join("")}</div>` : `<div class="pros"><p class="empty">아직 정리할 만큼 후기가 모이지 않았어요.</p></div>`;
+  const chk = d.알아두면.length ? `<section class="check"><h3>알아두면 좋은 점</h3><ul>${d.알아두면.map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>` : "";
+  const near = DATA.map((x, j) => [x, j]).filter(([x, j]) => x.동 === d.동 && j !== i);
+  const confTxt = {높음:"후기 충분", 보통:"후기 보통", 낮음:"후기 적음"}[d.신뢰도] || "";
+  const t = topIdx[i];
+  const hot = t ? `<section><h3>이번 달 관심도</h3><div class="hot"><p>${esc(IT.month)} 세종 동 지역 단지 가운데 ${t.순위}번째로 많이 찾아본 단지예요.${t.급증 ? ` 다만 ${esc(t.급증)}에 검색이 평소보다 크게 몰려, 순위가 일시적으로 높게 나왔을 수 있어요.` : ""}</p><div class="meter" role="img" aria-label="관심도 지수 ${t.지수}"><i style="width:${Math.round(t.지수 / TOPMAX * 100)}%"></i></div><small>관심도 지수 ${t.지수} · ${esc(IT.basis)} · ${esc(IT.index_base)}</small></div></section>` : "";
+  $("#card").innerHTML = `
+  <nav class="crumb" aria-label="위치"><span>단지 정보</span><span>›</span><span>${esc(d.생활권)}생활권 ${esc(d.동)}</span><span>›</span><b>${esc(d.이름)}</b></nav>
+  <header class="head">
+    ${t ? `<span class="tbadge">${esc(IT.month)} 관심도 TOP ${IT.top.length} · ${t.순위}위</span>` : ""}
+    <div class="eyebrow">${esc(d.생활권)}생활권 · ${esc(d.입주표시)} 입주</div>
+    <h2>${esc(d.이름)}${d.브랜드 ? `<small>${esc(d.브랜드)}</small>` : ""}</h2>
+    <p class="lede">${esc(d.한줄)}</p>
+  </header>
+  <section>
+    <h3>단지 개요</h3>
+    <dl class="spec">
+      <div><dt>세대수</dt><dd>${d.세대수.toLocaleString()}<span> 세대</span></dd></div>
+      <div><dt>입주</dt><dd>${esc(d.입주표시)}</dd></div>
+      <div><dt>생활권 · 블록</dt><dd>${esc(d.생활권)} · ${esc(d.블록)}</dd></div>
+      <div><dt>사업주체</dt><dd>${esc(d.사업주체)}</dd></div>
+    </dl>
+    <div class="more"><a href="/#trend">실거래 매매가 추이 보기 →</a></div>
+  </section>
+  <section>
+    <h3>입주민들이 꼽는 장점 ${confTxt ? `<span class="conf">${confTxt}</span>` : ""}</h3>
+    <p class="sub">온라인에 올라온 거주·방문 후기를 세부인이 주제별로 묶어 정리했어요.</p>
+    ${pros}
+  </section>
+  ${chk}
+  ${transitHTML(d)}
+  ${hot}
+  <section>
+    <h3>같은 동 단지</h3>
+    <div class="near">${near.map(([x, j]) => `<button type="button" data-i="${j}">${esc(x.이름)}</button>`).join("")}</div>
+  </section>
+  <footer class="foot">
+    <span>단지 개요는 행정중심복합도시건설청 주택분양계획 및 실적 자료 기준이에요.</span>
+    <span>장점 요약은 온라인 공개 후기를 바탕으로 세부인이 정리한 내용이며, 개인마다 느끼는 바는 다를 수 있어요. · ${esc(BUILT)} 정리</span>
+    ${TR ? `<span>대중교통 강도는 ${esc(TR.basis)}으로 세부인이 산정했어요. ${esc(TR.method)}.</span>` : ""}
+  </footer>`;
+  $("#card").querySelectorAll(".near button").forEach(b => b.addEventListener("click", () => show(+b.dataset.i, true)));
+  if (scroll) $("#card").scrollIntoView({behavior: "smooth", block: "start"});
+}
+</script>
+</body>
+</html>
