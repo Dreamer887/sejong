@@ -105,7 +105,7 @@ async function boot(){
   busData=await fetch('./bus_sejong.json').then(r=>r.json());
   ROUTE_W=busData.routes.map(r=>routeW(r.name));
   const sel=document.getElementById('dongSel');
-  Object.keys(DONGS).forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o);});
+  Object.keys(DONGS).sort((a,b)=>a.localeCompare(b,'ko')).forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o);});
   sel.onchange=()=>loadDong(sel.value);
   ['bounds_changed','zoom_changed'].forEach(ev=>kakao.maps.event.addListener(map,ev,scheduleDraw));
   window.addEventListener('resize',scheduleDraw);
