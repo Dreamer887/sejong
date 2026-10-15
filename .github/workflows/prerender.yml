@@ -1,0 +1,49 @@
+# 새 글 발행·단지 데이터 갱신 때마다 정적 프리렌더(tools/prerender.mjs)를 자동으로 돌려
+# complex.html · index.html에 최신 내용을 굳혀 넣는다.
+name: prerender
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "blog/posts.json"
+      - "complexes.json"
+      - "transit.json"
+      - "interest.json"
+      - "complex.html"
+      - "index.html"
+      - "tools/prerender.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# 발행기는 글 하나에 커밋을 여러 번 하므로, 마지막 것만 돌게 한다
+concurrency:
+  group: prerender
+  cancel-in-progress: true
+
+jobs:
+  prerender:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm i --no-save --no-package-lock jsdom@24
+      - run: node tools/prerender.mjs
+      - name: 바뀐 게 있으면 커밋
+        run: |
+          if git diff --quiet -- complex.html index.html; then
+            echo "변경 없음"; exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add complex.html index.html
+          git commit -m "prerender: 단지 정보·최신 분석 정적 내용 갱신"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1
