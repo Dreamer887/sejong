@@ -39,7 +39,7 @@ function richLines(text){
 }
 function bodyToHtml(text){
   const lines = String(text||"").replace(/\r/g,"").split("\n");
-  const out=[]; let buf=[]; let center=false;
+  const out=[]; let buf=[]; let center=false; let lastH="";
   function add(el){ out.push(center ? '<div class="a-center">'+el+'</div>' : el); }
   function flush(){ if(buf.length){ add("<ul>"+buf.map(function(x){return "<li>"+inline(esc(x))+"</li>";}).join("")+"</ul>"); buf=[]; } }
   for(const raw of lines){
@@ -51,8 +51,8 @@ function bodyToHtml(text){
     if(line===""){ out.push('<div class="a-gap"></div>'); continue; }
     if(line==="---"||line==="***"){ add('<hr class="a-hr">'); continue; }
     const im=line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
-    if(im){ const cap=im[1].trim(); add('<figure class="a-fig"><img src="'+esc(im[2].trim())+'" alt="'+esc(cap)+'">'+(cap?'<figcaption>'+inline(esc(cap))+'</figcaption>':'')+'</figure>'); continue; }
-    if(line.startsWith("## ")){ add("<h2>"+inline(esc(line.slice(3).trim()))+"</h2>"); continue; }
+    if(im){ const cap=im[1].trim(); const alt=cap||(lastH?lastH+" 관련 자료":"세부인 분석 자료"); add('<figure class="a-fig"><img src="'+esc(im[2].trim())+'" alt="'+esc(alt)+'">'+(cap?'<figcaption>'+inline(esc(cap))+'</figcaption>':'')+'</figure>'); continue; }
+    if(line.startsWith("## ")){ lastH=line.slice(3).trim().replace(/\*\*|__|~~/g,""); add("<h2>"+inline(esc(line.slice(3).trim()))+"</h2>"); continue; }
     if(line.startsWith("### ")){ add("<h3>"+inline(esc(line.slice(4).trim()))+"</h3>"); continue; }
     if(line.startsWith("# ")){ add('<p class="big">'+inline(esc(line.slice(2).trim()))+'</p>'); continue; }
     add("<p>"+inline(esc(line))+"</p>");
