@@ -313,6 +313,12 @@ footer{color:#aab2c5}
   .dmodal-sub{font-size:12.5px;color:var(--sub);margin-bottom:12px}
   .dmodal-cv{position:relative;height:300px}
   /* === 지역비교: 세종 기준 칩 === */
+  .hotbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .hotbar .toggle{margin-bottom:0}
+  .modeseg{display:inline-flex;background:#eef1f8;border-radius:99px;padding:3px;gap:2px}
+  .modeseg button{border:none;background:transparent;color:#727e98;font-size:13px;font-weight:700;padding:5px 14px;border-radius:99px;cursor:pointer}
+  .modeseg button.on{background:#fff;color:#5b6cff;box-shadow:0 4px 12px -6px rgba(40,55,110,.45)}
+  .hot-chips .hchip.on.colored{background:var(--cc);border-color:var(--cc)}
   .hot-chips .hchip.sjbase{border:2px solid #5b6cff;background:#e7eefc;color:#5b6cff}
   .hot-chips .hchip.sjbase .v{color:#5b6cff}
   .hot-chips .hchip.sjbase .sjtag{margin-left:5px;font-size:10px;font-weight:800;background:#5b6cff;color:#fff;border-radius:5px;padding:1px 6px;line-height:1.5;font-style:normal}
@@ -1123,7 +1129,9 @@ function renderHot(vals, live){
     {title:'수도권', match:n=>!n.startsWith('서울 ')&&!/^(부산|대구|광주|대전|울산) /.test(n)&&n!=='세종시'},
     {title:'광역시', match:n=>/^(부산|대구|광주|대전|울산) /.test(n)},
   ];
-  const palette=['#e0484f','#d97706','#0f766e','#7c3aed','#0369a1','#be123c','#15803d','#b45309'];
+  const palette=['#e15759','#f28e2b','#2e9e5b','#9467bd','#17a2b8','#c9a227','#8c564b','#e377c2','#1f3b73','#6b8e23','#7f7f7f'];
+  const DESC_PRICE='지역을 눌러 세종시와 비교 · ㎡당 아파트 평균매매가격(전용면적, 만원)';
+  let mode='price';   // price | index
 
   const selected=new Set();
   const cand=Object.entries(vals).filter(([n])=>hasFullHistory(n,live));   // 자동 선택은 2017년부터 이력이 있는 지역만
@@ -1153,32 +1161,74 @@ function renderHot(vals, live){
   const colorMap={};
   function drawChart(m){
     const others=[...selected].filter(n=>n!=='세종시');
-    let ci=0; Object.keys(colorMap).forEach(k=>{ if(!selected.has(k)) delete colorMap[k]; });
-    others.forEach(n=>{ if(!colorMap[n]) colorMap[n]=palette[(ci++)%palette.length]; else ci++; });
+    Object.keys(colorMap).forEach(k=>{ if(!selected.has(k)) delete colorMap[k]; });
+    others.forEach((n,k)=>{
+      if(colorMap[n]) return;
+      const used=new Set(Object.values(colorMap));
+      colorMap[n]=palette.find(c=>!used.has(c)) || palette[k%palette.length];   // 아직 안 쓴 색부터
+    });
+    const dupDash=n=>{ const c=colorMap[n]; return others.filter(x=>colorMap[x]===c).indexOf(n)>0 ? [2,3] : undefined; };
+    chipBox.querySelectorAll('.hchip').forEach(c=>{
+      const col=colorMap[c.dataset.name];
+      c.classList.toggle('colored', !!col);
+      if(col) c.style.setProperty('--cc', col); else c.style.removeProperty('--cc');
+    });
 
     const sjMap=Object.fromEntries(fullSeries('세종시', live));
     const seriesMaps=others.map(n=>[n, Object.fromEntries(fullSeries(n, live))]);
     const allYms=new Set(Object.keys(sjMap));
     seriesMaps.forEach(([,mp])=>Object.keys(mp).forEach(y=>allYms.add(y)));
     const l=lastM([...allYms].sort(), m);
+    const late=[];
+    // 지수 모드: 보이는 구간의 첫 값을 100으로 맞춘다(그 구간에 늦게 시작한 지역은 첫 값 기준)
+    const toSeries=(n,mp)=>{
+      const raw=l.map(ym=>mp[ym]??null);
+      if(mode!=='index') return raw;
+      const i0=raw.findIndex(v=>v!=null); if(i0<0) return raw;
+      if(i0>0) late.push(`${n} ${l[i0]}`);
+      const b=raw[i0]; return raw.map(v=>v==null?null:Math.round(v/b*1000)/10);
+    };
     const ds=seriesMaps.map(([n,mp])=>({
-      label:n, data:l.map(ym=>mp[ym]??null), borderColor:colorMap[n],
+      label:n, data:toSeries(n,mp), borderColor:colorMap[n], backgroundColor:colorMap[n], borderDash:dupDash(n),
       borderWidth:2, pointRadius:0, tension:.25, spanGaps:true}));
     if(selected.has('세종시')){
-      ds.push({label:'세종시', data:l.map(ym=>sjMap[ym]??null), borderColor:'#5b6cff',
+      ds.push({label:'세종시', data:toSeries('세종시',sjMap), borderColor:'#5b6cff', backgroundColor:'#5b6cff',
         borderWidth:2.2, borderDash:[5,4], pointRadius:0, tension:.25, spanGaps:true});
     }
+    document.getElementById('hotDesc').textContent = mode==='index'
+      ? `지역을 눌러 세종시와 비교 · ${l[0]||''} = 100 기준 상승률 지수(㎡당 평균매매가격)${late.length?` · 늦게 집계된 지역은 첫 달 기준: ${late.join(', ')}`:''}`
+      : DESC_PRICE;
+    const tip = mode==='index'
+      ? c=>`${c.dataset.label}: ${c.parsed.y.toFixed(1)} (${c.parsed.y>=100?'+':''}${(c.parsed.y-100).toFixed(1)}%)`
+      : c=>`${c.dataset.label}: ${Math.round(c.parsed.y).toLocaleString()}만원`;
     plot('hotC1',{
       type:'line', data:{labels:l, datasets:ds},
       options:{responsive:true, maintainAspectRatio:false,
         interaction:{mode:'index', intersect:false},
-        plugins:{legend:{labels:{usePointStyle:true, pointStyle:'line', boxWidth:20, font:{size:11.5}}}},
+        plugins:{legend:{labels:{usePointStyle:true, pointStyle:'line', boxWidth:20, font:{size:11.5}}},
+          tooltip:{callbacks:{label:tip}}},
         scales:{x:{grid:{display:false}, ticks:xt(l)},
-          y:{grid:{color:'#edf0f6'}, ticks:{callback:v=>v.toLocaleString()}}}}});
+          y:{grid:{color:c=>mode==='index'&&c.tick&&c.tick.value===100?'#aab2c5':'#edf0f6'},
+             ticks:{callback:v=>mode==='index'?v:v.toLocaleString()}}}}});
   }
 
   let curM=0;
   addToggle('hotC1', m=>{ curM=m; drawChart(m); }, 0);
+  // 가격 / 지수 전환 — 기간 버튼과 한 줄에
+  (function(){
+    const card=document.getElementById('hotC1').closest('.card');
+    const tog=card.querySelector('.toggle');
+    const bar=document.createElement('div'); bar.className='hotbar';
+    const seg=document.createElement('div'); seg.className='modeseg'; seg.setAttribute('role','group'); seg.setAttribute('aria-label','표시 방식');
+    seg.innerHTML='<button type="button" data-mode="price" class="on">가격</button><button type="button" data-mode="index" title="보이는 구간 첫 달을 100으로 맞춰 상승률을 비교">지수</button>';
+    card.insertBefore(bar, tog); bar.appendChild(tog); bar.appendChild(seg);
+    seg.addEventListener('click', e=>{
+      const b=e.target.closest('button'); if(!b||b.dataset.mode===mode) return;
+      mode=b.dataset.mode;
+      seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b));
+      drawChart(curM);
+    });
+  })();
 
   chipBox.addEventListener('click', e=>{
     const c=e.target.closest('.hchip'); if(!c) return;
