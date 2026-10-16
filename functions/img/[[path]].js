@@ -3,7 +3,7 @@
 export async function onRequestGet(context){
   const parts = context.params.path;
   const key = Array.isArray(parts) ? parts.join("/") : String(parts||"");
-  if(!key) return new Response("Not found", {status:404});
+  if(!key || key.indexOf("images/")!==0) return new Response("Not found", {status:404});
   if(!context.env.IMG) return new Response("R2 binding(IMG) missing", {status:500});
 
   const obj = await context.env.IMG.get(key);

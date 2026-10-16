@@ -192,6 +192,20 @@ $("date").value=now.toISOString().slice(0,10);
 render();
 
 let POSTS=[],editId=null;
+
+// 외부 초안 불러오기: /admin/?draft=<id>
+(async function loadDraft(){
+  const id=new URLSearchParams(location.search).get("draft");if(!id)return;
+  const msg=$("msg");
+  try{
+    const r=await fetch("/api/get-draft?id="+encodeURIComponent(id));
+    const d=await r.json();if(!r.ok)throw new Error(d.error||("오류 "+r.status));
+    $("tag").value=d.tag||"분석";if(d.dateISO)$("date").value=d.dateISO;
+    $("title").value=d.title||"";$("lede").value=d.lede||"";$("body").value=d.body||"";$("summary").value=d.summary||"";
+    render();
+    msg.className="msg ok";msg.textContent="초안을 불러왔습니다. 미리보기를 확인하고 패스코드 입력 후 발행하세요.";
+  }catch(e){msg.className="msg err";msg.textContent="초안 불러오기 실패: "+e.message;}
+})();
 function setMode(){
   $("formtitle").textContent=editId?"글 수정 중":"새 분석 글";
   $("editbadge").style.display=editId?"inline-block":"none";
