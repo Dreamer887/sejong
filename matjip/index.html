@@ -74,6 +74,25 @@
   .postcard .tag.tg-food{color:#b4441f;background:#fdeee6}
   .postcard .pcplace{font-size:13px;font-weight:700;color:#b4441f;margin-top:8px}
   .bloghero .badge.food{background:#fdeee6;color:#b4441f}
+  /* 맛집 목록: 한 줄에 카드 하나, 왼쪽 대표 사진(2×2 또는 1장) */
+  .postlist{grid-template-columns:1fr;max-width:880px}
+  .postcard.hasimg{flex-direction:row;padding:0;overflow:hidden}
+  .postcard .pc-body{display:flex;flex-direction:column;flex:1;min-width:0;padding:22px 24px}
+  .postcard .pc-img{flex:0 0 250px;display:grid;gap:2px;background:var(--line)}
+  .postcard .pc-img.n4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+  .postcard .pc-img img{width:100%;height:100%;min-height:0;object-fit:cover;display:block;background:#eef0f5}
+  .postcard .pc-img.n4 img{aspect-ratio:1/1}
+  .postcard.hasimg{min-height:240px}
+  .postcard .pc-img.n1{position:relative}
+  .postcard .pc-img.n1 img{position:absolute;inset:0}
+  @media(max-width:760px){
+    .postcard.hasimg{flex-direction:column}
+    .postcard .pc-img{flex:none}
+    .postcard .pc-img.n4{grid-template-columns:repeat(4,1fr);grid-template-rows:auto}
+    .postcard.hasimg{min-height:0}
+    .postcard .pc-img.n1 img{position:static;aspect-ratio:16/10}
+    .postcard .pc-body{padding:18px 20px}
+  }
   .postcard .meta{color:#aab2c5;font-size:12.5px;font-weight:600;margin-top:16px}
   .empty{background:#fff;border:1px dashed var(--line);border-radius:18px;padding:40px;text-align:center;color:var(--sub);font-size:14px}
   footer{margin-top:46px;color:#aab2c5;font-size:13px;text-align:center}

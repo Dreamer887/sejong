@@ -125,6 +125,9 @@
   .food:hover{border-color:#f0c4a8}
   .food .fn{font-size:15px;font-weight:800}
   .food .fd{font-size:12.5px;font-weight:700;color:#b4441f;align-self:center}
+  .food.hasth{grid-template-columns:64px 1fr auto;align-items:center}
+  .food .fth{grid-row:1/3;width:64px;height:64px;border-radius:10px;object-fit:cover}
+  .food.hasth .ft{grid-column:2/-1}
   .food .ft{grid-column:1/-1;font-size:13px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .transit{display:grid;grid-template-columns:190px minmax(0,1fr);border:1px solid var(--line);border-radius:14px;overflow:hidden}
   .transit .score{background:linear-gradient(160deg,#eef0ff,#f4eeff);padding:20px 18px;display:flex;flex-direction:column;justify-content:center;gap:4px}
@@ -320,7 +323,7 @@ function foodHTML(d) {
   return `<section>
     <h3>주변 맛집</h3>
     <p class="sub">세부인이 직접 다녀온 곳 중 단지에서 직선 1km 안에 있는 가게예요.</p>
-    <div class="foods">${rows.map(([p, m]) => `<a class="food" href="/blog/${enc(p.id)}"><span class="fn">${esc(p.place.name || p.title)}</span><span class="fd">${dist(m)}</span><span class="ft">${esc(p.title)}</span></a>`).join("")}</div>
+    <div class="foods">${rows.map(([p, m]) => `<a class="food${p.thumbs && p.thumbs[0] ? " hasth" : ""}" href="/blog/${enc(p.id)}">${p.thumbs && p.thumbs[0] ? `<img class="fth" src="${esc(p.thumbs[0])}" alt="" loading="lazy">` : ""}<span class="fn">${esc(p.place.name || p.title)}</span><span class="fd">${dist(m)}</span><span class="ft">${esc(p.title)}</span></a>`).join("")}</div>
     <div class="more"><a href="/matjip/">세종 동네 맛집 전체 보기 →</a></div>
   </section>`;
 }

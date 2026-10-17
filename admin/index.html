@@ -119,6 +119,9 @@
         <input id="paddr" placeholder="위치 찾기로 자동 입력">
         <div class="row"><div><label>위도</label><input id="plat" inputmode="decimal"></div><div><label>경도</label><input id="plng" inputmode="decimal"></div></div>
         <div class="hint">좌표가 있으면 단지 정보의 '주변 맛집'과 글 하단 '근처 아파트 단지'에 자동으로 연결돼요(직선 1km).</div>
+        <label>카드 대표 사진 <span id="thcount" style="font-weight:600"></span></label>
+        <div id="thpick" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+        <div class="hint">본문 사진 중 누른 순서대로 최대 4장. 4장이면 목록 카드에 2×2로, 1~3장이면 첫 장만 크게 보여요. 다시 누르면 빠져요.</div>
       </div>
 
       <label>제목</label>
@@ -211,9 +214,32 @@ $("date").value=now.toISOString().slice(0,10);
 ["tag","title","lede","body","summary","date"].forEach(id=>$(id).addEventListener("input",render));
 render();
 
+// ---- 맛집 글: 카드 대표 사진 ----
+let SEL=[],OLD_SRC=[],OLD_THUMBS=[];
+function bodyImgs(){const out=[];String($("body").value).replace(/!\[[^\]]*\]\((\/img\/images\/[A-Za-z0-9._-]+)\)/g,function(_,u){if(out.indexOf(u)<0)out.push(u);});return out;}
+function renderPicker(){
+  const imgs=bodyImgs();SEL=SEL.filter(function(u){return imgs.indexOf(u)>=0;});
+  $("thcount").textContent="("+SEL.length+"/4)";
+  $("thpick").innerHTML=imgs.length?imgs.map(function(u){const k=SEL.indexOf(u);return '<button type="button" data-u="'+esc(u)+'" style="position:relative;padding:0;border:3px solid '+(k>=0?'#f0507a':'transparent')+';border-radius:10px;background:none;cursor:pointer"><img src="'+esc(u)+'" style="width:78px;height:78px;object-fit:cover;border-radius:7px;display:block">'+(k>=0?'<span style="position:absolute;top:3px;left:3px;background:#f0507a;color:#fff;font-size:12px;font-weight:800;border-radius:99px;width:20px;height:20px;line-height:20px;text-align:center">'+(k+1)+'</span>':'')+'</button>';}).join(""):'<div class="hint" style="margin:0">본문에 사진을 넣으면 여기서 고를 수 있어요.</div>';
+  Array.prototype.forEach.call($("thpick").querySelectorAll("button"),function(b){b.addEventListener("click",function(){const u=b.dataset.u,k=SEL.indexOf(u);if(k>=0)SEL.splice(k,1);else if(SEL.length<4)SEL.push(u);renderPicker();});});
+}
+$("body").addEventListener("input",function(){if($("tag").value==="맛집")renderPicker();});
+function makeThumb(url){return new Promise(function(res,rej){const im=new Image();im.onload=function(){const S=480,c=document.createElement("canvas");c.width=S;c.height=S;const s=Math.min(im.naturalWidth,im.naturalHeight);c.getContext("2d").drawImage(im,(im.naturalWidth-s)/2,(im.naturalHeight-s)/2,s,s,0,0,S,S);res(c.toDataURL("image/jpeg",0.82));};im.onerror=function(){rej(new Error("사진을 읽지 못했어요: "+url));};im.src=url;});}
+async function buildThumbs(passcode){
+  if($("tag").value!=="맛집"||!SEL.length)return {thumbs:[],thumbSrc:[]};
+  if(OLD_THUMBS.length===SEL.length&&SEL.every(function(u,i){return OLD_SRC[i]===u;}))return {thumbs:OLD_THUMBS.slice(),thumbSrc:SEL.slice()};
+  const out=[];
+  for(const u of SEL){
+    const dataUrl=await makeThumb(u);
+    const r=await fetch("/api/upload-image",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({passcode:passcode,dataUrl:dataUrl})});
+    const j=await r.json();if(!r.ok)throw new Error("카드 사진 업로드 실패: "+(j.error||r.status));out.push(j.url);
+  }
+  return {thumbs:out,thumbSrc:SEL.slice()};
+}
+
 // ---- 맛집 글: 가게 위치 ----
 let PDONG="";
-function syncPlaceBox(){$("placebox").style.display=$("tag").value==="맛집"?"block":"none";}
+function syncPlaceBox(){const on=$("tag").value==="맛집";$("placebox").style.display=on?"block":"none";if(on)renderPicker();}
 $("tag").addEventListener("change",syncPlaceBox);
 function setPlace(pl){pl=pl||{};PDONG=pl.dong||"";$("pname").value=pl.name||"";$("paddr").value=pl.address||"";$("plat").value=pl.lat!=null?pl.lat:"";$("plng").value=pl.lng!=null?pl.lng:"";$("pcands").innerHTML="";}
 function getPlace(){
@@ -248,7 +274,7 @@ let POSTS=[],editId=null;
     const d=await r.json();if(!r.ok)throw new Error(d.error||("오류 "+r.status));
     $("tag").value=d.tag||"분석";if(d.dateISO)$("date").value=d.dateISO;
     $("title").value=d.title||"";$("lede").value=d.lede||"";$("body").value=d.body||"";$("summary").value=d.summary||"";
-    setPlace(d.place);syncPlaceBox();
+    setPlace(d.place);SEL=Array.isArray(d.thumbSrc)?d.thumbSrc.slice(0,4):[];OLD_SRC=[];OLD_THUMBS=[];syncPlaceBox();
     render();
     msg.className="msg ok";msg.textContent="초안을 불러왔습니다. 미리보기를 확인하고 패스코드 입력 후 발행하세요.";
   }catch(e){msg.className="msg err";msg.textContent="초안 불러오기 실패: "+e.message;}
@@ -259,7 +285,7 @@ function setMode(){
   $("publish").textContent=editId?"수정 저장":"발행하기";
   $("canceledit").style.display=editId?"inline-block":"none";
 }
-function clearForm(){$("title").value="";$("lede").value="";$("body").value="";$("summary").value="";setPlace(null);render();}
+function clearForm(){$("title").value="";$("lede").value="";$("body").value="";$("summary").value="";setPlace(null);SEL=[];OLD_SRC=[];OLD_THUMBS=[];render();}
 $("canceledit").addEventListener("click",function(){editId=null;clearForm();setMode();window.scrollTo(0,0);});
 
 async function api(payload){
@@ -280,7 +306,7 @@ function renderList(){
       const p=POSTS.filter(function(x){return x.id===b.dataset.id;})[0];if(!p)return;
       editId=p.id;$("tag").value=p.tag||"분석";$("date").value=p.dateISO||"";$("title").value=p.title||"";
       $("lede").value=p.lede||"";$("body").value=p.body||"";$("summary").value=p.summary||"";
-      setPlace(p.place);syncPlaceBox();
+      setPlace(p.place);SEL=(p.thumbSrc||[]).slice();OLD_SRC=(p.thumbSrc||[]).slice();OLD_THUMBS=(p.thumbs||[]).slice();syncPlaceBox();
       render();setMode();window.scrollTo(0,0);
     });
   });
@@ -379,6 +405,7 @@ $("publish").addEventListener("click",async function(){
   if(!payload.title||!payload.body){msg.className="msg err";msg.textContent="제목과 본문은 필수입니다.";return;}
   const btn=$("publish");btn.disabled=true;btn.textContent=editId?"저장 중…":"발행 중…";
   try{
+    const th=await buildThumbs(payload.passcode);payload.thumbs=th.thumbs;payload.thumbSrc=th.thumbSrc;
     const j=await api(payload);
     msg.className="msg ok";msg.innerHTML=(editId?"수정 저장 완료! ":"발행 완료! ")+'1~2분 뒤 사이트에 반영됩니다. <a href="'+j.url+'" target="_blank">글 보기 ↗</a>';
     editId=null;clearForm();setMode();

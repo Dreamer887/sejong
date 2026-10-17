@@ -96,6 +96,7 @@ export async function onRequestPost(context){
     });
     if(missing.length) return json({error:"본문 이미지 자리표시자에 해당 이미지가 없습니다: "+missing.join(", ")}, 400);
 
+    if(Array.isArray(d.cover)){ const ts=d.cover.map(function(n){ return map[String(n)]; }).filter(Boolean).slice(0,4); if(ts.length) draft.thumbSrc=ts; }
     const id=kstDate()+"-"+rid(10);
     draft.id=id;
     draft.createdAt=new Date().toISOString();

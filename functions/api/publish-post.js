@@ -36,6 +36,7 @@ function cleanPlace(pl){
     lat: isFinite(lat)&&lat>30&&lat<45 ? lat : null, lng: isFinite(lng)&&lng>120&&lng<135 ? lng : null };
   return (o.name||o.address||o.lat!=null) ? o : undefined;
 }
+function cleanImgs(a){ return Array.isArray(a) ? a.map(String).filter(function(u){ return /^\/img\/images\/[A-Za-z0-9._-]+$/.test(u); }).slice(0,4) : []; }
 function tagCls(t){ t=String(t||""); if(t==="맛집") return "tg-food"; if(t.indexOf("실거래")>=0) return "tg-brief"; if(t.indexOf("거래")>=0) return "tg-trade"; if(t.indexOf("시세")>=0) return "tg-price"; if(t.indexOf("정책")>=0||t.indexOf("공급")>=0) return "tg-policy"; return "tg-analysis"; }
 function inline(t){
   return t
@@ -188,7 +189,10 @@ function renderCards(posts, food){
   const sorted = posts.slice().sort(function(a,b){return (b.dateISO||"").localeCompare(a.dateISO||"") || (b.id||"").localeCompare(a.id||"");});
   if(!sorted.length) return "\n    <p style=\"color:#aab2c5;font-size:14px;grid-column:1/-1\">"+(food?"아직 올라온 맛집 후기가 없습니다.":"아직 발행된 글이 없습니다.")+"</p>\n  ";
   const pre = food ? "../blog/" : "./";
-  return "\n" + sorted.map(function(f){return '    <a class="postcard" data-id="'+esc(f.id)+'" href="'+pre+esc(f.id)+'">\n      <span class="tag '+tagCls(f.tag)+'">'+esc(f.tag)+'</span>\n      <h2>'+esc(f.title)+'</h2>\n      '+(food&&f.place&&f.place.address?'<p class="pcplace">📍 '+esc(f.place.name||"")+' · '+esc(f.place.dong||shortAddr(f.place.address))+'</p>\n      ':'')+'<p class="excerpt">'+esc((f.lede||"").slice(0,95))+'</p>\n      <span class="meta">'+esc(f.dateText)+' · '+esc(f.tag)+'</span>\n    </a>';}).join("\n") + "\n  ";
+  return "\n" + sorted.map(function(f){
+    const th = food ? cleanImgs(f.thumbs) : [];
+    const img = th.length ? '\n      <div class="pc-img n'+(th.length>=4?4:1)+'">'+(th.length>=4?th:th.slice(0,1)).map(function(u){return '<img src="'+esc(u)+'" alt="" loading="lazy">';}).join("")+'</div><div class="pc-body">' : "";
+    return '    <a class="postcard'+(th.length?' hasimg':'')+'" data-id="'+esc(f.id)+'" href="'+pre+esc(f.id)+'">'+img+'\n      <span class="tag '+tagCls(f.tag)+'">'+esc(f.tag)+'</span>\n      <h2>'+esc(f.title)+'</h2>\n      '+(food&&f.place&&f.place.address?'<p class="pcplace">📍 '+esc(f.place.name||"")+' · '+esc(f.place.dong||shortAddr(f.place.address))+'</p>\n      ':'')+'<p class="excerpt">'+esc((f.lede||"").slice(0,95))+'</p>\n      <span class="meta">'+esc(f.dateText)+' · '+esc(f.tag)+'</span>'+(th.length?'</div>':'')+'\n    </a>';}).join("\n") + "\n  ";
 }
 function shortAddr(a){ const m=String(a||"").match(/세종[^\s]*\s+(.+?)(\s+\d|$)/); return m?m[1]:String(a||""); }
 async function gh(C, path, opts){
@@ -302,6 +306,7 @@ export async function onRequestPost(context){
     f.tag=f.tag || "분석";
     const entry={id:f.id, title:f.title, tag:f.tag, lede:f.lede||"", body:f.body, summary:f.summary||"", dateISO:f.dateISO, dateText:f.dateText};
     const place=isFood(f)?cleanPlace(f.place):undefined; if(place) entry.place=place;
+    if(isFood(f)){ const th=cleanImgs(f.thumbs), ts=cleanImgs(f.thumbSrc); if(th.length){ entry.thumbs=th; entry.thumbSrc=ts; } }
     const {posts, sha}=await readPosts(C);
 
     if(action==="update"){
