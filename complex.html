@@ -37,6 +37,7 @@
   .topnav .navlinks a:hover{color:#16203a}
   .topnav .navlinks a.on{background:#fff;color:#5b6cff;box-shadow:0 8px 22px -12px rgba(40,55,110,.55)}
   .topnav .navlinks a.navblog{color:#fff;background:linear-gradient(135deg,#5b6cff,#a06bff)}
+  .topnav .navlinks a.navfood{color:#fff;background:linear-gradient(135deg,#ff8a4c,#f0507a)}
   .topnav .navcta{font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,#5b6cff,#a06bff);border:none;border-radius:99px;padding:10px 18px;cursor:pointer;white-space:nowrap;box-shadow:0 8px 20px -10px rgba(91,108,255,.85);text-decoration:none}
   .topnav .navcta:hover{filter:brightness(1.05)}
   @media(max-width:760px){.topnav{flex-wrap:wrap}.topnav .navlinks{flex-wrap:wrap;justify-content:center}.topnav .navcta{display:none}}
@@ -119,6 +120,12 @@
   .check li{display:grid;grid-template-columns:16px 1fr;gap:8px;font-size:14.5px}
   .check li::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--amber);margin-top:9px}
   /* 대중교통 */
+  .foods{display:grid;gap:10px}
+  .food{display:grid;grid-template-columns:1fr auto;gap:2px 12px;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:13px 16px;background:#fff8f3}
+  .food:hover{border-color:#f0c4a8}
+  .food .fn{font-size:15px;font-weight:800}
+  .food .fd{font-size:12.5px;font-weight:700;color:#b4441f;align-self:center}
+  .food .ft{grid-column:1/-1;font-size:13px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .transit{display:grid;grid-template-columns:190px minmax(0,1fr);border:1px solid var(--line);border-radius:14px;overflow:hidden}
   .transit .score{background:linear-gradient(160deg,#eef0ff,#f4eeff);padding:20px 18px;display:flex;flex-direction:column;justify-content:center;gap:4px}
   .transit .lab{font-size:12.5px;font-weight:700;color:#5b6cff}
@@ -155,7 +162,7 @@
   <nav class="topnav">
     <a class="brand" href="/" title="처음으로"><svg width="48" height="48" viewBox="0 0 48 48" style="flex:none" aria-hidden="true"><defs><linearGradient id="blg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b6cff"/><stop offset="1" stop-color="#a06bff"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#blg)"/><rect x="9" y="13" width="13" height="25" rx="1.6" fill="#fff"/><rect x="11.4" y="16.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="16.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="11.4" y="21" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="21" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="11.4" y="25.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="25.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><circle cx="31" cy="27" r="7" fill="url(#blg)" stroke="#fff" stroke-width="2.6"/><line x1="36" y1="32" x2="40.5" y2="36.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg><span style="display:inline-block;line-height:1"><span style="display:block;font-family:'Jua','Apple SD Gothic Neo',sans-serif;font-size:36px;letter-spacing:-1px;background:linear-gradient(120deg,#4b46c4,#9a6bf2);-webkit-background-clip:text;background-clip:text;color:transparent">세부인</span><span style="display:block;font-size:10px;font-weight:600;color:#727e98;margin-top:4px;text-align:justify;text-align-last:justify">세종 부동산 인사이트</span></span></a>
     <div class="navlinks">
-      <a href="/#trade">오늘의 세종</a><a href="/#market">시장지표</a><a href="/#trend">동·단지별 매매가 추이</a><a href="/#position">전국 지역 비교</a><a href="/complex" class="on">단지 정보</a><a class="navblog" href="/blog/">분석 ✦</a>
+      <a href="/#trade">오늘의 세종</a><a href="/#market">시장지표</a><a href="/#trend">동·단지별 매매가 추이</a><a href="/#position">전국 지역 비교</a><a href="/complex" class="on">단지 정보</a><a class="navblog" href="/blog/">분석 ✦</a><a class="navfood" href="/matjip/">맛집 ✦</a>
     </div>
   </nav>
 
@@ -229,14 +236,16 @@
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const enc = s => encodeURIComponent(s);
-let DATA = [], BUILT = "", TR = null, IT = null, topIdx = {}, TOPMAX = 100, curDong = "전체", curId = 0;
+let DATA = [], BUILT = "", TR = null, IT = null, FOOD = [], topIdx = {}, TOPMAX = 100, curDong = "전체", curId = 0;
 
 Promise.all([
   fetch("/complexes.json").then(r => r.json()),
   fetch("/transit.json").then(r => r.json()).catch(() => null),
-  fetch("/interest.json").then(r => r.json()).catch(() => null)
-]).then(([c, t, i]) => {
+  fetch("/interest.json").then(r => r.json()).catch(() => null),
+  fetch("/blog/posts.json").then(r => r.json()).catch(() => [])
+]).then(([c, t, i, p]) => {
   DATA = c.data; BUILT = c.built; TR = t; IT = i;
+  FOOD = (Array.isArray(p) ? p : []).filter(x => x && x.tag === "맛집" && x.place && x.place.lat != null && x.place.lng != null);
   init();
 }).catch(() => { $("#card").innerHTML = `<div class="loading">데이터를 불러오지 못했어요. 잠시 후 다시 열어주세요.</div>`; });
 
@@ -296,6 +305,25 @@ function transitHTML(d) {
     <div class="more"><a href="/bus-reach#${enc(d.이름)}">버스로 환승 없이 갈 수 있는 범위 지도로 보기 →</a></div>
   </section>`;
 }
+// 주변 맛집: 세부인 맛집 후기 중 단지 중심에서 직선 1km 안에 있는 가게 (없으면 섹션을 숨김)
+function distM(a, b, c, d) {
+  const R = 6371000, r = x => x * Math.PI / 180;
+  const h = Math.sin(r(c - a) / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(r(d - b) / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function foodHTML(d) {
+  const t = TR && TR.data[d.이름];
+  if (!t || t[4] == null || !FOOD.length) return "";
+  const rows = FOOD.map(p => [p, distM(t[4], t[5], p.place.lat, p.place.lng)]).filter(([, m]) => m <= 1000).sort((a, b) => a[1] - b[1]).slice(0, 6);
+  if (!rows.length) return "";
+  const dist = m => m < 100 ? "100m 이내" : `약 ${(Math.round(m / 50) * 50).toLocaleString()}m`;
+  return `<section>
+    <h3>주변 맛집</h3>
+    <p class="sub">세부인이 직접 다녀온 곳 중 단지에서 직선 1km 안에 있는 가게예요.</p>
+    <div class="foods">${rows.map(([p, m]) => `<a class="food" href="/blog/${enc(p.id)}"><span class="fn">${esc(p.place.name || p.title)}</span><span class="fd">${dist(m)}</span><span class="ft">${esc(p.title)}</span></a>`).join("")}</div>
+    <div class="more"><a href="/matjip/">세종 동네 맛집 전체 보기 →</a></div>
+  </section>`;
+}
 function show(i, scroll) {
   curId = i; const d = DATA[i]; if (!d) return;
   document.querySelectorAll(".item").forEach(x => x.setAttribute("aria-current", +x.dataset.i === i));
@@ -332,6 +360,7 @@ function show(i, scroll) {
   </section>
   ${chk}
   ${transitHTML(d)}
+  ${foodHTML(d)}
   ${hot}
   <section>
     <h3>같은 동 단지</h3>

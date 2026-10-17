@@ -68,7 +68,7 @@ export async function onRequestPost(context){
     if(!draft.title || !draft.body) return json({error:"제목과 본문은 필수입니다."}, 400);
     if(d.place && typeof d.place==="object"){
       const lat=Number(d.place.lat), lng=Number(d.place.lng);
-      draft.place={ name:str(d.place.name,100), address:str(d.place.address,200),
+      draft.place={ name:str(d.place.name,100), address:str(d.place.address,200), dong:str(d.place.dong,12),
         lat: isFinite(lat)?lat:null, lng: isFinite(lng)?lng:null };
     }
 

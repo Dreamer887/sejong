@@ -48,6 +48,7 @@
   .mrow button{font-size:12.5px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer}
   .mrow .edit{color:var(--indigo)} .mrow .del{color:#c0392b}
   .pv-tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:#eef0ff;color:var(--indigo)}
+  .pv-tag.tg-food{color:#b4441f;background:#fdeee6}
   .pv-tag.tg-analysis{color:#5b6cff;background:#eef0ff}.pv-tag.tg-trade{color:#0f6e56;background:#e1f5ee}.pv-tag.tg-price{color:#92510b;background:#faeeda}.pv-tag.tg-policy{color:#993556;background:#fbeaf0}.pv-tag.tg-brief{color:#0b6b8f;background:#e0f2f9}
   .pv h1{font-size:23px;font-weight:800;line-height:1.35;margin:11px 0 6px}
   .pv .pv-meta{color:#aab2c5;font-size:12.5px;font-weight:600}
@@ -101,12 +102,23 @@
             <option>시세 흐름</option>
             <option>정책·공급</option>
             <option>분석</option>
+            <option>맛집</option>
           </select>
         </div>
         <div>
           <label>날짜</label>
           <input id="date" type="date">
         </div>
+      </div>
+
+      <div id="placebox" style="display:none;background:#fff8f3;border:1px solid #f6dccb;border-radius:12px;padding:4px 14px 14px;margin-top:14px">
+        <label>가게 이름 (맛집 글 전용)</label>
+        <div class="row"><div style="flex:3"><input id="pname" placeholder="예: 올리부스 꼼파뇨 세종보람점"></div><div style="flex:1"><button type="button" class="imgbtn" id="pfind" style="width:100%;justify-content:center;padding:10px">📍 위치 찾기</button></div></div>
+        <div id="pcands"></div>
+        <label>주소</label>
+        <input id="paddr" placeholder="위치 찾기로 자동 입력">
+        <div class="row"><div><label>위도</label><input id="plat" inputmode="decimal"></div><div><label>경도</label><input id="plng" inputmode="decimal"></div></div>
+        <div class="hint">좌표가 있으면 단지 정보의 '주변 맛집'과 글 하단 '근처 아파트 단지'에 자동으로 연결돼요(직선 1km).</div>
       </div>
 
       <label>제목</label>
@@ -141,6 +153,14 @@
       <h2>미리보기</h2>
       <div class="pv" id="preview"></div>
     </div>
+  </div>
+
+  <div class="panel manage">
+    <div style="display:flex;align-items:center;gap:10px">
+      <h2 style="margin:0">초안 관리</h2>
+      <button class="imgbtn" id="loaddrafts">초안 목록 불러오기</button>
+    </div>
+    <div class="mlist" id="dlist"><div style="font-size:13px;color:#aab2c5">Claude가 올린 초안이 여기 모여요. 발행했거나 필요 없는 초안은 삭제하면 그 초안에만 쓰인 사진도 함께 지워져요.</div></div>
   </div>
 
   <div class="panel manage">
@@ -180,7 +200,7 @@ const $=id=>document.getElementById(id);
 function fmtDate(iso){if(!iso)return"";const p=iso.split("-");return p[0]+". "+(+p[1])+". "+(+p[2])+".";}
 function render(){
   const tag=$("tag").value,title=$("title").value||"제목을 입력하세요",lede=$("lede").value,body=$("body").value,summary=$("summary").value,date=fmtDate($("date").value);
-  let h='<span class="pv-tag '+(function(t){t=String(t||"");if(t.indexOf("실거래")>=0)return"tg-brief";if(t.indexOf("거래")>=0)return"tg-trade";if(t.indexOf("시세")>=0)return"tg-price";if(t.indexOf("정책")>=0||t.indexOf("공급")>=0)return"tg-policy";return"tg-analysis";})(tag)+'">'+esc(tag)+'</span><h1>'+esc(title)+'</h1><div class="pv-meta">'+esc(date)+' · 작성: 투자되지</div>';
+  let h='<span class="pv-tag '+(function(t){t=String(t||"");if(t==="맛집")return"tg-food";if(t.indexOf("실거래")>=0)return"tg-brief";if(t.indexOf("거래")>=0)return"tg-trade";if(t.indexOf("시세")>=0)return"tg-price";if(t.indexOf("정책")>=0||t.indexOf("공급")>=0)return"tg-policy";return"tg-analysis";})(tag)+'">'+esc(tag)+'</span><h1>'+esc(title)+'</h1><div class="pv-meta">'+esc(date)+' · 작성: 투자되지</div>';
   if(lede)h+='<div class="pv-lede"><div class="a-cap">들어가며</div>'+richLines(lede)+'</div>';
   h+=bodyToHtml(body);
   if(summary)h+='<div class="pv-summary"><b>한 줄 요약</b>'+richLines(summary)+'</div>';
@@ -190,6 +210,32 @@ const now=new Date(Date.now()+9*3600*1000);
 $("date").value=now.toISOString().slice(0,10);
 ["tag","title","lede","body","summary","date"].forEach(id=>$(id).addEventListener("input",render));
 render();
+
+// ---- 맛집 글: 가게 위치 ----
+let PDONG="";
+function syncPlaceBox(){$("placebox").style.display=$("tag").value==="맛집"?"block":"none";}
+$("tag").addEventListener("change",syncPlaceBox);
+function setPlace(pl){pl=pl||{};PDONG=pl.dong||"";$("pname").value=pl.name||"";$("paddr").value=pl.address||"";$("plat").value=pl.lat!=null?pl.lat:"";$("plng").value=pl.lng!=null?pl.lng:"";$("pcands").innerHTML="";}
+function getPlace(){
+  if($("tag").value!=="맛집")return undefined;
+  const lat=parseFloat($("plat").value),lng=parseFloat($("plng").value);
+  const pl={name:$("pname").value.trim(),address:$("paddr").value.trim(),dong:PDONG,lat:isFinite(lat)?lat:null,lng:isFinite(lng)?lng:null};
+  return (pl.name||pl.address)?pl:undefined;
+}
+$("pfind").addEventListener("click",async function(){
+  const q=$("pname").value.trim();const box=$("pcands");
+  if(!q){box.innerHTML='<div class="hint">가게 이름을 먼저 입력하세요.</div>';return;}
+  box.innerHTML='<div class="hint">찾는 중…</div>';
+  try{
+    const r=await fetch("/api/naver-search?type=local&display=5&query="+encodeURIComponent(q));const j=await r.json();
+    if(!r.ok)throw new Error(j.error||r.status);
+    const it=(j.items||[]).filter(x=>x.lat!=null);
+    if(!it.length){box.innerHTML='<div class="hint">검색 결과가 없어요. 동네 이름을 붙여 다시 찾아보세요(예: 보람동 ○○).</div>';return;}
+    box.innerHTML=it.map((x,i)=>'<button type="button" class="linkbtn" data-i="'+i+'" style="display:block;text-align:left;text-decoration:none;margin-top:8px">📍 <b>'+esc(x.title)+'</b> <span style="color:#aab2c5">'+esc(x.roadAddress||x.address)+'</span></button>').join("");
+    Array.prototype.forEach.call(box.querySelectorAll("button"),function(b){b.addEventListener("click",function(){const x=it[+b.dataset.i];const dm=String(x.address||"").match(/(\S+(동|읍|면))(\s|$)/);setPlace({name:x.title,address:x.roadAddress||x.address,dong:dm?dm[1]:"",lat:x.lat,lng:x.lng});});});
+  }catch(e){box.innerHTML='<div class="hint">위치 찾기 실패: '+esc(e.message)+'</div>';}
+});
+syncPlaceBox();
 
 let POSTS=[],editId=null;
 
@@ -202,6 +248,7 @@ let POSTS=[],editId=null;
     const d=await r.json();if(!r.ok)throw new Error(d.error||("오류 "+r.status));
     $("tag").value=d.tag||"분석";if(d.dateISO)$("date").value=d.dateISO;
     $("title").value=d.title||"";$("lede").value=d.lede||"";$("body").value=d.body||"";$("summary").value=d.summary||"";
+    setPlace(d.place);syncPlaceBox();
     render();
     msg.className="msg ok";msg.textContent="초안을 불러왔습니다. 미리보기를 확인하고 패스코드 입력 후 발행하세요.";
   }catch(e){msg.className="msg err";msg.textContent="초안 불러오기 실패: "+e.message;}
@@ -212,7 +259,7 @@ function setMode(){
   $("publish").textContent=editId?"수정 저장":"발행하기";
   $("canceledit").style.display=editId?"inline-block":"none";
 }
-function clearForm(){$("title").value="";$("lede").value="";$("body").value="";$("summary").value="";render();}
+function clearForm(){$("title").value="";$("lede").value="";$("body").value="";$("summary").value="";setPlace(null);render();}
 $("canceledit").addEventListener("click",function(){editId=null;clearForm();setMode();window.scrollTo(0,0);});
 
 async function api(payload){
@@ -233,6 +280,7 @@ function renderList(){
       const p=POSTS.filter(function(x){return x.id===b.dataset.id;})[0];if(!p)return;
       editId=p.id;$("tag").value=p.tag||"분석";$("date").value=p.dateISO||"";$("title").value=p.title||"";
       $("lede").value=p.lede||"";$("body").value=p.body||"";$("summary").value=p.summary||"";
+      setPlace(p.place);syncPlaceBox();
       render();setMode();window.scrollTo(0,0);
     });
   });
@@ -256,6 +304,29 @@ async function loadList(){
   finally{btn.disabled=false;btn.textContent="목록 새로고침";}
 }
 $("loadlist").addEventListener("click",loadList);
+
+async function draftsApi(payload){
+  const r=await fetch("/api/drafts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  const j=await r.json();if(!r.ok)throw new Error(j.error||("오류 "+r.status));return j;
+}
+async function loadDrafts(){
+  const pc=$("passcode").value,box=$("dlist");
+  if(!pc){box.innerHTML='<div style="font-size:13px;color:#aab2c5">패스코드를 먼저 입력하세요.</div>';return;}
+  try{
+    const j=await draftsApi({action:"list",passcode:pc});const ds=j.drafts||[];
+    if(!ds.length){box.innerHTML='<div style="font-size:13px;color:#aab2c5">남아 있는 초안이 없습니다.</div>';return;}
+    box.innerHTML=ds.map(function(d){return '<div class="mrow"><div class="mt"><b>'+esc(d.title)+'</b><span>'+esc(d.tag)+' · '+esc(String(d.createdAt||"").slice(0,16).replace("T"," "))+'</span></div><button class="edit" data-id="'+esc(d.id)+'">열기</button><button class="del" data-id="'+esc(d.id)+'">삭제</button></div>';}).join("");
+    Array.prototype.forEach.call(box.querySelectorAll(".edit"),function(b){b.addEventListener("click",function(){location.href="/admin/?draft="+encodeURIComponent(b.dataset.id);});});
+    Array.prototype.forEach.call(box.querySelectorAll(".del"),function(b){b.addEventListener("click",async function(){
+      if(!confirm("이 초안을 삭제할까요? 초안에만 쓰인 사진도 함께 지워지고 되돌릴 수 없습니다."))return;
+      b.disabled=true;
+      try{await draftsApi({action:"delete",passcode:$("passcode").value,id:b.dataset.id});await loadDrafts();}
+      catch(e){alert("삭제 실패: "+e.message);b.disabled=false;}
+    });});
+  }catch(e){box.innerHTML='<div style="font-size:13px;color:#c0392b">초안 목록 불러오기 실패: '+esc(e.message)+'</div>';}
+}
+$("loaddrafts").addEventListener("click",loadDrafts);
+setMode();
 
 function wrapSel(mark){
   const ta=$("body"),s=ta.selectionStart,e=ta.selectionEnd,v=ta.value,top=ta.scrollTop;
@@ -301,7 +372,8 @@ $("publish").addEventListener("click",async function(){
     action:editId?"update":"create",id:editId||undefined,
     passcode:$("passcode").value,tag:$("tag").value,title:$("title").value.trim(),
     lede:$("lede").value.trim(),body:$("body").value,summary:$("summary").value.trim(),
-    dateISO:$("date").value,dateText:fmtDate($("date").value)
+    dateISO:$("date").value,dateText:fmtDate($("date").value),
+    place:getPlace()
   };
   if(!payload.passcode){msg.className="msg err";msg.textContent="패스코드를 입력하세요.";return;}
   if(!payload.title||!payload.body){msg.className="msg err";msg.textContent="제목과 본문은 필수입니다.";return;}

@@ -52,7 +52,7 @@ function homePage() {
   const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const tc = t => { t = String(t || ""); if (t.includes("실거래")) return "tg-brief"; if (t.includes("거래")) return "tg-trade"; if (t.includes("시세")) return "tg-price"; if (t.includes("정책") || t.includes("공급")) return "tg-policy"; return "tg-analysis"; };
   const posts = JSON.parse(read("blog/posts.json"))
-    .filter(p => String(p && p.tag || "") !== "실거래 동향")
+    .filter(p => !["실거래 동향", "맛집"].includes(String(p && p.tag || "")))
     .sort((a, b) => (b.dateISO || "").localeCompare(a.dateISO || ""))
     .slice(0, 6);
   const html = posts.map(p => '<a class="bt-card" href="./blog/' + encodeURIComponent(p.id) + '"><span class="bt-tag ' + tc(p.tag) + '">' + esc(p.tag || "분석") + "</span><h3>" + esc(p.title) + "</h3><p>" + esc((p.lede || "").slice(0, 70)) + '</p><div class="bt-date">' + esc(p.dateText || "") + "</div></a>").join("");
@@ -83,6 +83,28 @@ const REL_CSS = `<style>.rel{margin:22px 0 0;background:#fff;border:1px solid #e
 a.autolink{color:#4b56d8;text-decoration:underline;text-decoration-color:#c9cff8;text-underline-offset:3px}
 @media(max-width:600px){.rel{padding:20px 18px}}</style>`;
 
+// ---- 맛집 ↔ 단지 거리 (transit.json의 단지 중심 좌표 기준, 직선거리) ----
+const NEAR_M = 1000;
+function distM(a, b, c, d) {
+  const R = 6371000, r = x => x * Math.PI / 180;
+  const h = Math.sin(r(c - a) / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(r(d - b) / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function nearComplexes(pl) {
+  if (!pl || pl.lat == null || pl.lng == null) return [];
+  const tr = JSON.parse(read("transit.json")).data || {};
+  return Object.entries(tr).map(([name, v]) => [name, distM(pl.lat, pl.lng, v[4], v[5])])
+    .filter(([, m]) => m <= NEAR_M).sort((x, y) => x[1] - y[1]).slice(0, 8);
+}
+const NEAR_CSS = `<style>.nearc{margin:22px 0 0;background:#fff;border:1px solid #e4e8f0;border-radius:20px;padding:24px 26px}
+.nearc h2{font-size:17px;font-weight:800;margin:0 0 4px;color:#16203a}
+.nearc p{font-size:13px;color:#727e98;margin:0 0 14px}
+.nearc ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.nearc a{display:inline-flex;gap:6px;align-items:baseline;text-decoration:none;border:1px solid #eef1f8;border-radius:99px;padding:8px 14px;background:#fafbfd;font-size:14px;font-weight:700;color:#16203a}
+.nearc a:hover{border-color:#c3cbe8;background:#f6f7ff}
+.nearc small{font-size:12px;font-weight:600;color:#727e98}
+@media(max-width:600px){.nearc{padding:20px 18px}}</style>`;
+
 function blogPosts() {
   const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const posts = JSON.parse(read("blog/posts.json")).filter(p => String(p.tag || "") !== "실거래 동향");
@@ -96,6 +118,7 @@ function blogPosts() {
     let src; try { src = read(path); } catch { continue; }
     // 1) 이전에 넣은 것 걷어내기
     src = src.replace(/\n[ \t]*<!--auto:related-->[\s\S]*?<!--\/auto:related-->/g, "")
+             .replace(/\n[ \t]*<!--auto:near-->[\s\S]*?<!--\/auto:near-->/g, "")
              .replace(/<a class="autolink" href="[^"]*">([\s\S]*?)<\/a>/g, "$1");
     // 2) 본문 용어 링크 — 일반 문단·목록의 글자 부분에만, 자기 글로 가는 링크는 넣지 않음
     const used = new Set();
@@ -113,12 +136,20 @@ function blogPosts() {
       return `<${tag}${attr}>${parts.join("")}</${tag}>`;
     }) + z);
     // 3) 함께 읽으면 좋은 글 3개
-    const rel = posts.filter(q => q.id !== p.id).map(q => [q, sim(p, q)]).sort((x, y) => y[1] - x[1] || (y[0].dateISO || "").localeCompare(x[0].dateISO || "")).slice(0, 3).map(x => x[0]);
+    const food = p.tag === "맛집";
+    const rel = posts.filter(q => q.id !== p.id && (q.tag === "맛집") === food).map(q => [q, sim(p, q)]).sort((x, y) => y[1] - x[1] || (y[0].dateISO || "").localeCompare(x[0].dateISO || "")).slice(0, 3).map(x => x[0]);
     const block = `<!--auto:related--><section class="rel" aria-labelledby="rel-h">${REL_CSS}<h2 id="rel-h">함께 읽으면 좋은 글</h2><ul>` +
       rel.map(q => `<li><a href="./${encodeURIComponent(q.id)}"><span class="rt">${esc(q.tag || "분석")}</span><b>${esc(q.title)}</b><small>${esc(q.dateText || "")}</small></a></li>`).join("") +
-      `</ul><a class="all" href="./">분석 글 전체 보기 →</a></section><!--/auto:related-->`;
+      `</ul><a class="all" href="${food ? "../matjip/" : "./"}">${food ? "맛집 후기 전체 보기 →" : "분석 글 전체 보기 →"}</a></section><!--/auto:related-->`;
     if (!src.includes("</article>")) continue;
-    src = src.replace("</article>", "</article>\n  " + block);
+    let near = "";
+    if (food) {
+      const nc = nearComplexes(p.place);
+      if (nc.length) near = `<!--auto:near--><section class="nearc" aria-labelledby="near-h">${NEAR_CSS}<h2 id="near-h">이 가게 근처 아파트 단지</h2><p>가게에서 직선거리 1km 안에 있는 단지예요. 누르면 단지 정보로 이동해요.</p><ul>` +
+        nc.map(([n, m]) => `<li><a href="/complex#${encodeURIComponent(n)}">${esc(n)}<small>${m < 100 ? "100m 이내" : "약 " + (Math.round(m / 50) * 50).toLocaleString() + "m"}</small></a></li>`).join("") +
+        `</ul></section><!--/auto:near-->\n  `;
+    }
+    src = src.replace("</article>", "</article>\n  " + near + (rel.length ? block : ""));
     writeFileSync(join(ROOT, path), src); touched++;
   }
   console.log("blog ✓", touched, "개 글에 관련 글·내부 링크");

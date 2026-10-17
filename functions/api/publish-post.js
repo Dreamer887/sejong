@@ -27,7 +27,16 @@ function esc(s){
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 function validId(id){ return typeof id==="string" && /^\d{4}-\d{2}-\d{2}-[a-z0-9]{6}\.html$/.test(id); }
-function tagCls(t){ t=String(t||""); if(t.indexOf("실거래")>=0) return "tg-brief"; if(t.indexOf("거래")>=0) return "tg-trade"; if(t.indexOf("시세")>=0) return "tg-price"; if(t.indexOf("정책")>=0||t.indexOf("공급")>=0) return "tg-policy"; return "tg-analysis"; }
+function isFood(f){ return String(f&&f.tag||"")==="맛집"; }
+function cleanPlace(pl){
+  if(!pl||typeof pl!=="object") return undefined;
+  const lat=Number(pl.lat), lng=Number(pl.lng);
+  const dong=String(pl.dong||"").trim().match(/^[가-힣0-9]{1,10}(동|읍|면)$/);
+  const o={ name:String(pl.name||"").slice(0,100).trim(), address:String(pl.address||"").slice(0,200).trim(), dong: dong?dong[0]:"",
+    lat: isFinite(lat)&&lat>30&&lat<45 ? lat : null, lng: isFinite(lng)&&lng>120&&lng<135 ? lng : null };
+  return (o.name||o.address||o.lat!=null) ? o : undefined;
+}
+function tagCls(t){ t=String(t||""); if(t==="맛집") return "tg-food"; if(t.indexOf("실거래")>=0) return "tg-brief"; if(t.indexOf("거래")>=0) return "tg-trade"; if(t.indexOf("시세")>=0) return "tg-price"; if(t.indexOf("정책")>=0||t.indexOf("공급")>=0) return "tg-policy"; return "tg-analysis"; }
 function inline(t){
   return t
     .replace(/\+\+(.+?)\+\+/g,'<span class="big">$1</span>')
@@ -64,6 +73,15 @@ function buildPostHtml(f, BASE){
   const url = BASE+"/blog/"+f.id;
   const lede = f.lede ? '<div class="a-lede"><div class="a-cap">들어가며</div>'+richLines(f.lede)+'</div>' : "";
   const summary = f.summary ? '<div class="a-summary"><b>한 줄 요약</b>'+richLines(f.summary)+'</div>' : "";
+  const food = isFood(f);
+  const pl = food ? f.place : null;
+  const placeBox = (pl && (pl.name || pl.address)) ? '<div class="a-place"><b>📍 '+esc(pl.name||"가게 위치")+'</b>'+(pl.address?'<span>'+esc(pl.address)+'</span>':'')+'<a href="https://map.naver.com/p/search/'+encodeURIComponent((pl.name||pl.address))+'" target="_blank" rel="noopener">네이버 지도에서 보기 →</a></div>' : "";
+  const listHref = food ? "../matjip/" : "./index.html";
+  const listText = food ? "← 맛집 목록으로" : "← 분석 목록으로";
+  const source = food
+    ? '<p class="a-source">직접 방문해서 쓴 후기예요. 영업시간·메뉴·가격은 바뀔 수 있으니 방문 전에 한 번 더 확인하세요.</p>'
+    : '<p class="a-source">데이터 출처: 국토교통부 실거래가 공개시스템(rt.molit.go.kr). 본 글은 공개 데이터를 바탕으로 한 작성자의 해석이며 투자 권유가 아닙니다.</p>';
+  const footSrc = food ? "작성: 투자되지 · 세종 동네 맛집 후기" : "작성: 투자되지 · 데이터 출처: 국토교통부 실거래가 공개시스템(rt.molit.go.kr)";
   return `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -105,7 +123,7 @@ ${JSON.stringify({"@context":"https://schema.org","@type":"Article",headline:f.t
   article{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:38px 40px}
   @media(max-width:600px){article{padding:28px 22px}}
   .a-tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 11px;border-radius:99px;background:#eef0ff;color:var(--indigo)}
-  .a-tag.tg-analysis{color:#5b6cff;background:#eef0ff}.a-tag.tg-trade{color:#0f6e56;background:#e1f5ee}.a-tag.tg-price{color:#92510b;background:#faeeda}.a-tag.tg-policy{color:#993556;background:#fbeaf0}.a-tag.tg-brief{color:#0b6b8f;background:#e0f2f9}
+  .a-tag.tg-analysis{color:#5b6cff;background:#eef0ff}.a-tag.tg-trade{color:#0f6e56;background:#e1f5ee}.a-tag.tg-price{color:#92510b;background:#faeeda}.a-tag.tg-policy{color:#993556;background:#fbeaf0}.a-tag.tg-brief{color:#0b6b8f;background:#e0f2f9}.a-tag.tg-food{color:#b4441f;background:#fdeee6}
   article h1{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1.35;margin:14px 0 10px}
   .a-meta{color:#aab2c5;font-size:13px;font-weight:600;margin-bottom:8px}
   .a-lede{background:#f6f7ff;border:1px solid #e3e6ff;border-left:5px solid var(--indigo);border-radius:14px;padding:18px 22px;margin:18px 0 26px}
@@ -129,6 +147,10 @@ ${JSON.stringify({"@context":"https://schema.org","@type":"Article",headline:f.t
   .a-summary{background:#f6f7ff;border:1px solid #e3e6ff;border-left:5px solid var(--indigo);border-radius:14px;padding:20px 22px;margin:28px 0}
   .a-summary b{color:var(--indigo)}
   .a-summary p{font-size:15.5px;color:#2b3550;margin:8px 0 0}
+  .a-place{display:flex;flex-direction:column;gap:4px;background:#fff8f3;border:1px solid #f6dccb;border-radius:14px;padding:16px 20px;margin:24px 0 0}
+  .a-place b{font-size:15px;color:#16203a}.a-place span{font-size:14px;color:#2b3550}.a-place a{font-size:13px;font-weight:700;color:#b4441f;text-decoration:none;margin-top:4px}
+  .topnav .navlinks a{white-space:nowrap}
+  @media(max-width:600px){.topnav{flex-wrap:wrap}.topnav .navlinks{margin-left:auto}.topnav .navlinks a{padding:7px 12px}}
   .a-source{margin-top:30px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--sub)}
   .backlink{display:inline-block;margin:0 0 10px;font-size:13px;font-weight:700;color:var(--indigo);text-decoration:none}
   .backlink:hover{text-decoration:underline}
@@ -139,9 +161,9 @@ ${JSON.stringify({"@context":"https://schema.org","@type":"Article",headline:f.t
 <div class="wrap">
   <nav class="topnav">
     <a class="brand" href="../index.html"><svg width="48" height="48" viewBox="0 0 48 48" style="flex:none" aria-hidden="true"><defs><linearGradient id="blg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b6cff"/><stop offset="1" stop-color="#a06bff"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#blg)"/><rect x="9" y="13" width="13" height="25" rx="1.6" fill="#fff"/><rect x="11.4" y="16.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="16.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="11.4" y="21" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="21" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="11.4" y="25.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="25.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><circle cx="31" cy="27" r="7" fill="url(#blg)" stroke="#fff" stroke-width="2.6"/><line x1="36" y1="32" x2="40.5" y2="36.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg><span style="display:inline-block;line-height:1"><span style="display:block;font-family:'Jua','Apple SD Gothic Neo',sans-serif;font-size:36px;letter-spacing:-1px;background:linear-gradient(120deg,#4b46c4,#9a6bf2);-webkit-background-clip:text;background-clip:text;color:transparent">세부인</span><span style="display:block;font-size:10px;font-weight:600;color:#727e98;margin-top:4px;text-align:justify;text-align-last:justify">세종 부동산 인사이트</span></span></a>
-    <div class="navlinks"><a href="../index.html">대시보드</a><a href="./index.html" class="on">분석</a></div>
+    <div class="navlinks"><a href="../index.html">대시보드</a><a href="./index.html"${food?"":' class="on"'}>분석</a><a href="../matjip/"${food?' class="on"':""}>맛집</a></div>
   </nav>
-  <a class="backlink" href="./index.html">← 분석 목록으로</a>
+  <a class="backlink" href="${listHref}">${listText}</a>
   <article>
     <span class="a-tag ${tagCls(f.tag)}">${esc(f.tag)}</span>
     <h1>${esc(f.title)}</h1>
@@ -150,21 +172,25 @@ ${JSON.stringify({"@context":"https://schema.org","@type":"Article",headline:f.t
     <div class="ad-slot"><span class="adlabel">광고 영역 · Google AdSense</span></div>
     ${bodyToHtml(f.body)}
     ${summary}
-    <p class="a-source">데이터 출처: 국토교통부 실거래가 공개시스템(rt.molit.go.kr). 본 글은 공개 데이터를 바탕으로 한 작성자의 해석이며 투자 권유가 아닙니다.</p>
+    ${placeBox}
+    ${source}
   </article>
   <div class="ad-slot"><span class="adlabel">광고 영역 · Google AdSense</span></div>
-  <a class="backlink" href="./index.html">← 분석 목록으로</a>
-  <footer>작성: 투자되지 · 데이터 출처: 국토교통부 실거래가 공개시스템(rt.molit.go.kr)<br><a href="../privacy.html" style="color:#aab2c5;text-decoration:none;font-weight:600">개인정보처리방침</a> · <a href="../terms.html" style="color:#aab2c5;text-decoration:none;font-weight:600">이용약관</a> · <a href="../about.html" style="color:#aab2c5;text-decoration:none;font-weight:600">소개</a> · <a href="../contact.html" style="color:#aab2c5;text-decoration:none;font-weight:600">문의</a><br><span style="display:inline-block;margin-top:12px;line-height:1.6">세부인이 제공하는 정보는 무단 복제·배포·전송 등 이용할 수 없으며, 이를 무단 이용하는 경우 저작권법 등에 따라 법적 책임을 질 수 있습니다.</span><br><strong style="display:inline-block;margin-top:6px;color:#aab2c5">Copyright © 2026. 세부인(세종 부동산 인사이트) All Rights Reserved.</strong></footer>
+  <a class="backlink" href="${listHref}">${listText}</a>
+  <footer>${footSrc}<br><a href="../privacy.html" style="color:#aab2c5;text-decoration:none;font-weight:600">개인정보처리방침</a> · <a href="../terms.html" style="color:#aab2c5;text-decoration:none;font-weight:600">이용약관</a> · <a href="../about.html" style="color:#aab2c5;text-decoration:none;font-weight:600">소개</a> · <a href="../contact.html" style="color:#aab2c5;text-decoration:none;font-weight:600">문의</a><br><span style="display:inline-block;margin-top:12px;line-height:1.6">세부인이 제공하는 정보는 무단 복제·배포·전송 등 이용할 수 없으며, 이를 무단 이용하는 경우 저작권법 등에 따라 법적 책임을 질 수 있습니다.</span><br><strong style="display:inline-block;margin-top:6px;color:#aab2c5">Copyright © 2026. 세부인(세종 부동산 인사이트) All Rights Reserved.</strong></footer>
 </div>
 </body>
 </html>
 `;
 }
-function renderCards(posts){
+function renderCards(posts, food){
+  posts = posts.filter(function(p){ return food ? isFood(p) : !isFood(p); });
   const sorted = posts.slice().sort(function(a,b){return (b.dateISO||"").localeCompare(a.dateISO||"") || (b.id||"").localeCompare(a.id||"");});
-  if(!sorted.length) return "\n    <p style=\"color:#aab2c5;font-size:14px;grid-column:1/-1\">아직 발행된 글이 없습니다.</p>\n  ";
-  return "\n" + sorted.map(function(f){return '    <a class="postcard" data-id="'+esc(f.id)+'" href="./'+esc(f.id)+'">\n      <span class="tag '+tagCls(f.tag)+'">'+esc(f.tag)+'</span>\n      <h2>'+esc(f.title)+'</h2>\n      <p class="excerpt">'+esc((f.lede||"").slice(0,95))+'</p>\n      <span class="meta">'+esc(f.dateText)+' · '+esc(f.tag)+'</span>\n    </a>';}).join("\n") + "\n  ";
+  if(!sorted.length) return "\n    <p style=\"color:#aab2c5;font-size:14px;grid-column:1/-1\">"+(food?"아직 올라온 맛집 후기가 없습니다.":"아직 발행된 글이 없습니다.")+"</p>\n  ";
+  const pre = food ? "../blog/" : "./";
+  return "\n" + sorted.map(function(f){return '    <a class="postcard" data-id="'+esc(f.id)+'" href="'+pre+esc(f.id)+'">\n      <span class="tag '+tagCls(f.tag)+'">'+esc(f.tag)+'</span>\n      <h2>'+esc(f.title)+'</h2>\n      '+(food&&f.place&&f.place.address?'<p class="pcplace">📍 '+esc(f.place.name||"")+' · '+esc(f.place.dong||shortAddr(f.place.address))+'</p>\n      ':'')+'<p class="excerpt">'+esc((f.lede||"").slice(0,95))+'</p>\n      <span class="meta">'+esc(f.dateText)+' · '+esc(f.tag)+'</span>\n    </a>';}).join("\n") + "\n  ";
 }
+function shortAddr(a){ const m=String(a||"").match(/세종[^\s]*\s+(.+?)(\s+\d|$)/); return m?m[1]:String(a||""); }
 async function gh(C, path, opts){
   opts=opts||{};
   const r=await fetch(API+path, Object.assign({}, opts, {headers: Object.assign({
@@ -213,6 +239,8 @@ function buildSitemap(posts, BASE){
   const urls = [];
   urls.push({loc:BASE+"/", lastmod: today});
   urls.push({loc:BASE+"/blog/", lastmod: newest});
+  const fnew = (sorted.filter(isFood)[0]||{}).dateISO || newest;
+  urls.push({loc:BASE+"/matjip/", lastmod: fnew});
   urls.push({loc:BASE+"/complex", lastmod: today});
   sorted.forEach(function(f){ urls.push({loc:BASE+"/blog/"+f.id, lastmod: f.dateISO||today}); });
   const body = urls.map(function(u){
@@ -231,8 +259,16 @@ async function writePostsAndIndex(C, posts, postsSha){
   if(idx){
     const re=/<!--POSTS_START-->[\s\S]*?<!--POSTS_END-->/;
     if(re.test(idx.content)){
-      const newIdx=idx.content.replace(re, "<!--POSTS_START-->"+renderCards(posts)+"<!--POSTS_END-->");
-      await putFile(C, "blog/index.html", newIdx, "list: 목록 갱신", idx.sha);
+      const newIdx=idx.content.replace(re, "<!--POSTS_START-->"+renderCards(posts,false)+"<!--POSTS_END-->");
+      if(newIdx!==idx.content) await putFile(C, "blog/index.html", newIdx, "list: 목록 갱신", idx.sha);
+    }
+  }
+  const fidx=await getContent(C, "matjip/index.html");
+  if(fidx){
+    const re2=/<!--POSTS_START-->[\s\S]*?<!--POSTS_END-->/;
+    if(re2.test(fidx.content)){
+      const nf=fidx.content.replace(re2, "<!--POSTS_START-->"+renderCards(posts,true)+"<!--POSTS_END-->");
+      if(nf!==fidx.content) await putFile(C, "matjip/index.html", nf, "list: 맛집 목록 갱신", fidx.sha);
     }
   }
   await writeSitemap(C, posts);
@@ -265,6 +301,7 @@ export async function onRequestPost(context){
     f.dateText=f.dateText || (now.getUTCFullYear()+". "+(now.getUTCMonth()+1)+". "+now.getUTCDate()+".");
     f.tag=f.tag || "분석";
     const entry={id:f.id, title:f.title, tag:f.tag, lede:f.lede||"", body:f.body, summary:f.summary||"", dateISO:f.dateISO, dateText:f.dateText};
+    const place=isFood(f)?cleanPlace(f.place):undefined; if(place) entry.place=place;
     const {posts, sha}=await readPosts(C);
 
     if(action==="update"){
