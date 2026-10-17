@@ -84,7 +84,7 @@ a.autolink{color:#4b56d8;text-decoration:underline;text-decoration-color:#c9cff8
 @media(max-width:600px){.rel{padding:20px 18px}}</style>`;
 
 // ---- 맛집 ↔ 단지 거리 (transit.json의 단지 중심 좌표 기준, 직선거리) ----
-const NEAR_M = 1000;
+const NEAR_M = 500;
 function distM(a, b, c, d) {
   const R = 6371000, r = x => x * Math.PI / 180;
   const h = Math.sin(r(c - a) / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(r(d - b) / 2) ** 2;
@@ -145,7 +145,7 @@ function blogPosts() {
     let near = "";
     if (food) {
       const nc = nearComplexes(p.place);
-      if (nc.length) near = `<!--auto:near--><section class="nearc" aria-labelledby="near-h">${NEAR_CSS}<h2 id="near-h">이 가게 근처 아파트 단지</h2><p>가게에서 직선거리 1km 안에 있는 단지예요. 누르면 단지 정보로 이동해요.</p><ul>` +
+      if (nc.length) near = `<!--auto:near--><section class="nearc" aria-labelledby="near-h">${NEAR_CSS}<h2 id="near-h">이 가게 근처 아파트 단지</h2><p>가게에서 직선거리 500m 안에 있는 단지예요. 누르면 단지 정보로 이동해요.</p><ul>` +
         nc.map(([n, m]) => `<li><a href="/complex#${encodeURIComponent(n)}">${esc(n)}<small>${m < 100 ? "100m 이내" : "약 " + (Math.round(m / 50) * 50).toLocaleString() + "m"}</small></a></li>`).join("") +
         `</ul></section><!--/auto:near-->\n  `;
     }
