@@ -308,7 +308,7 @@ function transitHTML(d) {
     <div class="more"><a href="/bus-reach#${enc(d.이름)}">버스로 환승 없이 갈 수 있는 범위 지도로 보기 →</a></div>
   </section>`;
 }
-// 주변 맛집: 세부인 맛집 후기 중 단지 중심에서 직선 500m 안에 있는 가게 (없으면 섹션을 숨김)
+// 주변 맛집: 세부인 맛집 후기 중 단지 중심에서 직선 1km 안에 있는 가게 (없으면 섹션을 숨김)
 function distM(a, b, c, d) {
   const R = 6371000, r = x => x * Math.PI / 180;
   const h = Math.sin(r(c - a) / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(r(d - b) / 2) ** 2;
@@ -317,12 +317,12 @@ function distM(a, b, c, d) {
 function foodHTML(d) {
   const t = TR && TR.data[d.이름];
   if (!t || t[4] == null || !FOOD.length) return "";
-  const rows = FOOD.map(p => [p, distM(t[4], t[5], p.place.lat, p.place.lng)]).filter(([, m]) => m <= 500).sort((a, b) => a[1] - b[1]).slice(0, 6);
+  const rows = FOOD.map(p => [p, distM(t[4], t[5], p.place.lat, p.place.lng)]).filter(([, m]) => m <= 1000).sort((a, b) => a[1] - b[1]).slice(0, 6);
   if (!rows.length) return "";
   const dist = m => m < 100 ? "100m 이내" : `약 ${(Math.round(m / 50) * 50).toLocaleString()}m`;
   return `<section>
     <h3>주변 맛집</h3>
-    <p class="sub">세부인이 직접 다녀온 곳 중 단지에서 직선 500m 안에 있는 가게예요.</p>
+    <p class="sub">세부인이 직접 다녀온 곳 중 단지에서 직선 1km 안에 있는 가게예요.</p>
     <div class="foods">${rows.map(([p, m]) => `<a class="food${p.thumbs && p.thumbs[0] ? " hasth" : ""}" href="/blog/${enc(p.id)}">${p.thumbs && p.thumbs[0] ? `<img class="fth" src="${esc(p.thumbs[0])}" alt="" loading="lazy">` : ""}<span class="fn">${esc(p.place.name || p.title)}</span><span class="fd">${dist(m)}</span><span class="ft">${esc(p.title)}</span></a>`).join("")}</div>
     <div class="more"><a href="/matjip/">세종 동네 맛집 전체 보기 →</a></div>
   </section>`;
