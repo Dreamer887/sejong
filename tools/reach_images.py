@@ -17,6 +17,7 @@ RADIUS_M, CELL_M, SAMPLE_M = 500, 110, 55
 LAT_STEP = CELL_M / 111000
 LNG_STEP = CELL_M / (111000 * math.cos(36.51 * math.pi / 180))
 W, H, SS = 960, 720, 2  # 출력 크기, 슈퍼샘플링 배율
+MIN_R, BLUR, SCALE_KM = 0, 5, 2  # 음영 최소 반지름(px)·번짐·축척
 FONT = "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
 FONT_R = "/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc"
 
@@ -125,9 +126,9 @@ def main():
         cell_px = max(CELL_M / mpp * SS, 1.5 * SS)
         for (ci, cj), v in sorted(cells.items(), key=lambda kv: pmap[kv[1]]):
             t = pmap[v]; x, y = px((ci + .5) * LAT_STEP, (cj + .5) * LNG_STEP)
-            r = cell_px * 1.5
+            r = max(cell_px * 1.5, MIN_R * SS)
             hd.ellipse([x - r, y - r, x + r, y + r], fill=heat_color(t) + (int(255 * (0.45 + 0.4 * t)),))
-        heat = heat.filter(ImageFilter.GaussianBlur(5 * SS))
+        heat = heat.filter(ImageFilter.GaussianBlur(BLUR * SS))
         img.paste(heat, (0, 0), heat)
         d = ImageDraw.Draw(img)
         # 동 이름
@@ -163,7 +164,7 @@ def main():
         for i in range(160 * SS):
             d.line([(lx + i, ly), (lx + i, ly + 10 * SS)], fill=heat_color(i / (160 * SS)))
         d.text((lx, ly - 4 * SS), "환승 없이 닿는 노선  적음 → 많음", font=f_small, fill=(90, 98, 118), anchor="ld")
-        km = 2
+        km = SCALE_KM
         bl = km * 1000 / mpp * SS; bx = (W - 18) * SS - bl; by = (H - 22) * SS
         d.line([(bx, by), (bx + bl, by)], fill=(90, 98, 118), width=3 * SS)
         d.text((bx + bl / 2, by - 4 * SS), f"{km}km", font=f_small, fill=(90, 98, 118), anchor="md")
