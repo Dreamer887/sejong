@@ -63,6 +63,16 @@ def main():
         return any(hav(la, ln, c[0], c[1]) <= 500 for c in complexes)
 
     have = {r["name"] for r in bus["routes"]}
+    # 세종 노선과 같은 번호로 다른 도시에도 등록된 공동운행 노선(M1·18·1003 등)은 같은 노선이므로 건너뛴다
+    ends = {}  # 세종 노선 번호 → 기점·종점 좌표
+    for r in bus["routes"]:
+        n = re.sub(r"\s*\(.*$", "", r["name"]).strip(); sq = r["seq"]
+        if sq: ends.setdefault(n, []).extend([bus["stops"][sq[0]], bus["stops"][sq[-1]]])
+
+    def same_as_sejong(no, pts):
+        if no not in ends or not pts: return False
+        a, b = pts[0], pts[-1]
+        return all(any(hav(float(p["gpslati"]), float(p["gpslong"]), e["lat"], e["lng"]) <= 1000 for e in ends[no]) for p in (a, b))
     codes = {c["cityname"]: c["citycode"] for c in call("getCtyCodeList")}
     picked = {}
     failed = []
@@ -82,6 +92,7 @@ def main():
                 failed.append(f"{city} {no}"); print("  건너뜀:", city, no, e, flush=True); continue
             pts = [s for s in stops if s.get("gpslati") and s.get("gpslong")]
             if not any(near_complex(float(s["gpslati"]), float(s["gpslong"])) for s in pts): continue
+            if not brt and same_as_sejong(no, sorted(pts, key=lambda s: int(s.get("nodeord", 0)))): continue
             name = no if brt else f"{city} {no}"
             if name in picked: continue
             dirs = {}

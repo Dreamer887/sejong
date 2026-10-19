@@ -28,7 +28,8 @@ DONGS = {"고운동": (36.512089, 127.235952), "아름동": (36.513701, 127.2478
          "소담동": (36.484899, 127.301523), "반곡동": (36.495211, 127.309355), "산울동": (36.530995, 127.261501),
          "집현동": (36.496528, 127.326435)}
 LANDMARKS = {"정부세종청사": (36.5035, 127.2618), "세종시청": (36.4801, 127.2890),
-             "오송역": (36.6205, 127.3272), "반석역": (36.3903, 127.3135)}
+             "오송역": (36.6205, 127.3272), "반석역": (36.3903, 127.3135),
+             "대전역": (36.3323, 127.4342), "청주국제공항": (36.7220, 127.4959)}
 
 
 def hav(a, b, c, d):
@@ -138,19 +139,24 @@ def main():
                 d.text((x, y), dn, font=f_dong, fill=(90, 98, 118), anchor="mm", stroke_width=3 * SS, stroke_fill=(255, 255, 255))
         # 주요 거점: 틀 안이면 표시, 틀 밖이면 환승 없이 닿을 때만 가장자리에 방면 표시
         reached = {(ci, cj) for (ci, cj) in cells}
+        edge = {}
         for ln_name, (la, ln) in LANDMARKS.items():
             x, y = px(la, ln)
             if 14 * SS < x < (W - 14) * SS and 14 * SS < y < (H - 14) * SS:
                 r = 5 * SS; d.rectangle([x - r, y - r, x + r, y + r], fill=(22, 32, 58), outline=(255, 255, 255), width=2 * SS)
-                d.text((x + 8 * SS, y - 6 * SS), ln_name, font=f_lab, fill=(22, 32, 58), anchor="lb", stroke_width=3 * SS, stroke_fill=(255, 255, 255))
+                right = x > W * SS * 0.72  # 오른쪽 가장자리면 라벨을 왼쪽에 붙여 잘리지 않게
+                d.text((x - 8 * SS if right else x + 8 * SS, y - 6 * SS), ln_name, font=f_lab, fill=(22, 32, 58), anchor="rb" if right else "lb", stroke_width=3 * SS, stroke_fill=(255, 255, 255))
                 continue
             ci, cj = math.floor(la / LAT_STEP), math.floor(ln / LNG_STEP)
             if not any((ci + a, cj + b) in reached for a in range(-4, 5) for b in range(-4, 5)): continue
             cx, cy = W * SS / 2, H * SS / 2; dx, dy = x - cx, y - cy
-            k = min((W * SS / 2 - 70 * SS) / abs(dx) if dx else 1e9, (H * SS / 2 - 26 * SS) / abs(dy) if dy else 1e9)
-            ex, ey = cx + dx * k, cy + dy * k
             arrow = ("↑" if dy < 0 else "↓") if abs(dy) > abs(dx) else ("→" if dx > 0 else "←")
-            label = f"{arrow} {ln_name}까지 환승 없이"
+            edge.setdefault(arrow, []).append(ln_name)
+        # 같은 방향 거점은 한 줄로 묶어 해당 가장자리 가운데에 둔다
+        pos = {"↑": (W * SS / 2, 26 * SS), "↓": (W * SS / 2, (H - 58) * SS), "←": (130 * SS, H * SS / 2), "→": ((W - 130) * SS, H * SS / 2)}
+        for arrow, names in edge.items():
+            ex, ey = pos[arrow]
+            label = f"{arrow} {'·'.join(names)}까지 환승 없이"
             bb = d.textbbox((ex, ey), label, font=f_lab, anchor="mm")
             d.rounded_rectangle([bb[0] - 10 * SS, bb[1] - 6 * SS, bb[2] + 10 * SS, bb[3] + 6 * SS], radius=12 * SS, fill=(22, 32, 58))
             d.text((ex, ey), label, font=f_lab, fill=(255, 255, 255), anchor="mm")
