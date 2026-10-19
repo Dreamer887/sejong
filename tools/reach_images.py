@@ -5,7 +5,9 @@ bus-reach.html의 밀도 계산(buildDensity)과 색 규칙(heatColor)을 그대
 단지 정보 페이지(/complex)에 넣을 단지별 이미지를 images/reach/<단지명>.webp로 만든다.
 지도 타일 대신 세종 버스 노선망·동 이름·주요 거점을 바탕으로 깐다.
 
-실행: python3 tools/reach_images.py   (bus_sejong.json · transit.json이 바뀌었을 때 다시 실행)
+실행: python3 tools/reach_images.py          → images/reach/ (시내 확대)
+      python3 tools/reach_images.py --wide   → images/reach-wide/ (넓은 화면, 기본 표시)
+      bus_sejong.json · transit.json이 바뀌면 둘 다 다시 실행
 필요: Pillow, Noto Sans CJK 폰트
 """
 import json, math, os, re, sys
@@ -100,8 +102,29 @@ def main():
     bus = json.load(open(os.path.join(ROOT, "bus_sejong.json")))
     tr = json.load(open(os.path.join(ROOT, "transit.json")))["data"]
     route_no = [re.sub(r"번$", "", re.sub(r"\s*\(.*$", "", r["name"])).strip() for r in bus["routes"]]
+    global W, H, MIN_R, BLUR, SCALE_KM, OUT, DONGS, LANDMARKS, frame
+    wide = "--wide" in sys.argv
+    if wide:
+        # 넓은 화면: 모든 단지의 도달 범위를 합친 고정 틀(세로형). 동 이름 대신 주요 거점만 표시
+        W, H, MIN_R, BLUR, SCALE_KM = 720, 960, 6, 2, 5
+        OUT = os.path.join(ROOT, "images", "reach-wide")
+        DONGS = {}
+        LANDMARKS = {"정부세종청사": (36.5035, 127.2618), "조치원역": (36.6014, 127.2983), **{k: v for k, v in LANDMARKS.items() if k != "세종시청"}}
+        U = [90, 999, -90, -999]
+        for row in tr.values():
+            c, _, _ = density(bus, route_no, row[4], row[5])
+            for ci, cj in c:
+                la, ln = ci * LAT_STEP, cj * LNG_STEP
+                U = [min(U[0], la), min(U[1], ln), max(U[2], la + LAT_STEP), max(U[3], ln + LNG_STEP)]
+        def frame(lat, lng, U=U):
+            kx0 = 111000 * math.cos(36.51 * math.pi / 180)
+            wm, hm = (U[3] - U[1]) * kx0 * 1.08, (U[2] - U[0]) * 111000 * 1.06
+            if wm / hm > W / H: hm = wm * H / W
+            else: wm = hm * W / H
+            clat, clng = (U[0] + U[2]) / 2, (U[1] + U[3]) / 2
+            return clat - hm / 2 / 111000, clng - wm / 2 / kx0, wm / W
     os.makedirs(OUT, exist_ok=True)
-    only = set(sys.argv[1:])
+    only = {a for a in sys.argv[1:] if not a.startswith("--")}
     f_lab = ImageFont.truetype(FONT, 15 * SS, index=1)
     f_dong = ImageFont.truetype(FONT_R, 13 * SS, index=1)
     f_name = ImageFont.truetype(FONT, 17 * SS, index=1)
@@ -177,7 +200,7 @@ def main():
         img = img.resize((W, H), Image.LANCZOS)
         img.save(os.path.join(OUT, f"{name}.webp"), "WEBP", quality=80, method=6)
         made += 1
-    print(f"{made}개 이미지 → images/reach/")
+    print(f"{made}개 이미지 → {os.path.relpath(OUT, ROOT)}/")
 
 
 if __name__ == "__main__":

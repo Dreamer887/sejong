@@ -147,7 +147,13 @@
   .more a{font-size:13px;font-weight:700;color:#5b6cff;text-decoration:none;background:#eef0ff;border:1px solid #d9ddff;padding:6px 13px;border-radius:99px}
   .more a:hover{filter:brightness(.97)}
   .reach{margin:14px 0 0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#f6f7fb}
-  .reach img{display:block;width:100%;height:auto;aspect-ratio:4/3}
+  .reach img{display:block;width:100%;height:auto}
+  .reach img.rc{aspect-ratio:4/3}
+  .reach img.rw{aspect-ratio:3/4;width:auto;max-width:100%;max-height:640px;margin:0 auto}
+  .reach img[hidden]{display:none}
+  .rtabs{display:flex;gap:6px;padding:10px 12px;background:#fff;border-bottom:1px solid var(--line)}
+  .rtabs button{font:inherit;font-size:13px;font-weight:700;color:var(--sub);background:#f1f3f9;border:1px solid var(--line);border-radius:99px;padding:6px 14px;cursor:pointer}
+  .rtabs button[aria-pressed="true"]{color:#fff;background:#5b6cff;border-color:#5b6cff}
   .reach figcaption{padding:12px 16px;font-size:13px;line-height:1.6;color:var(--sub);background:#fff;border-top:1px solid var(--line)}
   .reach figcaption b{color:var(--ink)}
   .near{display:flex;flex-wrap:wrap;gap:6px}
@@ -219,8 +225,10 @@
       <div class="routes"><div class="rg "><h4>시내·마을버스 10</h4><ul><li><b>53</b>(세종터미널 순환, 한솔동 경유)</li><li><b>201</b>(중소벤처기업부 순환, 고운동커뮤니티센터 경유)</li><li><b>203</b>(세종터미널 순환, 정부세종청사 경유)</li><li><b>204</b>(문화체육관광부 순환, 다정동커뮤니티센터 경유)</li><li><b>205</b>(세종터미널 순환)</li><li><b>272</b>(누리동↔산학연클러스터)</li><li><b>273</b>(누리동↔산학연클러스터)</li><li><b>275</b>(누리동↔은하수공원)</li><li><b>279</b>(누리동↔새나루마을1단지)</li><li><b>801</b>(민석아파트↔세종터미널)</li></ul></div></div>
     </div>
     <figure class="reach">
-      <img src="/images/reach/%EB%82%98%EB%A6%BF%EC%9E%AC%EB%A7%88%EC%9D%841%EB%8B%A8%EC%A7%80.webp" width="960" height="720" loading="lazy" alt="나릿재마을1단지 반경 500m 정류장에서 버스로 환승 없이 갈 수 있는 범위">
-      <figcaption><b>버스로 환승 없이 갈 수 있는 범위</b> · 단지 반경 500m 정류장에 서는 노선이 닿는 곳을 칠했어요. 붉을수록 중요한 노선이 여러 개 겹쳐 지나가요.</figcaption>
+      <div class="rtabs" role="group" aria-label="지도 범위"><button type="button" data-m="wide" aria-pressed="true">넓게 보기</button><button type="button" data-m="city" aria-pressed="false">시내 확대</button></div>
+      <img class="rw" src="/images/reach-wide/%EB%82%98%EB%A6%BF%EC%9E%AC%EB%A7%88%EC%9D%841%EB%8B%A8%EC%A7%80.webp" width="720" height="960" loading="lazy" alt="나릿재마을1단지에서 버스로 환승 없이 갈 수 있는 범위(대전·청주·공주 방면 포함)">
+      <img class="rc" src="/images/reach/%EB%82%98%EB%A6%BF%EC%9E%AC%EB%A7%88%EC%9D%841%EB%8B%A8%EC%A7%80.webp" width="960" height="720" loading="lazy" alt="나릿재마을1단지에서 버스로 환승 없이 갈 수 있는 범위(행복도시 시내)" hidden="">
+      <figcaption><b>버스로 환승 없이 갈 수 있는 범위</b> · 단지 반경 500m 정류장에 서는 노선이 닿는 곳을 칠했어요. 붉을수록 중요한 노선이 여러 개 겹쳐 지나가요. 넓게 보기는 대전·청주·공주 방면까지, 시내 확대는 행복도시 안쪽 흐름을 보여줘요.</figcaption>
     </figure>
     <div class="more"><a href="/bus-reach#%EB%82%98%EB%A6%BF%EC%9E%AC%EB%A7%88%EC%9D%841%EB%8B%A8%EC%A7%80">다른 단지와 비교하기 · 전체 단지 지도로 →</a></div>
   </section>
@@ -243,7 +251,7 @@
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const enc = s => encodeURIComponent(s);
-let DATA = [], BUILT = "", TR = null, IT = null, FOOD = [], topIdx = {}, TOPMAX = 100, curDong = "전체", curId = 0;
+let REACH_MODE = "wide", DATA = [], BUILT = "", TR = null, IT = null, FOOD = [], topIdx = {}, TOPMAX = 100, curDong = "전체", curId = 0;
 
 Promise.all([
   fetch("/complexes.json").then(r => r.json()),
@@ -262,6 +270,12 @@ function init() {
   $("#dongs").innerHTML = ["전체", ...dongOrder].map(d => `<button type="button" aria-pressed="${d===curDong}" data-d="${esc(d)}">${esc(d)}</button>`).join("");
   $("#dongs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; curDong = b.dataset.d; document.querySelectorAll("#dongs button").forEach(x => x.setAttribute("aria-pressed", x === b)); renderList(); });
   $("#q").addEventListener("input", renderList);
+  $("#card").addEventListener("click", e => {  // 도달권 이미지: 넓게 보기 ↔ 시내 확대 (고른 쪽을 다른 단지에서도 유지)
+    const b = e.target.closest(".rtabs button"); if (!b) return;
+    const f = b.closest("figure"); REACH_MODE = b.dataset.m;
+    f.querySelectorAll(".rtabs button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    f.querySelector(".rw").hidden = REACH_MODE !== "wide"; f.querySelector(".rc").hidden = REACH_MODE !== "city";
+  });
   $("#list").addEventListener("click", e => { const b = e.target.closest(".item"); if (b) show(+b.dataset.i, true); });
   if (IT && IT.top && IT.top.length) {
     TOPMAX = Math.max(100, ...IT.top.map(t => t.지수));
@@ -310,8 +324,10 @@ function transitHTML(d) {
       <div class="routes">${grp.length ? grp.map(([h, list, cls]) => `<div class="rg ${cls}"><h4>${h} ${list.length}</h4><ul>${list.map(item).join("")}</ul></div>`).join("") : `<p class="empty" style="padding:0">500m 안에 서는 버스가 없어요.</p>`}</div>
     </div>
     <figure class="reach">
-      <img src="/images/reach/${enc(d.이름)}.webp" width="960" height="720" loading="lazy" alt="${esc(d.이름)} 반경 500m 정류장에서 버스로 환승 없이 갈 수 있는 범위">
-      <figcaption><b>버스로 환승 없이 갈 수 있는 범위</b> · 단지 반경 500m 정류장에 서는 노선이 닿는 곳을 칠했어요. 붉을수록 중요한 노선이 여러 개 겹쳐 지나가요.</figcaption>
+      <div class="rtabs" role="group" aria-label="지도 범위"><button type="button" data-m="wide" aria-pressed="${REACH_MODE==="wide"}">넓게 보기</button><button type="button" data-m="city" aria-pressed="${REACH_MODE==="city"}">시내 확대</button></div>
+      <img class="rw" src="/images/reach-wide/${enc(d.이름)}.webp" width="720" height="960" loading="lazy" alt="${esc(d.이름)}에서 버스로 환승 없이 갈 수 있는 범위(대전·청주·공주 방면 포함)"${REACH_MODE==="wide" ? "" : " hidden"}>
+      <img class="rc" src="/images/reach/${enc(d.이름)}.webp" width="960" height="720" loading="lazy" alt="${esc(d.이름)}에서 버스로 환승 없이 갈 수 있는 범위(행복도시 시내)"${REACH_MODE==="city" ? "" : " hidden"}>
+      <figcaption><b>버스로 환승 없이 갈 수 있는 범위</b> · 단지 반경 500m 정류장에 서는 노선이 닿는 곳을 칠했어요. 붉을수록 중요한 노선이 여러 개 겹쳐 지나가요. 넓게 보기는 대전·청주·공주 방면까지, 시내 확대는 행복도시 안쪽 흐름을 보여줘요.</figcaption>
     </figure>
     <div class="more"><a href="/bus-reach#${enc(d.이름)}">다른 단지와 비교하기 · 전체 단지 지도로 →</a></div>
   </section>`;
