@@ -19,18 +19,29 @@ if not KEY:
     sys.exit("DATA_GO_KR_KEY 환경변수가 없습니다")
 
 
+CACHE = os.environ.get("TAGO_CACHE")  # 지정하면 응답을 저장해 재실행 때 다시 받지 않는다
+
+
 def call(op, **q):
+    ck = None
+    if CACHE:
+        os.makedirs(CACHE, exist_ok=True)
+        ck = os.path.join(CACHE, op + "_" + "_".join(f"{k}-{v}" for k, v in sorted(q.items())) + ".json")
+        if os.path.exists(ck): return json.load(open(ck))
     q.update(serviceKey=KEY, _type="json", numOfRows=q.get("numOfRows", 1000), pageNo=q.get("pageNo", 1))
     url = BASE + op + "?" + urllib.parse.urlencode(q)
-    for attempt in range(4):
+    err = ""
+    for attempt in range(6):
         try:
-            body = json.loads(urllib.request.urlopen(url, timeout=30).read())
+            body = json.loads(urllib.request.urlopen(url, timeout=40).read())
             items = body["response"]["body"].get("items") or {}
             it = items.get("item", []) if isinstance(items, dict) else []
-            return it if isinstance(it, list) else [it]
+            it = it if isinstance(it, list) else [it]
+            if ck: json.dump(it, open(ck, "w"), ensure_ascii=False)
+            return it
         except Exception as e:  # 키가 URL에 있으므로 예외 메시지에 URL을 싣지 않는다
             err = type(e).__name__
-            time.sleep(1.5 * (attempt + 1))
+            time.sleep(2 * (attempt + 1))
     raise RuntimeError(f"{op} 호출 실패({err})")
 
 
@@ -54,6 +65,7 @@ def main():
     have = {r["name"] for r in bus["routes"]}
     codes = {c["cityname"]: c["citycode"] for c in call("getCtyCodeList")}
     picked = {}
+    failed = []
     for city in CITIES:
         code = next((v for k, v in codes.items() if k.startswith(city)), None)
         if code is None:
@@ -64,7 +76,10 @@ def main():
             no = str(r.get("routeno", "")).strip()
             brt = bool(re.match(r"^[AB]\d", no))
             if brt and no in have: continue
-            stops = call("getRouteAcctoThrghSttnList", cityCode=code, routeId=r["routeid"])
+            try:
+                stops = call("getRouteAcctoThrghSttnList", cityCode=code, routeId=r["routeid"])
+            except RuntimeError as e:
+                failed.append(f"{city} {no}"); print("  건너뜀:", city, no, e, flush=True); continue
             pts = [s for s in stops if s.get("gpslati") and s.get("gpslong")]
             if not any(near_complex(float(s["gpslati"]), float(s["gpslong"])) for s in pts): continue
             name = no if brt else f"{city} {no}"
@@ -75,7 +90,7 @@ def main():
             picked[name] = {"label": f"{name}({r.get('startnodenm','')}↔{r.get('endnodenm','')})", "dirs": list(dirs.values())}
             kept += 1
             time.sleep(0.05)
-        print(f"{city}: 노선 {len(routes)}개 중 {kept}개가 세종 단지 앞을 지남")
+        print(f"{city}: 노선 {len(routes)}개 중 {kept}개가 세종 단지 앞을 지남", flush=True)
 
     # 정류장 병합: 기존 정류장과 15m 안이면 같은 정류장으로 본다
     grid = {}
@@ -107,6 +122,7 @@ def main():
     json.dump(bus, open(os.path.join(ROOT, "bus_sejong.json"), "w"), ensure_ascii=False, separators=(",", ":"))
     json.dump(labels, open(os.path.join(ROOT, "data", "extra_route_labels.json"), "w"), ensure_ascii=False, indent=1)
     print("추가 노선:", ", ".join(sorted(picked)) or "없음")
+    if failed: print("조회 실패(다시 실행하면 이어서 받음):", ", ".join(failed))
 
 
 if __name__ == "__main__":
