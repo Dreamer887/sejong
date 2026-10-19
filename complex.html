@@ -190,6 +190,7 @@
     <main class="card detail" id="card"><!--pre:card-->
   <nav class="crumb" aria-label="위치"><span>단지 정보</span><span>›</span><span>2-4생활권 나성동</span><span>›</span><b>나릿재마을1단지</b></nav>
   <header class="head">
+    <span class="tbadge">2026년 10월 관심도 TOP 20 · 1위</span>
     <div class="eyebrow">2-4생활권 · 2021년 2월 입주</div>
     <h2>나릿재마을1단지<small>세종리더스포레</small></h2>
     <p class="lede">나성동 도시상징광장 옆, 중심상업지구 가까이에 있는 343세대 주상복합으로, 2021년에 입주했어요.</p>
@@ -343,9 +344,11 @@ function show(i, scroll) {
   const chk = d.알아두면.length ? `<section class="check"><h3>알아두면 좋은 점</h3><ul>${d.알아두면.map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>` : "";
   const near = DATA.map((x, j) => [x, j]).filter(([x, j]) => x.동 === d.동 && j !== i);
   const confTxt = {높음:"후기 충분", 보통:"후기 보통", 낮음:"후기 적음"}[d.신뢰도] || "";
+  const t = topIdx[i];
   $("#card").innerHTML = `
   <nav class="crumb" aria-label="위치"><span>단지 정보</span><span>›</span><span>${esc(d.생활권)}생활권 ${esc(d.동)}</span><span>›</span><b>${esc(d.이름)}</b></nav>
   <header class="head">
+    ${t ? `<span class="tbadge">${esc(IT.month)} 관심도 TOP ${IT.top.length} · ${t.순위}위</span>` : ""}
     <div class="eyebrow">${esc(d.생활권)}생활권 · ${esc(d.입주표시)} 입주</div>
     <h2>${esc(d.이름)}${d.브랜드 ? `<small>${esc(d.브랜드)}</small>` : ""}</h2>
     <p class="lede">${esc(d.한줄)}</p>
