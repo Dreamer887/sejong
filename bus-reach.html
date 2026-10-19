@@ -129,7 +129,7 @@ let STRENGTH={}, STRENGTH_N=161, TR={};  /* /transit.json에서 불러옴(단지
 
 function hav(a,b,c,d){const R=6371000,t=Math.PI/180,dLat=(c-a)*t,dLng=(d-b)*t;const x=Math.sin(dLat/2)**2+Math.cos(a*t)*Math.cos(c*t)*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(x));}
 /* 노선 중요도 가중치: BRT(A·B) 10(B5 순환은 5), 광역 M 6, 1000번대 5, 일반 시내 3, 마을버스 1 */
-function routeW(n){n=(n||'').trim();return /^B5/i.test(n)?5:/^[AB]\d/i.test(n)?10:/^M\d/i.test(n)?6:/^10\d\d/.test(n)?5:/^\d/.test(n)?3:1;}
+function routeW(n){n=(n||'').trim().replace(/^(대전|청주|천안|공주)\s+/,'');return /^B5/i.test(n)?5:/^[AB]\d/i.test(n)?10:/^M\d/i.test(n)?6:/^10\d\d/.test(n)?5:/^\d/.test(n)?3:1;}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function setStatus(t){document.getElementById('status').textContent=t;}
 function loadCache(){try{return JSON.parse(localStorage.getItem('busgeo2')||'{}');}catch(e){return {};}}

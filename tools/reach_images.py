@@ -38,7 +38,7 @@ def hav(a, b, c, d):
 
 
 def route_w(n):
-    n = (n or "").strip()
+    n = re.sub(r"^(대전|청주|천안|공주)\s+", "", (n or "").strip())
     if re.match(r"^B5", n, re.I): return 5
     if re.match(r"^[AB]\d", n, re.I): return 10
     if re.match(r"^M\d", n, re.I): return 6
