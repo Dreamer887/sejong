@@ -4,7 +4,7 @@ data/molit/세종_아파트전월세_<시작>_<끝>.csv 로 저장한다. 매매
 
 실행: DATA_GO_KR_KEY=... python3 tools/fetch_molit_rent.py 202111 202610
 """
-import csv, os, sys, time, urllib.parse, urllib.request
+import csv, os, re, sys, time, urllib.parse, urllib.request
 import xml.etree.ElementTree as ET
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -48,7 +48,7 @@ def main():
         w = csv.writer(f); w.writerow(head)
         for r in sorted(rows, key=lambda r: (r.get("dealYear"), int(r.get("dealMonth") or 0), int(r.get("dealDay") or 0))):
             dong = r.get("umdNm", "")
-            area = "읍면" if dong.endswith(("읍", "면")) else "동"
+            area = "읍면" if re.search(r"(읍|면)(\s|$)", dong) else "동"
             w.writerow([f"{r.get('dealYear')}-{int(r.get('dealMonth')):02d}-{int(r.get('dealDay')):02d}", area, dong, r.get("jibun", ""),
                         r.get("aptNm", ""), r.get("excluUseAr", ""), r.get("floor", ""), r.get("deposit", "").replace(",", ""),
                         r.get("monthlyRent", "").replace(",", ""), r.get("contractType", ""), r.get("contractTerm", ""),
