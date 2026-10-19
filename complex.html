@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2234856624819574" crossorigin="anonymous"></script>
 <title>단지 정보 | 세종 부동산 인사이트</title>
-<meta name="description" content="세종시 동 지역 아파트 단지별 입주민 후기 요약, 대중교통 강도, 이번 달 관심도 순위를 한곳에서 봅니다.">
+<meta name="description" content="세종시 동 지역 아파트 단지별 입주민 후기 요약, 대중교통 강도와 버스 무환승 도달 범위, 이번 달 관심도 순위를 한곳에서 봅니다.">
 <link rel="canonical" href="https://sebuin.com/complex">
 <meta property="og:type" content="website">
 <meta property="og:title" content="단지 정보 | 세종 부동산 인사이트">
@@ -146,10 +146,10 @@
   .more{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
   .more a{font-size:13px;font-weight:700;color:#5b6cff;text-decoration:none;background:#eef0ff;border:1px solid #d9ddff;padding:6px 13px;border-radius:99px}
   .more a:hover{filter:brightness(.97)}
-  .hot{background:#f7f8fd;border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:8px}
-  .hot .meter{height:9px;border-radius:99px;background:#eef0ff;overflow:hidden;max-width:420px}
-  .hot .meter i{display:block;height:100%;background:linear-gradient(90deg,#5b6cff,#a06bff)}
-  .hot small{font-size:12px;color:var(--sub)}
+  .reach{margin:14px 0 0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#f6f7fb}
+  .reach img{display:block;width:100%;height:auto;aspect-ratio:4/3}
+  .reach figcaption{padding:12px 16px;font-size:13px;line-height:1.6;color:var(--sub);background:#fff;border-top:1px solid var(--line)}
+  .reach figcaption b{color:var(--ink)}
   .near{display:flex;flex-wrap:wrap;gap:6px}
   .near button{font:inherit;font-size:13px;font-weight:600;background:#fff;border:1px solid var(--line);border-radius:99px;padding:5px 12px;cursor:pointer;color:var(--ink)}
   .near button:hover{border-color:#5b6cff;color:#5b6cff}
@@ -172,7 +172,7 @@
   <section class="hero">
     <span class="badge">단지 정보</span>
     <h1>세종 동 지역 단지, 한눈에 살펴보기</h1>
-    <p id="heroMeta"><!--pre:heroMeta-->16개 동 162개 단지 · 입주민 후기에서 자주 나온 장점, 단지 주변 버스 사정, 이번 달 관심도를 단지별로 정리했어요.<!--/pre:heroMeta--></p>
+    <p id="heroMeta"><!--pre:heroMeta-->16개 동 162개 단지 · 입주민 후기에서 자주 나온 장점, 단지 주변 버스 사정과 환승 없이 닿는 범위를 단지별로 정리했어요.<!--/pre:heroMeta--></p>
   </section>
 
   <section class="card rank" aria-labelledby="rk-h" id="rankSec">
@@ -190,7 +190,6 @@
     <main class="card detail" id="card"><!--pre:card-->
   <nav class="crumb" aria-label="위치"><span>단지 정보</span><span>›</span><span>2-4생활권 나성동</span><span>›</span><b>나릿재마을1단지</b></nav>
   <header class="head">
-    <span class="tbadge">2026년 10월 관심도 TOP 20 · 1위</span>
     <div class="eyebrow">2-4생활권 · 2021년 2월 입주</div>
     <h2>나릿재마을1단지<small>세종리더스포레</small></h2>
     <p class="lede">나성동 도시상징광장 옆, 중심상업지구 가까이에 있는 343세대 주상복합으로, 2021년에 입주했어요.</p>
@@ -218,9 +217,13 @@
       <div class="score"><span class="lab">대중교통 강도</span><span class="num">18<small>/100</small></span><span class="rk2">161개 단지 중 139위</span><span class="mt">500m 내 정류장 10곳 · 노선 10개</span></div>
       <div class="routes"><div class="rg "><h4>시내·마을버스 10</h4><ul><li><b>53</b>(세종터미널 순환, 한솔동 경유)</li><li><b>201</b>(중소벤처기업부 순환, 고운동커뮤니티센터 경유)</li><li><b>203</b>(세종터미널 순환, 정부세종청사 경유)</li><li><b>204</b>(문화체육관광부 순환, 다정동커뮤니티센터 경유)</li><li><b>205</b>(세종터미널 순환)</li><li><b>272</b>(누리동↔산학연클러스터)</li><li><b>273</b>(누리동↔산학연클러스터)</li><li><b>275</b>(누리동↔은하수공원)</li><li><b>279</b>(누리동↔새나루마을1단지)</li><li><b>801</b>(민석아파트↔세종터미널)</li></ul></div></div>
     </div>
-    <div class="more"><a href="/bus-reach#%EB%82%98%EB%A6%BF%EC%9E%AC%EB%A7%88%EC%9D%841%EB%8B%A8%EC%A7%80">버스로 환승 없이 갈 수 있는 범위 지도로 보기 →</a></div>
+    <figure class="reach">
+      <img src="/images/reach/%EB%82%98%EB%A6%BF%EC%9E%AC%EB%A7%88%EC%9D%841%EB%8B%A8%EC%A7%80.webp" width="960" height="720" loading="lazy" alt="나릿재마을1단지 반경 500m 정류장에서 버스로 환승 없이 갈 수 있는 범위">
+      <figcaption><b>버스로 환승 없이 갈 수 있는 범위</b> · 단지 반경 500m 정류장에 서는 노선이 닿는 곳을 칠했어요. 붉을수록 중요한 노선이 여러 개 겹쳐 지나가요.</figcaption>
+    </figure>
+    <div class="more"><a href="/bus-reach#%EB%82%98%EB%A6%BF%EC%9E%AC%EB%A7%88%EC%9D%841%EB%8B%A8%EC%A7%80">다른 단지와 비교하기 · 전체 단지 지도로 →</a></div>
   </section>
-  <section><h3>이번 달 관심도</h3><div class="hot"><p>2026년 10월 세종 동 지역 단지 가운데 1번째로 많이 찾아본 단지예요. 다만 10월 8일~12일에 검색이 평소보다 크게 몰려, 순위가 일시적으로 높게 나왔을 수 있어요.</p><div class="meter" role="img" aria-label="관심도 지수 187"><i style="width:100%"></i></div><small>관심도 지수 187 · 최근 30일(9월 14일~10월 13일) 네이버 검색량 기준 · 가재마을5단지(2026년 10월) = 100</small></div></section>
+  
   <section>
     <h3>같은 동 단지</h3>
     <div class="near"><button type="button" data-i="22">나릿재마을2단지</button><button type="button" data-i="23">나릿재마을3단지</button><button type="button" data-i="24">나릿재마을4단지</button><button type="button" data-i="25">나릿재마을5단지</button><button type="button" data-i="26">나릿재마을6단지</button></div>
@@ -254,7 +257,7 @@ Promise.all([
 
 function init() {
   const dongOrder = [...new Set(DATA.map(d => d.동))];
-  $("#heroMeta").textContent = `${dongOrder.length}개 동 ${DATA.length}개 단지 · 입주민 후기에서 자주 나온 장점, 단지 주변 버스 사정, 이번 달 관심도를 단지별로 정리했어요.`;
+  $("#heroMeta").textContent = `${dongOrder.length}개 동 ${DATA.length}개 단지 · 입주민 후기에서 자주 나온 장점, 단지 주변 버스 사정과 환승 없이 닿는 범위를 단지별로 정리했어요.`;
   $("#dongs").innerHTML = ["전체", ...dongOrder].map(d => `<button type="button" aria-pressed="${d===curDong}" data-d="${esc(d)}">${esc(d)}</button>`).join("");
   $("#dongs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; curDong = b.dataset.d; document.querySelectorAll("#dongs button").forEach(x => x.setAttribute("aria-pressed", x === b)); renderList(); });
   $("#q").addEventListener("input", renderList);
@@ -305,7 +308,11 @@ function transitHTML(d) {
       <div class="score"><span class="lab">대중교통 강도</span><span class="num">${score}<small>/100</small></span><span class="rk2">${TR.n}개 단지 중 ${rank}위</span><span class="mt">500m 내 정류장 ${nStop}곳 · 노선 ${nos.length}개</span></div>
       <div class="routes">${grp.length ? grp.map(([h, list, cls]) => `<div class="rg ${cls}"><h4>${h} ${list.length}</h4><ul>${list.map(item).join("")}</ul></div>`).join("") : `<p class="empty" style="padding:0">500m 안에 서는 버스가 없어요.</p>`}</div>
     </div>
-    <div class="more"><a href="/bus-reach#${enc(d.이름)}">버스로 환승 없이 갈 수 있는 범위 지도로 보기 →</a></div>
+    <figure class="reach">
+      <img src="/images/reach/${enc(d.이름)}.webp" width="960" height="720" loading="lazy" alt="${esc(d.이름)} 반경 500m 정류장에서 버스로 환승 없이 갈 수 있는 범위">
+      <figcaption><b>버스로 환승 없이 갈 수 있는 범위</b> · 단지 반경 500m 정류장에 서는 노선이 닿는 곳을 칠했어요. 붉을수록 중요한 노선이 여러 개 겹쳐 지나가요.</figcaption>
+    </figure>
+    <div class="more"><a href="/bus-reach#${enc(d.이름)}">다른 단지와 비교하기 · 전체 단지 지도로 →</a></div>
   </section>`;
 }
 // 주변 맛집: 세부인 맛집 후기 중 단지 중심에서 직선 1km 안에 있는 가게 (없으면 섹션을 숨김)
@@ -336,12 +343,9 @@ function show(i, scroll) {
   const chk = d.알아두면.length ? `<section class="check"><h3>알아두면 좋은 점</h3><ul>${d.알아두면.map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>` : "";
   const near = DATA.map((x, j) => [x, j]).filter(([x, j]) => x.동 === d.동 && j !== i);
   const confTxt = {높음:"후기 충분", 보통:"후기 보통", 낮음:"후기 적음"}[d.신뢰도] || "";
-  const t = topIdx[i];
-  const hot = t ? `<section><h3>이번 달 관심도</h3><div class="hot"><p>${esc(IT.month)} 세종 동 지역 단지 가운데 ${t.순위}번째로 많이 찾아본 단지예요.${t.급증 ? ` 다만 ${esc(t.급증)}에 검색이 평소보다 크게 몰려, 순위가 일시적으로 높게 나왔을 수 있어요.` : ""}</p><div class="meter" role="img" aria-label="관심도 지수 ${t.지수}"><i style="width:${Math.round(t.지수 / TOPMAX * 100)}%"></i></div><small>관심도 지수 ${t.지수} · ${esc(IT.basis)} · ${esc(IT.index_base)}</small></div></section>` : "";
   $("#card").innerHTML = `
   <nav class="crumb" aria-label="위치"><span>단지 정보</span><span>›</span><span>${esc(d.생활권)}생활권 ${esc(d.동)}</span><span>›</span><b>${esc(d.이름)}</b></nav>
   <header class="head">
-    ${t ? `<span class="tbadge">${esc(IT.month)} 관심도 TOP ${IT.top.length} · ${t.순위}위</span>` : ""}
     <div class="eyebrow">${esc(d.생활권)}생활권 · ${esc(d.입주표시)} 입주</div>
     <h2>${esc(d.이름)}${d.브랜드 ? `<small>${esc(d.브랜드)}</small>` : ""}</h2>
     <p class="lede">${esc(d.한줄)}</p>
@@ -364,7 +368,6 @@ function show(i, scroll) {
   ${chk}
   ${transitHTML(d)}
   ${foodHTML(d)}
-  ${hot}
   <section>
     <h3>같은 동 단지</h3>
     <div class="near">${near.map(([x, j]) => `<button type="button" data-i="${j}">${esc(x.이름)}</button>`).join("")}</div>

@@ -24,7 +24,10 @@ function fill(src, key, html) {
 async function complexPage() {
   const file = "complex.html";
   let src = read(file);
-  const dom = new JSDOM(src, {
+  const IDS = ["heroMeta", "rk-h", "rk-sub", "ranks", "dongs", "count", "list", "card"];
+  // 이전에 굳힌 내용을 비운 상태로 실행해야, 스크립트가 새로 그린 결과를 기다려 담을 수 있다
+  const blank = IDS.reduce((h, id) => fill(h, id, ""), src);
+  const dom = new JSDOM(blank, {
     url: "https://sebuin.com/complex",
     runScripts: "dangerously",
     beforeParse(w) {
@@ -38,7 +41,7 @@ async function complexPage() {
   const doc = dom.window.document;
   for (let i = 0; i < 50 && !doc.querySelector("#card .head"); i++) await new Promise(r => setTimeout(r, 20));
   if (!doc.querySelector("#card .head")) throw new Error("complex: render failed");
-  for (const id of ["heroMeta", "rk-h", "rk-sub", "ranks", "dongs", "count", "list", "card"]) {
+  for (const id of IDS) {
     src = fill(src, id, doc.getElementById(id).innerHTML);
   }
   const n = doc.querySelectorAll("#list .item").length;
