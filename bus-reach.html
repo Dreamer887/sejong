@@ -6,6 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>세종 버스 무환승 도달권 | 세부인</title>
 <link rel="icon" href="/favicon.ico">
+<meta name="description" content="세종 동 지역 아파트 단지마다 반경 500m 안 정류장에서 버스로 환승 없이 갈 수 있는 범위를 지도로 보여줍니다. 국토교통부 TAGO 노선 자료 기반 자체 분석.">
+<link rel="canonical" href="https://sebuin.com/bus-reach">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="세종 버스 무환승 도달권 | 세부인">
+<meta property="og:description" content="단지 반경 500m 정류장에서 환승 없이 닿는 범위를 지도로 확인해 보세요.">
+<meta property="og:url" content="https://sebuin.com/bus-reach">
+<meta property="og:image" content="https://sebuin.com/og-image.png">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2234856624819574" crossorigin="anonymous"></script>
 <style>
   :root{--ink:#16203a;--sub:#6b7387;--line:#e4e8f0;--blue:#5b6cff;--blue-d:#4453e0;--bg:#f4f6fa}
   *{box-sizing:border-box;margin:0;padding:0}
@@ -40,6 +50,15 @@
   .golink{display:block;margin:4px 0 12px;padding:10px 12px;border-radius:10px;background:#eef0ff;color:#4453e0;font-size:13px;font-weight:700;text-decoration:none}.golink:hover{background:#e2e6ff}
   @media(max-width:760px){.wrap{flex-direction:column;height:auto}#map{height:58vh;flex:none}.side{width:100%;border-left:0;border-top:1px solid var(--line)}}
   .badge{display:inline-block;font-size:11px;font-weight:700;color:#b91c1c;background:#fdeef0;border-radius:99px;padding:2px 8px;margin-left:6px}
+  .about{max-width:860px;margin:0 auto;padding:36px 20px 48px;line-height:1.75}
+  .about h2{font-size:18px;font-weight:800;margin:26px 0 8px;padding-left:10px;border-left:4px solid var(--blue)}
+  .about h2:first-child{margin-top:0}
+  .about p,.about li{font-size:14.5px;color:#2b3550}
+  .about p+p{margin-top:10px}
+  .about ul{margin:8px 0 8px 20px}.about li{margin:4px 0}
+  .about a{color:var(--blue);font-weight:700;text-decoration:none}.about a:hover{text-decoration:underline}
+  .about footer{margin-top:32px;padding-top:18px;border-top:1px solid var(--line);text-align:center;font-size:12.5px;color:#8a93a8;line-height:1.8}
+  .about footer a{color:#8a93a8;font-weight:600}
 </style>
 </head>
 <body>
@@ -48,7 +67,7 @@
   <div class="side">
     <div class="home"><a href="/">← 세부인</a><a href="/complex">단지 정보</a></div>
     <h1>세종 버스 무환승 도달권 <span class="badge">세종 전체</span></h1>
-    <div class="sub">동을 고르고 단지를 클릭하면, 중심 500m 내 정류장에서 환승 없이 닿는 범위를 히트맵으로 보여줍니다.</div>
+    <div class="sub">동을 고르고 단지를 클릭하면, 중심 500m 내 정류장에서 환승 없이 닿는 범위를 히트맵으로 보여줍니다. 읽는 법과 데이터 기준은 지도 아래에 있어요.</div>
     <div class="dongrow">
       <label>동 선택</label>
       <select id="dongSel"></select>
@@ -60,6 +79,21 @@
     </div>
   </div>
 </div>
+
+<section class="about" aria-label="이 지도에 대해">
+  <h2>이 지도는 무엇을 보여주나요</h2>
+  <p>세종은 BRT와 순환 노선 중심으로 버스망이 짜여 있어서, 같은 동 안에서도 단지마다 "버스 한 번으로 어디까지 갈 수 있는지"가 꽤 다릅니다. 이 지도는 단지를 하나 고르면 그 단지 중심 반경 500m 안 정류장에 서는 모든 노선을 모으고, 그 노선들이 환승 없이 닿는 정류장을 지도 위에 음영으로 칠해 보여줍니다.</p>
+  <p>음영이 붉을수록 중요한 노선이 여러 개 겹쳐 지나가는 곳입니다. 노선마다 중요도를 다르게 두어 BRT 10, M 노선 6, B5 순환과 1000번대 광역 노선 5, 시내버스 3, 마을버스 1의 가중치를 더한 뒤, 그 밀도를 분위수로 나눠 색을 정했습니다.</p>
+  <h2>이렇게 활용해 보세요</h2>
+  <ul>
+    <li>출퇴근하는 곳(정부세종청사, 세종터미널, 오송역, 대전 반석역 등)이 음영 안에 들어오는지 확인해 보세요. 들어온다면 갈아타지 않고 다닐 수 있다는 뜻입니다.</li>
+    <li>매수나 전세를 비교하는 두 단지가 있다면 차례로 눌러 범위를 비교해 보세요. 같은 동이어도 BRT 정류장과의 거리에 따라 차이가 크게 납니다.</li>
+    <li>단지별 대중교통 강도 점수(0~100)와 500m 안 정류장·노선 목록은 <a href="/complex">단지 정보</a> 페이지에서 함께 볼 수 있습니다.</li>
+  </ul>
+  <h2>데이터와 한계</h2>
+  <p>노선과 경유 정류장은 국토교통부 TAGO 버스노선정보(2026년 10월 수집, 138개 노선·1,621개 정류장)를, 운행 횟수는 세종시 버스운행 현황(2026년 8월)을 바탕으로 세부인이 직접 가공했습니다. 배차 간격, 소요 시간, 실제 걷는 거리(직선 500m 기준)는 반영하지 않았으니, 실제 이동 전에는 버스 정보 앱으로 시간표를 꼭 확인해 주세요. 산정 기준 전체는 <a href="./about.html#method">데이터는 어떻게 만드나요</a>에 정리해 두었습니다.</p>
+  <footer>작성: 투자되지 · 데이터 출처: 국토교통부 TAGO 버스노선정보, 세종특별자치시 버스운행 현황<br><a href="./privacy.html">개인정보처리방침</a> · <a href="./terms.html">이용약관</a> · <a href="./about.html">소개</a> · <a href="./contact.html">문의</a><br>Copyright © 2026. 세부인(세종 부동산 인사이트) All Rights Reserved.</footer>
+</section>
 
 <script>
 const KAKAO_JS_KEY = "01636a6af4b49e1612cc9d682edb5a63";
