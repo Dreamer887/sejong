@@ -83,7 +83,7 @@
 <section class="about" aria-label="이 지도에 대해">
   <h2>이 지도는 무엇을 보여주나요</h2>
   <p>세종은 BRT와 순환 노선 중심으로 버스망이 짜여 있어서, 같은 동 안에서도 단지마다 "버스 한 번으로 어디까지 갈 수 있는지"가 꽤 다릅니다. 이 지도는 단지를 하나 고르면 그 단지 중심 반경 500m 안 정류장에 서는 모든 노선을 모으고, 그 노선들이 환승 없이 닿는 정류장을 지도 위에 음영으로 칠해 보여줍니다.</p>
-  <p>음영이 붉을수록 중요한 노선이 여러 개 겹쳐 지나가는 곳입니다. 노선마다 중요도를 다르게 두어 BRT 10, M 노선 6, B5 순환과 1000번대 광역 노선 5, 시내버스 3, 마을버스 1의 가중치를 더한 뒤, 그 밀도를 분위수로 나눠 색을 정했습니다.</p>
+  <p>음영이 붉을수록 중요한 노선이 여러 개 겹쳐 지나가는 곳입니다. 노선마다 중요도를 다르게 두어 BRT 10, M 노선 6, B5 순환과 1000번대 광역 노선 5, 시내버스 3, 마을버스 1의 가중치를 더한 값으로 색을 정했습니다. 색 기준은 모든 단지에 똑같이 적용돼서, 다른 단지와 색으로 바로 비교할 수 있습니다. 대략 마을버스 한 노선만 지나는 곳은 파랑, 시내버스 한 노선은 청록, BRT 한 노선은 노랑, BRT 두 노선 이상 겹치는 곳은 주황, 여러 중요 노선이 몰리는 곳은 빨강입니다.</p>
   <h2>이렇게 활용해 보세요</h2>
   <ul>
     <li>출퇴근하는 곳(정부세종청사, 세종터미널, 오송역, 대전 반석역 등)이 음영 안에 들어오는지 확인해 보세요. 들어온다면 갈아타지 않고 다닐 수 있다는 뜻입니다.</li>
@@ -98,7 +98,7 @@
 <script>
 const KAKAO_JS_KEY = "01636a6af4b49e1612cc9d682edb5a63";
 const RADIUS_M = 500;
-const CELL_M = 110, SAMPLE_M = 55, BLUR_PX = 6, ABS_CAP = 48;  /* 셀 노선겹침 48 이상이면 최고 농도(절대 스케일) */
+const CELL_M = 110, SAMPLE_M = 55, BLUR_PX = 6, ABS_CAP = 48;  /* 칸의 노선 가중합 48 이상이면 최고 농도. 로그 눈금, 모든 단지 공통 */
 const LAT_STEP = CELL_M/111000, LNG_STEP = CELL_M/(111000*Math.cos(36.51*Math.PI/180));
 
 /* 동: 대표마을 m, 최대 단지번호 max, 동 중심 c[lat,lng] */
@@ -259,7 +259,7 @@ function drawHeat(){
     const b=px(new kakao.maps.LatLng((ci+1)*LAT_STEP,(cj+1)*LNG_STEP));
     const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2, rad=Math.max(Math.abs(b.x-a.x),Math.abs(b.y-a.y))*1.5;
     if(cx+rad<0||cy+rad<0||cx-rad>w||cy-rad>h) continue;
-    const t=density.pmap[cnt], col=heatColor(t), al=0.45+0.4*t;
+    const t=Math.min(1,Math.log1p(cnt)/Math.log1p(ABS_CAP)), col=heatColor(t), al=0.45+0.4*t;  /* 절대 기준: 모든 단지가 같은 색 눈금 */
     const g=octx.createRadialGradient(cx,cy,0,cx,cy,rad);
     g.addColorStop(0,'rgba('+col[0]+','+col[1]+','+col[2]+','+al.toFixed(3)+')');
     g.addColorStop(1,'rgba('+col[0]+','+col[1]+','+col[2]+',0)');
@@ -283,7 +283,7 @@ function renderPanel(d){
   h+=`<a class="golink" href="/complex#${encodeURIComponent(d.name)}">단지 정보 보기 →</a>`;
   h+=`<div class="stat"><div class="box"><b>${d.nNear}</b><span>500m 내 정류장</span></div><div class="box"><b>${d.nRoutes}</b><span>경유 노선</span></div><div class="box"><b>${d.nReach}</b><span>무환승 도달 정류장</span></div></div>`;
   h+=`<div class="ttl">환승 없이 닿는 범위</div><div class="legend"><span>하위</span><span class="bar"></span><span>상위</span></div>`;
-  h+=`<p class="ph" style="margin:2px 0 12px">노선 중요도 가중(BRT 10·B5 순환 5·M 6·1000번대 5·시내 3·마을 1)을 합산한 밀도의 분위수로 색을 나눴습니다. 붉을수록 중요 노선이 몰리는 곳입니다.</p>`;
+  h+=`<p class="ph" style="margin:2px 0 12px">노선 중요도 가중(BRT 10·B5 순환 5·M 6·1000번대 5·시내 3·마을 1)을 합산해 모든 단지에 같은 기준으로 색을 칠했습니다. 노랑 ≈ BRT 1개, 빨강 = 중요 노선이 여러 개 겹치는 곳입니다.</p>`;
   if(d.nRoutes){ h+=`<div class="ttl">경유 노선 ${d.nRoutes}개</div><div class="rlist">${names.join(' · ')}</div>`; }
   else { h+='<p class="ph">500m 내 정류장이 없습니다.</p>'; }
   p.innerHTML=h;

@@ -20,6 +20,13 @@ LAT_STEP = CELL_M / 111000
 LNG_STEP = CELL_M / (111000 * math.cos(36.51 * math.pi / 180))
 W, H, SS = 960, 720, 2  # 출력 크기, 슈퍼샘플링 배율
 MIN_R, BLUR, SCALE_KM = 0, 5, 2  # 음영 최소 반지름(px)·번짐·축척
+ABS_CAP = 48  # 노선 가중합이 이 값 이상이면 가장 진한 빨강. 모든 단지 공통(절대) 기준
+
+
+def abs_t(v):
+    """칸의 노선 가중합 → 0~1 색 위치. 로그 눈금이라 마을버스 1개(1)=파랑, 시내 1개(3)=청록,
+    BRT 1개(10)=노랑, BRT 2개 수준(20)=주황, 48 이상=빨강."""
+    return min(1.0, math.log1p(v) / math.log1p(ABS_CAP))
 FONT = "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
 FONT_R = "/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc"
 
@@ -148,8 +155,8 @@ def main():
         # 음영
         heat = Image.new("RGBA", img.size, (0, 0, 0, 0)); hd = ImageDraw.Draw(heat)
         cell_px = max(CELL_M / mpp * SS, 1.5 * SS)
-        for (ci, cj), v in sorted(cells.items(), key=lambda kv: pmap[kv[1]]):
-            t = pmap[v]; x, y = px((ci + .5) * LAT_STEP, (cj + .5) * LNG_STEP)
+        for (ci, cj), v in sorted(cells.items(), key=lambda kv: kv[1]):
+            t = abs_t(v); x, y = px((ci + .5) * LAT_STEP, (cj + .5) * LNG_STEP)
             r = max(cell_px * 1.5, MIN_R * SS)
             hd.ellipse([x - r, y - r, x + r, y + r], fill=heat_color(t) + (int(255 * (0.45 + 0.4 * t)),))
         heat = heat.filter(ImageFilter.GaussianBlur(BLUR * SS))
@@ -192,7 +199,7 @@ def main():
         lx, ly = 18 * SS, (H - 34) * SS
         for i in range(160 * SS):
             d.line([(lx + i, ly), (lx + i, ly + 10 * SS)], fill=heat_color(i / (160 * SS)))
-        d.text((lx, ly - 4 * SS), "환승 없이 닿는 노선  적음 → 많음", font=f_small, fill=(90, 98, 118), anchor="ld")
+        d.text((lx, ly - 4 * SS), "노선 겹침(모든 단지 같은 기준)  적음 → 많음", font=f_small, fill=(90, 98, 118), anchor="ld")
         km = SCALE_KM
         bl = km * 1000 / mpp * SS; bx = (W - 18) * SS - bl; by = (H - 22) * SS
         d.line([(bx, by), (bx + bl, by)], fill=(90, 98, 118), width=3 * SS)
