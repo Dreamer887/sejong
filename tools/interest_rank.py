@@ -22,7 +22,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # ── 기준 ─────────────────────────────────────────────
 BASE_NAME = '가재마을5단지'                      # 지수 100 기준 단지
 BASE_MONTH = '2026년 10월'                       # 이 달의 기준 단지 값을 100으로 고정
-BASE_WINDOW = ('2026-09-14', '2026-10-13')       # 기준 달의 30일 구간
+BASE_WINDOW = ('2026-10-02', '2026-10-31')       # 기준 달의 30일 구간(11월 1일 실행분)
 TOP_N = 20
 SPIKE_CHECK_N = 25        # 급증 여부를 확인할 상위 단지 수
 SPIKE_RATIO = 3.0         # 5일 평균이 평소(중앙값)의 몇 배 이상이면 '급증'
@@ -239,7 +239,7 @@ def spike_label(s):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--keys', default='keys.env')
-    ap.add_argument('--month', help='표시할 달, 예: "2026년 11월" (기본: 실행일 기준)')
+    ap.add_argument('--month', help='표시할 달, 예: "2026년 11월" (기본: 실행일의 지난달)')
     ap.add_argument('--raw', default='interest_raw.json', help='원 검색량을 남길 로컬 파일(저장소에 올리지 않음)')
     ap.add_argument('--dry', action='store_true')
     ap.add_argument('--list-keywords', action='store_true')
@@ -271,7 +271,8 @@ def main():
     for k, t in enumerate(top):           # 지수가 같으면 같은 순위
         t['순위'] = top[k - 1]['순위'] if k and top[k - 1]['지수'] == t['지수'] else k + 1
 
-    month = a.month or f'{today.year}년 {today.month}월'
+    prev = today.replace(day=1) - dt.timedelta(days=1)     # 매달 1일 실행 → 지난달 이름
+    month = a.month or f'{prev.year}년 {prev.month}월'
     md = lambda d: f'{d.month}월 {d.day}일'
     out = {'month': month,
            'basis': f'최근 30일({md(win_start)}~{md(win_end)}) 네이버 검색량 기준',
