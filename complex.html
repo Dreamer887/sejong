@@ -143,6 +143,32 @@
   .rg li b{font-weight:800}
   .rg.brt li{border-color:#cdd3ff;background:#eef0ff}.rg.brt li b{color:#5b6cff}
   @media(max-width:560px){.transit{grid-template-columns:1fr}.transit .num{font-size:50px}}
+  /* 학업 환경 */
+  .edu{display:grid;grid-template-columns:200px minmax(0,1fr);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .edu .score{background:#f4f2ff;padding:20px 18px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+  .edu .lab{font-size:12.5px;font-weight:700;color:#4a55d6}
+  .edu .num{font-size:52px;font-weight:800;line-height:1.05;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+  .edu .num small{font-size:15px;font-weight:700;letter-spacing:0;color:var(--ink);margin-left:4px}
+  .edu .q1{color:#c42b30}.edu .q2{color:#a86f00}.edu .q3{color:#1f8a54}.edu .q4{color:#2f6fd0}.edu .q5{color:#6a3fd1}
+  .edu .rk2{font-size:13px;font-weight:700}
+  .edu .mt{font-size:12px;color:var(--sub)}
+  .edu .qbar{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-top:8px}
+  .edu .qbar i{height:10px;border-radius:3px}
+  .edu .qbar i.on{outline:2px solid var(--ink);outline-offset:1px}
+  .edu .qlab{display:flex;justify-content:space-between;font-size:11px;color:var(--sub)}
+  .edu .schools{padding:16px 18px;display:grid;gap:10px;align-content:start;min-width:0}
+  .edu .schools h4{font-size:13px;font-weight:800}
+  .edu .sch{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px}
+  .edu .sch .top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .edu .sch .nm{font-size:15.5px;font-weight:800}
+  .edu .sch .km{font-size:12px;color:var(--sub);margin-left:6px;font-weight:500}
+  .edu .sch .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:#3d4763}
+  .edu .sch .row b{font-size:17px;font-weight:800;color:var(--ink)}
+  .edu .lv{font-size:12px;font-weight:700;padding:2px 9px;border-radius:6px}
+  .edu .lv.hi{color:#2f3bb8;background:#eef0ff}.edu .lv.mid{color:#3d4763;background:#eef1f6}.edu .lv.lo{color:#9a3f17;background:#fff3ec}.edu .lv.na{color:var(--sub);background:#f3f5fb}
+  .edu .fav{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:#5b2fc9;background:#f1ebff;padding:3px 9px;border-radius:99px}
+  .edu .note{font-size:12px;color:var(--sub)}
+  @media(max-width:560px){.edu{grid-template-columns:1fr}.edu .num{font-size:46px}}
   .more{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
   .more a{font-size:13px;font-weight:700;color:#5b6cff;text-decoration:none;background:#eef0ff;border:1px solid #d9ddff;padding:6px 13px;border-radius:99px}
   .more a:hover{filter:brightness(.97)}
@@ -232,6 +258,17 @@
     </figure>
     <div class="more"><a href="/bus-reach#%EB%82%98%EB%A6%BF%EC%9E%AC%EB%A7%88%EC%9D%841%EB%8B%A8%EC%A7%80">다른 단지와 비교하기 · 전체 단지 지도로 →</a></div>
   </section>
+  <section>
+    <h3>학업 환경</h3>
+    <p class="sub">학원 강도, 가까운 중학교의 진학 실적, 학부모 관심을 합치지 않고 따로 보여줘요.</p>
+    <div class="edu">
+      <div class="score"><span class="lab">학원 강도</span><span class="num q3">3<small>분위</small></span><span class="rk2">161개 단지 중 중간</span><span class="mt">반경 1km 학원 110곳 · 88위</span>
+        <div class="qbar" role="img" aria-label="학원 강도 5분위 중 3분위"><i style="background:#e5484d"></i><i style="background:#f5c242"></i><i style="background:#3dbb7a" class="on"></i><i style="background:#4b8df0"></i><i style="background:#9b6cf2"></i></div>
+        <div class="qlab"><span>많음</span><span>적음</span></div></div>
+      <div class="schools"><h4>가까운 중학교</h4><div class="sch"><div class="top"><span class="nm">나성중<span class="km">0.40km</span></span></div><div class="row"><span>특목·자사고 진학</span><b>3.1%</b><span class="lv mid">보통</span></div></div><div class="sch"><div class="top"><span class="nm">새뜸중<span class="km">1.00km</span></span><span class="fav" title="광고·매물 글을 뺀 네이버 카페·블로그 최근 글에서 긍정적으로 많이 언급된 중학교"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"></path></svg>학부모 관심 학교</span></div><div class="row"><span>특목·자사고 진학</span><b>5.7%</b><span class="lv hi">높음</span></div></div>
+        <p class="note">동지역 평균 4.0% · 세종 동지역은 학교군 안에서 지망하고 가까운 순으로 배정돼요.</p></div>
+    </div>
+  </section>
   
   <section>
     <h3>같은 동 단지</h3>
@@ -241,6 +278,7 @@
     <span>단지 개요는 행정중심복합도시건설청 주택분양계획 및 실적 자료 기준이에요.</span>
     <span>장점 요약은 온라인 공개 후기를 바탕으로 세부인이 정리한 내용이며, 개인마다 느끼는 바는 다를 수 있어요. · 2026년 10월 정리</span>
     <span>대중교통 강도는 국토교통부 TAGO 노선·정류장(2026년 10월, 세종 + 대전·청주·공주 등록 노선) + 세종시 버스운행 현황(2026년 8월)으로 세부인이 산정했어요. 단지 중심 500m 내: BRT 노선 일운행 50%(B5 순환은 절반) + 환승 없이 닿는 정류장 수 25% + 전체 버스 일운행 25%, 단지 간 순위(백분위)로 합산.</span>
+    <span>학업 환경은 NEIS 학원교습소정보(2026년 10월) · 학교알리미 졸업생 진로현황(2023~2025 공시) · 네이버 카페·블로그 최근 글 기준이에요. 학원 강도는 단지 중심 반경 1km 안 입시·보습·외국어 학원 수를 161개 단지 순위로 5분위, 진학 실적은 과학고·외고·국제고·자사고 진학자 ÷ 졸업자(3개년 합산)로 동지역 평균과 뚜렷이 차이 나는 곳만 높음·낮음, 학부모 관심 학교는 광고·매물 글을 뺀 최근 글에서 긍정적으로 많이 언급된 중학교. 가까운 중학교는 단지 중심 직선거리 기준이며 실제 배정과 다를 수 있어요.</span>
   </footer><!--/pre:card--></main>
   </div>
 
@@ -251,15 +289,16 @@
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const enc = s => encodeURIComponent(s);
-let REACH_MODE = "wide", DATA = [], BUILT = "", TR = null, IT = null, FOOD = [], topIdx = {}, TOPMAX = 100, curDong = "전체", curId = 0;
+let REACH_MODE = "wide", DATA = [], BUILT = "", TR = null, IT = null, ED = null, FOOD = [], topIdx = {}, TOPMAX = 100, curDong = "전체", curId = 0;
 
 Promise.all([
   fetch("/complexes.json").then(r => r.json()),
   fetch("/transit.json").then(r => r.json()).catch(() => null),
   fetch("/interest.json").then(r => r.json()).catch(() => null),
-  fetch("/blog/posts.json").then(r => r.json()).catch(() => [])
-]).then(([c, t, i, p]) => {
-  DATA = c.data; BUILT = c.built; TR = t; IT = i;
+  fetch("/blog/posts.json").then(r => r.json()).catch(() => []),
+  fetch("/education.json").then(r => r.json()).catch(() => null)
+]).then(([c, t, i, p, e]) => {
+  DATA = c.data; BUILT = c.built; TR = t; IT = i; ED = e;
   FOOD = (Array.isArray(p) ? p : []).filter(x => x && x.tag === "맛집" && x.place && x.place.lat != null && x.place.lng != null);
   init();
 }).catch(() => { $("#card").innerHTML = `<div class="loading">데이터를 불러오지 못했어요. 잠시 후 다시 열어주세요.</div>`; });
@@ -332,6 +371,32 @@ function transitHTML(d) {
     <div class="more"><a href="/bus-reach#${enc(d.이름)}">다른 단지와 비교하기 · 전체 단지 지도로 →</a></div>
   </section>`;
 }
+// 학업 환경: 학원 강도(반경 1km 학원 수 5분위) · 가까운 중학교 진학 실적 · 학부모 관심 학교 — 셋을 합산하지 않고 따로 보여준다
+function eduHTML(d) {
+  const e = ED && ED.data && ED.data[d.이름];
+  if (!e) return "";
+  const [n, q, rank, near] = e;
+  const QC = ["#e5484d", "#f5c242", "#3dbb7a", "#4b8df0", "#9b6cf2"];
+  const qTxt = {1: "상위 20%", 2: "상위 40%", 3: "중간", 4: "하위 40%", 5: "하위 20%"}[q];
+  const lvCls = {높음: "hi", 보통: "mid", 낮음: "lo"};
+  const star = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg>`;
+  const sch = ([nm, km]) => {
+    const s = ED.schools[nm] || {};
+    const rate = s.rate == null ? `<span class="lv na">졸업생 자료 없음</span>` : `<b>${s.rate.toFixed(1)}%</b><span class="lv ${lvCls[s.level] || "mid"}">${esc(s.level)}</span>`;
+    return `<div class="sch"><div class="top"><span class="nm">${esc(nm)}<span class="km">${km.toFixed(2)}km</span></span>${s.interest ? `<span class="fav" title="광고·매물 글을 뺀 네이버 카페·블로그 최근 글에서 긍정적으로 많이 언급된 중학교">${star}학부모 관심 학교</span>` : ""}</div><div class="row"><span>특목·자사고 진학</span>${rate}</div></div>`;
+  };
+  return `<section>
+    <h3>학업 환경</h3>
+    <p class="sub">학원 강도, 가까운 중학교의 진학 실적, 학부모 관심을 합치지 않고 따로 보여줘요.</p>
+    <div class="edu">
+      <div class="score"><span class="lab">학원 강도</span><span class="num q${q}">${q}<small>분위</small></span><span class="rk2">${ED.n}개 단지 중 ${qTxt}</span><span class="mt">반경 1km 학원 ${n.toLocaleString()}곳 · ${rank}위</span>
+        <div class="qbar" role="img" aria-label="학원 강도 5분위 중 ${q}분위">${QC.map((c, k) => `<i style="background:${c}"${k + 1 === q ? ' class="on"' : ""}></i>`).join("")}</div>
+        <div class="qlab"><span>많음</span><span>적음</span></div></div>
+      <div class="schools"><h4>가까운 중학교</h4>${near.map(sch).join("")}
+        <p class="note">동지역 평균 ${ED.avg.toFixed(1)}% · 세종 동지역은 학교군 안에서 지망하고 가까운 순으로 배정돼요.</p></div>
+    </div>
+  </section>`;
+}
 // 주변 맛집: 세부인 맛집 후기 중 단지 중심에서 직선 1km 안에 있는 가게 (없으면 섹션을 숨김)
 function distM(a, b, c, d) {
   const R = 6371000, r = x => x * Math.PI / 180;
@@ -386,6 +451,7 @@ function show(i, scroll) {
   </section>
   ${chk}
   ${transitHTML(d)}
+  ${eduHTML(d)}
   ${foodHTML(d)}
   <section>
     <h3>같은 동 단지</h3>
@@ -395,6 +461,7 @@ function show(i, scroll) {
     <span>단지 개요는 행정중심복합도시건설청 주택분양계획 및 실적 자료 기준이에요.</span>
     <span>장점 요약은 온라인 공개 후기를 바탕으로 세부인이 정리한 내용이며, 개인마다 느끼는 바는 다를 수 있어요. · ${esc(BUILT)} 정리</span>
     ${TR ? `<span>대중교통 강도는 ${esc(TR.basis)}으로 세부인이 산정했어요. ${esc(TR.method)}.</span>` : ""}
+    ${ED ? `<span>학업 환경은 ${esc(ED.basis)} 기준이에요. ${esc(ED.method)}. 가까운 중학교는 단지 중심 직선거리 기준이며 실제 배정과 다를 수 있어요.</span>` : ""}
   </footer>`;
   $("#card").querySelectorAll(".near button").forEach(b => b.addEventListener("click", () => show(+b.dataset.i, true)));
   if (scroll) $("#card").scrollIntoView({behavior: "smooth", block: "start"});

@@ -10,6 +10,7 @@ on:
       - "complexes.json"
       - "transit.json"
       - "interest.json"
+      - "education.json"
       - "complex.html"
       - "index.html"
       - "tools/prerender.mjs"

@@ -2,7 +2,7 @@
 // 검색엔진·애드센스 심사 봇이 페이지를 열자마자 실제 내용을 보게 한다.
 // 페이지 스크립트는 그대로 동작하며, 열리면 같은 내용으로 다시 그린다.
 //
-// 언제 다시 돌리나: complexes.json · transit.json · interest.json 갱신 후, 새 분석글 발행 후
+// 언제 다시 돌리나: complexes.json · transit.json · interest.json · education.json 갱신 후, 새 분석글 발행 후
 // 자동 실행: .github/workflows/prerender.yml (main에 데이터·글이 올라올 때)
 // 수동 실행: (jsdom이 없는 폴더라면) npm i --no-save jsdom@24  →  node tools/prerender.mjs
 import { readFileSync, writeFileSync } from "node:fs";
