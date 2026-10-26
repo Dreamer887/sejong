@@ -11,7 +11,7 @@ npm i --no-save jsdom@24   # jsdom이 없을 때만
 node tools/prerender.mjs
 ```
 
-방문자 수는 계속 집계되지만 화면에는 숨겨져 있습니다. 주소 끝에 `?visits`를 붙이면 보입니다.
+방문자 수는 계속 집계되지만 화면에는 숨겨져 있습니다. 주소 끝에 `?visits`(또는 `?visit`)를 붙이면 보이고, 휴대폰 알림 구독자 수도 같이 나옵니다.
 
 ## 휴대폰 알림 (웹 푸시)
 - 구독 페이지: `alerts.html` (안드로이드·아이폰 설정 안내 포함), 서비스 워커 `sw.js`, 홈 화면용 `alerts.webmanifest`

@@ -26,7 +26,18 @@ async function counts(db, day) {
     db.prepare("SELECT COUNT(*) AS n FROM visits WHERE day = ?").bind(day),
     db.prepare("SELECT COUNT(*) AS n FROM visits")
   ]);
-  return { ok: true, day: day, today: r[0].results[0].n, total: r[1].results[0].n };
+  const out = { ok: true, day: day, today: r[0].results[0].n, total: r[1].results[0].n };
+  // 휴대폰 알림 구독자 수 (push.js가 만드는 표 — 아직 없으면 0)
+  try {
+    const p = await db.batch([
+      db.prepare("SELECT COUNT(*) AS n FROM push_subs"),
+      db.prepare("SELECT COUNT(*) AS n FROM push_subs WHERE topics LIKE '%,trade,%'"),
+      db.prepare("SELECT COUNT(*) AS n FROM push_subs WHERE topics LIKE '%,analysis,%'"),
+      db.prepare("SELECT COUNT(*) AS n FROM push_subs WHERE topics LIKE '%,matjip,%'")
+    ]);
+    out.push = { total: p[0].results[0].n, trade: p[1].results[0].n, analysis: p[2].results[0].n, matjip: p[3].results[0].n };
+  } catch (e) { out.push = { total: 0, trade: 0, analysis: 0, matjip: 0 }; }
+  return out;
 }
 
 export async function onRequestGet({ env }) {
