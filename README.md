@@ -16,7 +16,7 @@ node tools/prerender.mjs
 ## 휴대폰 알림 (웹 푸시)
 - 구독 페이지: `alerts.html` (안드로이드·아이폰 설정 안내 포함), 서비스 워커 `sw.js`, 홈 화면용 `alerts.webmanifest`
 - 서버: `functions/api/push.js` — 구독 저장은 D1(`VISITS_DB`)의 `push_*` 표, VAPID 키는 처음 호출 때 자동 생성되어 D1에 보관(따로 넣을 환경변수 없음)
-- 발송: `.github/workflows/push-alerts.yml`이 매일 한국 시간 07:40(예비 10:17)과 새 글 발행 때 `POST /api/push {"action":"send"}`를 부른다
+- 발송: `.github/workflows/push-alerts.yml`이 매일 아침 data.json이 갱신되면(06:53쯤) 07:40까지 기다렸다가, 그리고 새 글 발행 때 (예약 07:50·10:17은 예비) `POST /api/push {"action":"send"}`를 부른다
   - 실거래: `data.json` 「오늘 신고내역」 날짜가 오늘(또는 어제)이고 1건 이상이면 하루 한 번
   - 글: `blog/posts.json`의 새 글(맛집 태그는 '새 맛집 글', 나머지는 '새 분석글')
   - 한국 시간 7~21시에만 새 알림을 만들고, 같은 알림은 한 사람에게 한 번만 간다

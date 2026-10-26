@@ -1,18 +1,23 @@
 # 휴대폰 알림(웹 푸시) 발송 — /api/push 의 "send"를 불러 준다.
 # send는 같은 알림을 두 번 만들거나 같은 사람에게 두 번 보내지 않으므로 여러 번 불러도 안전하다.
-#  - 매일 아침: data.json의 「오늘 신고내역」이 오늘 날짜로 바뀌어 있으면(새 거래 공개) 실거래 요약 알림
+#
+# 언제 도나
+#  - data.json이 main에 올라올 때(매일 06:53쯤 그날 신고분으로 바뀜): 07:40까지 기다렸다가 실거래 요약 발송
+#    → GitHub 예약(schedule)은 수십 분 밀리거나 건너뛰는 일이 잦아서, 커밋(push)을 주 신호로 쓴다
 #  - 새 글 발행(blog/posts.json 변경): 배포가 끝날 시간을 두고 새 글 알림
+#  - 예약 실행은 위가 모두 실패했을 때를 위한 예비용
 # 비밀값(Secrets)은 필요 없다.
 name: push-alerts
 
 on:
-  schedule:
-    - cron: "40 22 * * *"   # 한국 시간 07:40 (data.json은 06:53쯤 그날 신고분으로 바뀐다)
-    - cron: "17 1 * * *"    # 한국 시간 10:17 — 아침 실행이 밀리거나 실패했을 때 대비
   push:
     branches: [main]
     paths:
+      - "data.json"
       - "blog/posts.json"
+  schedule:
+    - cron: "50 22 * * *"   # 한국 시간 07:50 (예비)
+    - cron: "17 1 * * *"    # 한국 시간 10:17 (예비)
   workflow_dispatch:
 
 concurrency:
@@ -22,11 +27,18 @@ concurrency:
 jobs:
   send:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 75
     steps:
-      - name: 새 글이면 Cloudflare 배포를 기다린다
+      - name: 발송 시각까지 기다리기
         if: github.event_name == 'push'
-        run: sleep 150
+        run: |
+          now=$(TZ=Asia/Seoul date +%s)
+          target=$(TZ=Asia/Seoul date -d "$(TZ=Asia/Seoul date +%F) 07:40" +%s)
+          wait=$(( target - now ))
+          # 배포가 끝나도록 최소 150초는 기다린다. 07:40 전이면 07:40까지.
+          if [ "$wait" -lt 150 ]; then wait=150; fi
+          if [ "$wait" -gt 3600 ]; then wait=150; fi   # 새벽 등 한참 이른 커밋은 기다리지 않음(어차피 7시 전엔 안 만든다)
+          echo "${wait}초 기다림"; sleep "$wait"
       - name: 알림 보내기
         run: |
           for i in $(seq 1 60); do
