@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="only light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/alerts.webmanifest">
+<meta name="theme-color" content="#5b6cff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="세부인">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>휴대폰 알림 받기 | 세종 부동산 인사이트</title>
+<meta name="description" content="새로 공개된 세종 아파트 매매 실거래와 세부인 새 분석글을 휴대폰 알림으로 받아보세요. 안드로이드·아이폰 설정 방법 안내.">
+<link rel="canonical" href="https://sebuin.com/alerts.html">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="휴대폰 알림 받기 | 세종 부동산 인사이트">
+<meta property="og:description" content="매일 아침 새로 공개된 세종 실거래를 휴대폰 알림으로.">
+<meta property="og:url" content="https://sebuin.com/alerts.html">
+<meta property="og:image" content="https://sebuin.com/og-image.png">
+<style>
+  :root{--bg:#f4f6fa;--card:#fff;--ink:#16203a;--sub:#727e98;--indigo:#5b6cff;--violet:#a06bff;--line:#e4e8f0;--ok:#16a36a;--warn:#e58a00;--bad:#e5484d}
+  *{margin:0;padding:0;box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--bg);color:var(--ink);line-height:1.7;-webkit-text-size-adjust:100%}
+  .wrap{max-width:760px;margin:0 auto;padding:0 16px 60px;position:relative}
+  a{color:inherit}
+  .topnav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(243,245,251,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:calc(12px + env(safe-area-inset-top)) 2px 10px;margin-bottom:6px}
+  .topnav .navlinks{display:flex;background:#e7eaf5;border-radius:99px;padding:4px;gap:3px;flex-wrap:wrap}
+  .topnav .navlinks a{border-radius:99px;padding:8px 13px;font-size:13px;color:#727e98;font-weight:700;text-decoration:none;white-space:nowrap}
+  .topnav .navlinks a.on{background:#fff;color:var(--indigo);box-shadow:0 8px 22px -12px rgba(40,55,110,.55)}
+  @media(max-width:560px){.topnav .brand svg{width:38px;height:38px}.topnav .brand .bt{font-size:28px!important}}
+
+  .hero{background:linear-gradient(140deg,#5b6cff,#a06bff);color:#fff;border-radius:22px;padding:30px 28px 26px;margin-top:8px;position:relative;overflow:hidden}
+  .hero h1{font-size:25px;font-weight:800;letter-spacing:-.6px;line-height:1.35}
+  .hero p{font-size:15px;opacity:.93;margin-top:8px}
+  .hero .bell{position:absolute;right:18px;top:14px;font-size:64px;opacity:.18;transform:rotate(14deg)}
+  @media(max-width:560px){.hero{padding:24px 20px 22px}.hero h1{font-size:21px}}
+
+  .noti{margin:18px 0 2px;background:rgba(255,255,255,.95);color:#1d2433;border-radius:16px;padding:12px 14px;display:flex;gap:11px;align-items:flex-start;box-shadow:0 14px 30px -18px rgba(20,20,60,.7)}
+  .noti img{width:38px;height:38px;border-radius:9px;flex:none}
+  .noti .nh{display:flex;justify-content:space-between;font-size:12px;color:#8a93a8;font-weight:600}
+  .noti .nt{font-size:14.5px;font-weight:800;margin-top:1px}
+  .noti .nb{font-size:13.5px;color:#3b4560;line-height:1.5;white-space:pre-line}
+  .noti-cap{font-size:12px;opacity:.85;margin-top:8px;text-align:right}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 26px;margin-top:14px}
+  @media(max-width:560px){.card{padding:22px 18px}}
+  .card h2{font-size:18px;font-weight:800;letter-spacing:-.3px;margin-bottom:12px;padding-left:11px;border-left:5px solid var(--indigo)}
+  .card p{font-size:14.5px;color:#2b3550}
+  .muted{color:var(--sub)!important;font-size:13px!important}
+
+  .topic{display:flex;gap:12px;align-items:flex-start;padding:14px 4px;border-top:1px solid var(--line);cursor:pointer}
+  .topic:first-of-type{border-top:0}
+  .topic input{width:22px;height:22px;margin-top:2px;accent-color:var(--indigo);flex:none}
+  .topic b{font-size:15.5px;display:block}
+  .topic span{font-size:13.5px;color:#4d5770;display:block;line-height:1.6}
+  .topic em{font-style:normal;font-size:11.5px;font-weight:800;color:var(--indigo);background:#eef0ff;border-radius:99px;padding:2px 8px;margin-left:6px;vertical-align:2px}
+
+  .action{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+  .btn{appearance:none;border:0;border-radius:14px;padding:15px 18px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;width:100%}
+  .btn.main{background:linear-gradient(120deg,#5b6cff,#8f6bff);color:#fff;box-shadow:0 12px 26px -14px rgba(91,108,255,.9)}
+  .btn.sub{background:#eef0f7;color:#3b4560}
+  .btn.ghost{background:transparent;color:#8a93a8;font-size:14px;padding:8px}
+  .btn:disabled{opacity:.55;cursor:default}
+  .row2{display:flex;gap:8px}.row2 .btn{font-size:14.5px;padding:13px 10px}
+  .state{border-radius:14px;padding:13px 15px;font-size:14px;font-weight:600;line-height:1.6}
+  .state.ok{background:#e9f8f0;color:#0f7a4e}
+  .state.warn{background:#fff5e5;color:#9a5b00}
+  .state.bad{background:#fdeeee;color:#b4262b}
+  .state.info{background:#eef0ff;color:#3d49b8}
+  .state b{font-weight:800}
+  .msg{font-size:13px;color:var(--sub);text-align:center;min-height:18px}
+
+  .tabs{display:flex;background:#eef0f7;border-radius:14px;padding:4px;gap:4px;margin-bottom:14px}
+  .tabs button{flex:1;border:0;background:transparent;border-radius:11px;padding:11px 6px;font-family:inherit;font-size:14.5px;font-weight:800;color:#727e98;cursor:pointer}
+  .tabs button.on{background:#fff;color:var(--ink);box-shadow:0 6px 16px -10px rgba(40,55,110,.6)}
+  .guide{display:none}.guide.on{display:block}
+  ol.steps{list-style:none;counter-reset:s;margin:4px 0}
+  ol.steps li{counter-increment:s;position:relative;padding:10px 0 10px 40px;font-size:14.5px;color:#2b3550;border-top:1px dashed var(--line)}
+  ol.steps li:first-child{border-top:0}
+  ol.steps li::before{content:counter(s);position:absolute;left:0;top:10px;width:27px;height:27px;border-radius:50%;background:#eef0ff;color:var(--indigo);font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center}
+  ol.steps li b{color:var(--ink)}
+  .kbd{display:inline-block;background:#f1f3f9;border:1px solid #dfe3ee;border-radius:7px;padding:0 7px;font-size:13px;font-weight:700;color:#3b4560;white-space:nowrap}
+  .tip{background:#f7f8fc;border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13.5px;color:#4d5770}
+  .tip b{color:var(--ink)}
+  ul.dots{margin:6px 0 0 18px;font-size:14px;color:#2b3550}
+  ul.dots li{margin:6px 0}
+  details{border-top:1px solid var(--line);padding:12px 2px}
+  details:first-of-type{border-top:0}
+  summary{font-weight:800;font-size:14.5px;cursor:pointer;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"Q. ";color:var(--indigo)}
+  details p{margin-top:6px;font-size:14px!important}
+  footer{margin-top:30px;color:#aab2c5;font-size:13px;text-align:center;line-height:1.7}
+  footer a{color:#8a93a8;text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="topnav">
+    <a class="brand" href="/" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none"><svg width="44" height="44" viewBox="0 0 48 48" style="flex:none" aria-hidden="true"><defs><linearGradient id="blg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b6cff"/><stop offset="1" stop-color="#a06bff"/></linearGradient></defs><rect width="48" height="48" rx="13" fill="url(#blg)"/><rect x="9" y="13" width="13" height="25" rx="1.6" fill="#fff"/><rect x="11.4" y="16.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="16.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="11.4" y="21" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="21" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="11.4" y="25.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><rect x="16.3" y="25.5" width="2.3" height="2.3" rx=".4" fill="url(#blg)"/><circle cx="31" cy="27" r="7" fill="url(#blg)" stroke="#fff" stroke-width="2.6"/><line x1="36" y1="32" x2="40.5" y2="36.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg><span style="display:inline-block;line-height:1"><span class="bt" style="display:block;font-family:'Jua','Apple SD Gothic Neo',sans-serif;font-size:32px;letter-spacing:-1px;background:linear-gradient(120deg,#4b46c4,#9a6bf2);-webkit-background-clip:text;background-clip:text;color:transparent">세부인</span><span style="display:block;font-size:10px;font-weight:600;color:#727e98;margin-top:4px;white-space:nowrap">세종 부동산 인사이트</span></span></a>
+    <div class="navlinks"><a href="/">대시보드</a><a href="/blog/">분석</a><a class="on" href="/alerts.html">🔔 알림</a></div>
+  </nav>
+
+  <section class="hero">
+    <div class="bell" aria-hidden="true">🔔</div>
+    <h1>새로 공개된 세종 실거래,<br>아침마다 휴대폰으로 받아보세요</h1>
+    <p>회원가입·앱 설치 없이, 버튼 한 번이면 끝나요. 이메일이나 전화번호도 받지 않아요.</p>
+    <div class="noti" aria-label="알림 예시">
+      <img src="/images/icons/icon-192.png" alt="">
+      <div style="flex:1;min-width:0">
+        <div class="nh"><span>세부인 · sebuin.com</span><span>오전 7:45</span></div>
+        <div class="nt" id="sampleTitle">세종 실거래 26건 새로 공개 (10.24)</div>
+        <div class="nb" id="sampleBody">상승거래 5건 · 가온 4단지 84㎡ 7억 8,500만
+동 지역 24건 · 읍·면 2건</div>
+      </div>
+    </div>
+    <div class="noti-cap">실제로 받게 되는 알림 모양이에요 · 누르면 오늘의 세종 화면이 열려요</div>
+  </section>
+
+  <section class="card" id="subscribe">
+    <h2>어떤 알림을 받을까요?</h2>
+    <label class="topic"><input type="checkbox" value="trade" checked>
+      <div><b>매일 실거래 요약 <em>추천</em></b>
+      <span>국토부에 새로 신고돼 공개된 세종 아파트 매매 거래를 요약해 드려요. 몇 건이 나왔는지, 최근 3개월 최고가를 넘긴 <b style="display:inline;font-size:inherit">상승거래</b>가 있었는지 한눈에 볼 수 있어요.</span>
+      <span class="muted">평일 아침 7~8시쯤 · 새로 공개된 거래가 없는 날(주말 다음 날 등)은 보내지 않아요</span></div>
+    </label>
+    <label class="topic"><input type="checkbox" value="analysis" checked>
+      <div><b>새 분석글</b>
+      <span>세부인에 PIR·전세가율·단지 분석 같은 새 분석글이 올라오면 알려드려요.</span>
+      <span class="muted">글이 올라올 때만 · 밤에 올라온 글은 다음 날 아침에</span></div>
+    </label>
+    <label class="topic"><input type="checkbox" value="matjip">
+      <div><b>새 맛집 글</b>
+      <span>세종 단지 주변 맛집 후기가 올라오면 알려드려요.</span></div>
+    </label>
+
+    <div class="action">
+      <div class="state info" id="state">이 기기의 알림 상태를 확인하는 중…</div>
+      <button class="btn main" id="btnSub" hidden>🔔 알림 받기</button>
+      <div class="row2" id="subOn" hidden>
+        <button class="btn sub" id="btnSave">선택 저장</button>
+        <button class="btn sub" id="btnTest">확인 알림 보내기</button>
+      </div>
+      <button class="btn sub" id="btnCopy" hidden>🔗 이 페이지 주소 복사</button>
+      <button class="btn ghost" id="btnOff" hidden>이 기기에서 알림 끄기</button>
+      <div class="msg" id="msg"></div>
+    </div>
+  </section>
+
+  <section class="card" id="guide">
+    <h2>휴대폰별 설정 방법</h2>
+    <div class="tabs" role="tablist">
+      <button type="button" data-g="android" class="on">안드로이드</button>
+      <button type="button" data-g="ios">아이폰</button>
+    </div>
+
+    <div class="guide on" id="g-android">
+      <ol class="steps">
+        <li><b>크롬</b>이나 <b>삼성 인터넷</b>으로 이 페이지를 열어요.<br><span class="muted">카카오톡·네이버 앱 안에서 열었다면 오른쪽 위 <span class="kbd">⋮</span> → <span class="kbd">다른 브라우저로 열기</span>를 눌러주세요.</span></li>
+        <li>위의 <b>🔔 알림 받기</b> 버튼을 누르고, 뜨는 창에서 <b>허용</b>을 눌러요.</li>
+        <li>바로 <b>"세부인 알림이 켜졌어요 ✅"</b> 확인 알림이 오면 끝이에요.</li>
+      </ol>
+      <div class="tip"><b>확인 알림이 안 온다면</b>
+        <ul class="dots">
+          <li>휴대폰 <span class="kbd">설정</span> → <span class="kbd">애플리케이션</span> → <span class="kbd">Chrome</span>(또는 삼성 인터넷) → <span class="kbd">알림</span>이 켜져 있는지 확인해요.</li>
+          <li>크롬 주소창 왼쪽 아이콘 → <span class="kbd">권한</span> → <span class="kbd">알림</span>이 <b>허용</b>인지 확인해요. '차단'이면 허용으로 바꾼 뒤 이 페이지를 새로고침하세요.</li>
+          <li><span class="kbd">설정</span> → <span class="kbd">배터리</span>의 절전·잠자는 앱 목록에 크롬이 있으면 빼주세요. 오래 안 쓰면 알림이 늦게 올 수 있어요.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="guide" id="g-ios">
+      <div class="state warn" style="margin-bottom:8px">아이폰은 <b>홈 화면에 세부인을 추가한 뒤</b> 그 아이콘으로 열어야 알림을 켤 수 있어요. (iOS 16.4 이상)</div>
+      <ol class="steps">
+        <li><b>사파리</b>로 이 페이지(sebuin.com/alerts.html)를 열어요.<br><span class="muted">카카오톡·네이버 앱 안에서 열었다면 아래 <span class="kbd">공유</span>나 <span class="kbd">⋯</span> → <span class="kbd">Safari로 열기</span>를 눌러주세요.</span></li>
+        <li>화면 아래(또는 주소창 옆)의 <b>공유 버튼</b> <span class="kbd">□↑</span>을 눌러요.</li>
+        <li>목록을 내려 <b>홈 화면에 추가</b>를 누르고, 오른쪽 위 <b>추가</b>를 눌러요.</li>
+        <li>홈 화면에 생긴 <b>세부인 아이콘</b>을 눌러 열어요. 이 알림 페이지가 바로 열려요.</li>
+        <li><b>🔔 알림 받기</b> → <b>허용</b>을 누르면 확인 알림이 와요.</li>
+      </ol>
+      <div class="tip"><b>확인 알림이 안 온다면</b>
+        <ul class="dots">
+          <li><span class="kbd">설정</span> → <span class="kbd">알림</span> → <span class="kbd">세부인</span>에서 <b>알림 허용</b>, 잠금 화면·배너가 켜져 있는지 확인해요.</li>
+          <li>집중 모드(방해 금지·수면)가 켜져 있으면 알림이 숨겨질 수 있어요.</li>
+          <li>iOS 버전이 16.4보다 낮으면 <span class="kbd">설정</span> → <span class="kbd">일반</span> → <span class="kbd">소프트웨어 업데이트</span>를 먼저 해주세요.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>자주 묻는 질문</h2>
+    <details><summary>돈이 들거나 가입해야 하나요?</summary><p>아니요. 무료이고 가입도 없어요. 휴대폰 브라우저의 기본 알림 기능을 쓰기 때문에 앱을 깔 필요도 없어요.</p></details>
+    <details><summary>어떤 정보가 저장되나요?</summary><p>알림을 보낼 기기 주소(브라우저가 만든 푸시 주소)와 고른 알림 종류만 저장해요. 이름·이메일·전화번호는 받지 않고, 알림을 끄면 바로 지워져요. 자세한 내용은 <a href="/privacy.html" style="color:var(--indigo);font-weight:700">개인정보처리방침</a>에 있어요.</p></details>
+    <details><summary>실거래 알림은 언제 오나요?</summary><p>국토교통부는 신고된 거래를 다음 날 공개해요. 세부인은 매일 아침 새로 공개된 세종 아파트 매매 거래를 모아서 7~8시쯤 보내드려요. 새로 공개된 거래가 없는 날은 보내지 않아요.</p></details>
+    <details><summary>알림을 끄고 싶어요</summary><p>이 페이지에서 <b>이 기기에서 알림 끄기</b>를 누르거나, 휴대폰 설정에서 브라우저(아이폰은 세부인)의 알림을 끄면 돼요.</p></details>
+    <details><summary>휴대폰을 바꾸거나 브라우저 데이터를 지웠어요</summary><p>알림은 기기·브라우저마다 따로 켜져요. 새 기기에서 이 페이지를 열어 다시 알림 받기를 눌러주세요.</p></details>
+  </section>
+
+  <footer>
+    데이터 출처: 국토교통부 실거래가 공개시스템(rt.molit.go.kr)<br>
+    <a href="/privacy.html">개인정보처리방침</a> · <a href="/terms.html">이용약관</a> · <a href="/about.html">소개</a> · <a href="/contact.html">문의</a>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var ua=navigator.userAgent||"";
+  var isIOS=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  var isAndroid=/Android/i.test(ua);
+  var inApp=/KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|DaumApps|everytimeApp|BAND\//i.test(ua);
+  var standalone=(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;
+  var supported=("serviceWorker" in navigator)&&("PushManager" in window)&&("Notification" in window);
+  var reg=null, pubKey=null;
+  function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
+
+  // 휴대폰 종류에 맞는 안내 탭을 먼저 보여준다
+  function showGuide(g){
+    document.querySelectorAll(".tabs button").forEach(function(b){b.classList.toggle("on",b.dataset.g===g);});
+    $("g-android").classList.toggle("on",g==="android"); $("g-ios").classList.toggle("on",g==="ios");
+  }
+  document.querySelectorAll(".tabs button").forEach(function(b){b.onclick=function(){showGuide(b.dataset.g);};});
+  if(isIOS) showGuide("ios");
+
+  // 저장해 둔 선택 복원
+  var saved=ls("sebuin_push_topics");
+  if(saved){var arr=saved.split(",");document.querySelectorAll(".topic input").forEach(function(c){c.checked=arr.indexOf(c.value)>=0;});}
+  function topics(){return Array.prototype.filter.call(document.querySelectorAll(".topic input"),function(c){return c.checked;}).map(function(c){return c.value;});}
+
+  function setState(kind,html){var s=$("state");s.className="state "+kind;s.innerHTML=html;}
+  function show(ids){["btnSub","subOn","btnOff","btnCopy"].forEach(function(id){$(id).hidden=ids.indexOf(id)<0;});}
+  function msg(t){$("msg").textContent=t||"";}
+  function api(body){return fetch("/api/push",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.json();});}
+  function keyBytes(b64){var s=b64.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";var raw=atob(s);var a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
+
+  // 실제 오늘 데이터로 예시 알림 문구 채우기 (실패하면 기본 예시 그대로)
+  fetch("/data.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
+    var t=d["오늘 신고내역"]; if(!t) return;
+    var lab=String((t.labels||[])[0]||""), dt=(lab.match(/\d{4}-(\d{2})-(\d{2})/)||[]);
+    var hi=(t.rows||[]).findIndex(function(r){return String(r[0]).trim()==="법정동";});
+    var rows=(hi>=0?t.rows.slice(hi+1):t.rows).filter(function(r){return r&&r[0];});
+    if(!rows.length||!dt[1]) return;
+    var rural=rows.filter(function(r){return /[읍면]/.test(String(r[0]));}).length;
+    $("sampleTitle").textContent="세종 실거래 "+rows.length+"건 새로 공개 ("+dt[1]+"."+dt[2]+")";
+    var top=rows.filter(function(r){return !/[읍면]/.test(String(r[0]));}).sort(function(a,b){return (+b[5]||0)-(+a[5]||0);})[0];
+    var won=function(m){m=Math.round(+m||0);var e=Math.floor(m/10000),r=m%10000;return e?e+"억"+(r?" "+r.toLocaleString("ko-KR")+"만":""):r.toLocaleString("ko-KR")+"만";};
+    var nm=function(s){s=String(s||"");var m=s.match(/([가-힣]+마을)\s*(\d+)\s*단지/);return (m?m[1]+" "+m[2]+"단지":s.replace(/\s*\(.*?\)\s*/g,"")).replace(/마을/g,"");};
+    $("sampleBody").textContent=(top?"최고가 "+nm(top[1])+" "+Math.floor(+top[4])+"㎡ "+won(top[5])+"\n":"")+"동 지역 "+(rows.length-rural)+"건"+(rural?" · 읍·면 "+rural+"건":"");
+  }).catch(function(){});
+
+  async function render(){
+    msg("");
+    if(inApp){
+      setState("warn","<b>카카오톡·네이버 같은 앱 안의 브라우저</b>에서는 알림을 켤 수 없어요. "+(isIOS?"<b>사파리</b>로":"<b>크롬</b>으로")+" 이 페이지를 다시 열어주세요. 아래 설정 방법을 참고하세요.");
+      show(["btnCopy"]); return;
+    }
+    if(isIOS&&!standalone){
+      setState("warn","아이폰은 먼저 <b>홈 화면에 세부인을 추가</b>하고, 홈 화면의 세부인 아이콘으로 열어야 알림을 켤 수 있어요. 아래 <b>아이폰</b> 설정 방법을 따라 해주세요.");
+      show([]); showGuide("ios"); return;
+    }
+    if(!supported){
+      setState("bad","이 브라우저는 알림 기능을 지원하지 않아요. "+(isIOS?"iOS를 16.4 이상으로 업데이트한 뒤 다시 시도해주세요.":"최신 <b>크롬</b>이나 <b>삼성 인터넷</b>으로 열어주세요."));
+      show(isAndroid?["btnCopy"]:[]); return;
+    }
+    try{ reg=await navigator.serviceWorker.register("/sw.js"); }catch(e){ setState("bad","알림 준비에 실패했어요. 페이지를 새로고침해 주세요."); show([]); return; }
+    try{ pubKey=(await (await fetch("/api/push")).json()).publicKey; }catch(e){}
+    if(Notification.permission==="denied"){
+      setState("bad","이 기기에서 세부인 알림이 <b>차단</b>돼 있어요. "+(isIOS?"<b>설정 → 알림 → 세부인</b>에서 알림을 허용한 뒤":"크롬 주소창 왼쪽 아이콘 → <b>권한 → 알림</b>을 허용으로 바꾼 뒤")+" 이 페이지를 새로고침해 주세요.");
+      show([]); return;
+    }
+    var sub=await reg.pushManager.getSubscription();
+    if(sub&&Notification.permission==="granted"){
+      var st={};
+      try{ st=await api({action:"status",endpoint:sub.endpoint}); }catch(e){}
+      if(st.ok&&!st.subscribed){ try{ await api({action:"subscribe",subscription:sub.toJSON(),topics:topics().length?topics():["trade","analysis"]}); st.subscribed=true; }catch(e){} }
+      if(st.topics&&st.topics.length){ document.querySelectorAll(".topic input").forEach(function(c){c.checked=st.topics.indexOf(c.value)>=0;}); ls("sebuin_push_topics",st.topics.join(",")); }
+      // 홈 화면 아이콘으로 열었고 이미 켜져 있으면 대시보드로 바로 이동
+      if(standalone&&/[?&]pwa=1/.test(location.search)){ location.replace("/"); return; }
+      setState("ok","✅ 이 기기에서 알림이 <b>켜져 있어요</b>. 받을 알림을 바꾸면 <b>선택 저장</b>을 눌러주세요.");
+      show(["subOn","btnOff"]); return;
+    }
+    setState("info","받을 알림을 고르고 아래 버튼을 눌러주세요. 휴대폰에서 <b>허용</b>을 물어보면 허용을 눌러주세요.");
+    show(["btnSub"]);
+  }
+
+  $("btnSub").onclick=async function(){
+    var t=topics(); if(!t.length){ msg("받을 알림을 하나 이상 골라주세요."); return; }
+    var btn=this; btn.disabled=true; msg("설정하는 중…");
+    try{
+      var perm=await Notification.requestPermission();   // 아이폰은 버튼을 누른 직후에 물어봐야 한다
+      if(perm!=="granted"){ btn.disabled=false; await render(); if(perm!=="denied") msg("허용을 눌러야 알림을 받을 수 있어요."); return; }
+      if(!pubKey) pubKey=(await (await fetch("/api/push")).json()).publicKey;
+      var r=reg||await navigator.serviceWorker.ready;
+      var sub=await r.pushManager.getSubscription()||await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:keyBytes(pubKey)});
+      var res=await api({action:"subscribe",subscription:sub.toJSON(),topics:t});
+      if(!res.ok) throw new Error(res.error||"구독 저장 실패");
+      ls("sebuin_push_topics",t.join(","));
+      api({action:"test",endpoint:sub.endpoint}).catch(function(){});
+      btn.disabled=false; await render();
+      msg("확인 알림을 보냈어요. 몇 초 안에 휴대폰에 알림이 오면 성공이에요!");
+    }catch(e){ btn.disabled=false; msg("설정에 실패했어요: "+(e&&e.message||e)); }
+  };
+  $("btnSave").onclick=async function(){
+    var t=topics(); if(!t.length){ msg("받을 알림을 하나 이상 골라주세요. 전부 끄려면 아래 '알림 끄기'를 눌러주세요."); return; }
+    try{ var sub=await reg.pushManager.getSubscription(); var res=await api({action:"subscribe",subscription:sub.toJSON(),topics:t});
+      if(!res.ok) throw new Error(res.error); ls("sebuin_push_topics",t.join(",")); msg("저장했어요 ✅"); }
+    catch(e){ msg("저장에 실패했어요. 잠시 후 다시 시도해주세요."); }
+  };
+  $("btnTest").onclick=async function(){
+    try{ var sub=await reg.pushManager.getSubscription(); var res=await api({action:"test",endpoint:sub.endpoint});
+      msg(res.ok?"보냈어요. 몇 초 안에 알림이 오면 정상이에요.":(res.error||"보내지 못했어요. 아래 '알림이 안 온다면'을 확인해주세요.")); }
+    catch(e){ msg("보내지 못했어요."); }
+  };
+  $("btnOff").onclick=async function(){
+    if(!confirm("이 기기에서 세부인 알림을 끌까요?")) return;
+    try{ var sub=await reg.pushManager.getSubscription(); if(sub){ await api({action:"unsubscribe",endpoint:sub.endpoint}); await sub.unsubscribe(); } }catch(e){}
+    await render(); msg("알림을 껐어요. 언제든 다시 켤 수 있어요.");
+  };
+  $("btnCopy").onclick=function(){
+    var u="https://sebuin.com/alerts.html";
+    (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(function(){msg("주소를 복사했어요. "+(isIOS?"사파리":"크롬")+" 주소창에 붙여넣어 열어주세요.");},function(){msg(u);});
+  };
+  render();
+})();
+</script>
+</body>
+</html>

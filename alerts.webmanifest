@@ -1,0 +1,17 @@
+{
+  "name": "세부인 · 세종 부동산 인사이트",
+  "short_name": "세부인",
+  "description": "새로 공개된 세종 아파트 실거래와 세부인 새 분석글을 휴대폰 알림으로 받아보세요.",
+  "id": "/",
+  "start_url": "/alerts.html?pwa=1",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f6fa",
+  "theme_color": "#5b6cff",
+  "lang": "ko",
+  "icons": [
+    { "src": "/images/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/images/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/images/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

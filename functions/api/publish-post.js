@@ -248,6 +248,7 @@ function buildSitemap(posts, BASE){
   urls.push({loc:BASE+"/complex", lastmod: today});
   urls.push({loc:BASE+"/bus-reach", lastmod: "2026-10-19"});
   urls.push({loc:BASE+"/about", lastmod: "2026-10-19"});
+  urls.push({loc:BASE+"/alerts", lastmod: "2026-10-26"});
   sorted.forEach(function(f){ urls.push({loc:BASE+"/blog/"+f.id, lastmod: f.dateISO||today}); });
   const body = urls.map(function(u){
     return "  <url>\n    <loc>"+esc(u.loc)+"</loc>\n    <lastmod>"+esc(u.lastmod)+"</lastmod>\n  </url>";

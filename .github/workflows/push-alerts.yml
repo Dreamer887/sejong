@@ -1,0 +1,43 @@
+# 휴대폰 알림(웹 푸시) 발송 — /api/push 의 "send"를 불러 준다.
+# send는 같은 알림을 두 번 만들거나 같은 사람에게 두 번 보내지 않으므로 여러 번 불러도 안전하다.
+#  - 매일 아침: data.json의 「오늘 신고내역」이 오늘 날짜로 바뀌어 있으면(새 거래 공개) 실거래 요약 알림
+#  - 새 글 발행(blog/posts.json 변경): 배포가 끝날 시간을 두고 새 글 알림
+# 비밀값(Secrets)은 필요 없다.
+name: push-alerts
+
+on:
+  schedule:
+    - cron: "40 22 * * *"   # 한국 시간 07:40 (data.json은 06:53쯤 그날 신고분으로 바뀐다)
+    - cron: "17 1 * * *"    # 한국 시간 10:17 — 아침 실행이 밀리거나 실패했을 때 대비
+  push:
+    branches: [main]
+    paths:
+      - "blog/posts.json"
+  workflow_dispatch:
+
+concurrency:
+  group: push-alerts
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: 새 글이면 Cloudflare 배포를 기다린다
+        if: github.event_name == 'push'
+        run: sleep 150
+      - name: 알림 보내기
+        run: |
+          for i in $(seq 1 60); do
+            r=$(curl -sS -m 60 -X POST https://sebuin.com/api/push \
+                  -H 'content-type: application/json' -d '{"action":"send"}' || echo '{}')
+            echo "[$i] $r"
+            ok=$(echo "$r" | jq -r '.ok // false')
+            left=$(echo "$r" | jq -r '.remaining // 0')
+            sent=$(echo "$r" | jq -r '.sent // 0')
+            if [ "$ok" != "true" ]; then sleep 20; continue; fi
+            if [ "$left" = "0" ]; then echo "완료"; exit 0; fi
+            if [ "$sent" = "0" ] && [ "$i" -ge 5 ]; then echo "더 보낼 수 없는 대상이 남아 다음 실행에 맡김"; exit 0; fi
+            sleep 2
+          done
