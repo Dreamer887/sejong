@@ -6,7 +6,7 @@
 #    → GitHub 예약(schedule)은 수십 분 밀리거나 건너뛰는 일이 잦아서, 커밋(push)을 주 신호로 쓴다
 #  - 새 글 발행(blog/posts.json 변경): 배포가 끝날 시간을 두고 새 글 알림
 #  - 예약 실행은 위가 모두 실패했을 때를 위한 예비용
-# 비밀값(Secrets)은 필요 없다.
+# 비밀값(Secrets)은 필요 없다. (Cloudflare Bot Fight Mode는 꺼 둬야 GitHub 서버의 호출이 막히지 않는다 — 2026.10.28)
 name: push-alerts
 
 on:
