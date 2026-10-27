@@ -15,6 +15,7 @@ on:
     paths:
       - "data.json"
       - "blog/posts.json"
+      - ".github/workflows/push-alerts.yml"
   schedule:
     - cron: "50 22 * * *"   # 한국 시간 07:50 (예비)
     - cron: "17 1 * * *"    # 한국 시간 10:17 (예비)
