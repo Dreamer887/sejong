@@ -41,15 +41,26 @@ jobs:
           echo "${wait}초 기다림"; sleep "$wait"
       - name: 알림 보내기
         run: |
+          set +e
+          bad=0
           for i in $(seq 1 60); do
-            r=$(curl -sS -m 60 -X POST https://sebuin.com/api/push \
-                  -H 'content-type: application/json' -d '{"action":"send"}' || echo '{}')
-            echo "[$i] $r"
-            ok=$(echo "$r" | jq -r '.ok // false')
-            left=$(echo "$r" | jq -r '.remaining // 0')
-            sent=$(echo "$r" | jq -r '.sent // 0')
+            code=$(curl -sS -m 60 -o resp.txt -w '%{http_code}' -X POST https://sebuin.com/api/push \
+                  -A 'Mozilla/5.0 (sebuin push-alerts; +https://github.com/Dreamer887/sejong)' \
+                  -H 'content-type: application/json' -H 'accept: application/json' -d '{"action":"send"}')
+            r=$(head -c 400 resp.txt | tr '\n' ' ')
+            echo "[$i] HTTP $code $r"
+            if ! jq -e . resp.txt >/dev/null 2>&1; then
+              echo "::warning::[$i] JSON 아님 HTTP $code: $(head -c 200 resp.txt | tr '\n' ' ')"
+              bad=$((bad+1)); if [ "$bad" -ge 3 ]; then echo "::error::sebuin.com이 JSON이 아닌 응답을 계속 돌려줌(차단 의심)"; exit 1; fi
+              sleep 20; continue
+            fi
+            ok=$(jq -r '.ok // false' resp.txt)
+            left=$(jq -r '.remaining // 0' resp.txt)
+            sent=$(jq -r '.sent // 0' resp.txt)
+            if [ "$i" = "1" ]; then echo "::notice::첫 응답 HTTP $code $r"; fi
             if [ "$ok" != "true" ]; then sleep 20; continue; fi
             if [ "$left" = "0" ]; then echo "완료"; exit 0; fi
             if [ "$sent" = "0" ] && [ "$i" -ge 5 ]; then echo "더 보낼 수 없는 대상이 남아 다음 실행에 맡김"; exit 0; fi
             sleep 2
           done
+          echo "::error::60번 시도해도 발송을 끝내지 못함"; exit 1
