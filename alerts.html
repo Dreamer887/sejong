@@ -13,13 +13,13 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="세부인">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>휴대폰 알림 받기 | 세종 부동산 인사이트</title>
-<meta name="description" content="새로 공개된 세종 아파트 매매 실거래와 세부인 새 분석글을 휴대폰 알림으로 받아보세요. 안드로이드·아이폰 설정 방법 안내.">
+<title>가입 없는 휴대폰 알림 | 세종 부동산 인사이트</title>
+<meta name="description" content="회원가입·개인정보 입력 없이, 새로 공개된 세종 아파트 매매 실거래와 세부인 새 분석글을 휴대폰 알림으로 받아보세요. 안드로이드·아이폰 설정 방법 안내.">
 <link rel="canonical" href="https://sebuin.com/alerts.html">
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
-<meta property="og:title" content="휴대폰 알림 받기 | 세종 부동산 인사이트">
-<meta property="og:description" content="매일 아침 새로 공개된 세종 실거래를 휴대폰 알림으로.">
+<meta property="og:title" content="가입 없는 휴대폰 알림 | 세종 부동산 인사이트">
+<meta property="og:description" content="가입·개인정보 없이, 매일 아침 새로 공개된 세종 실거래를 휴대폰 알림으로.">
 <meta property="og:url" content="https://sebuin.com/alerts.html">
 <meta property="og:image" content="https://sebuin.com/og-image.png">
 <style>
@@ -41,6 +41,10 @@
   .hero .bell{position:absolute;right:18px;top:14px;font-size:64px;opacity:.18;transform:rotate(14deg)}
   @media(max-width:560px){.hero{padding:24px 20px 22px}.hero h1{font-size:21px}}
 
+  .trust{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+  .trust span{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;font-size:13px;font-weight:800;border-radius:99px;padding:5px 11px;letter-spacing:-.2px}
+  .assure{display:flex;gap:9px;align-items:flex-start;background:#f4f6fa;border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13.5px;color:#3b4560;line-height:1.6}
+  .assure b{color:var(--ink)}
   .noti{margin:18px 0 2px;background:rgba(255,255,255,.95);color:#1d2433;border-radius:16px;padding:12px 14px;display:flex;gap:11px;align-items:flex-start;box-shadow:0 14px 30px -18px rgba(20,20,60,.7)}
   .noti img{width:38px;height:38px;border-radius:9px;flex:none}
   .noti .nh{display:flex;justify-content:space-between;font-size:12px;color:#8a93a8;font-weight:600}
@@ -110,7 +114,10 @@
   <section class="hero">
     <div class="bell" aria-hidden="true">🔔</div>
     <h1>새로 공개된 세종 실거래,<br>아침마다 휴대폰으로 받아보세요</h1>
-    <p>회원가입·앱 설치 없이, 버튼 한 번이면 끝나요. 이메일이나 전화번호도 받지 않아요.</p>
+    <p>가입도, 개인정보 입력도 없어요. 버튼 한 번 누르고 '허용'만 하면 끝이에요.</p>
+    <div class="trust" aria-label="알림 특징">
+      <span>✓ 회원가입 없음</span><span>✓ 개인정보 입력 없음</span><span>✓ 앱 설치 없음</span><span>✓ 무료</span>
+    </div>
     <div class="noti" aria-label="알림 예시">
       <img src="/images/icons/icon-192.png" alt="">
       <div style="flex:1;min-width:0">
@@ -142,7 +149,8 @@
 
     <div class="action">
       <div class="state info" id="state">이 기기의 알림 상태를 확인하는 중…</div>
-      <button class="btn main" id="btnSub" hidden>🔔 알림 받기</button>
+      <button class="btn main" id="btnSub" hidden>🔔 가입 없이 알림 받기</button>
+      <div class="assure"><span aria-hidden="true">🔒</span><span><b>이름·이메일·전화번호를 묻지 않아요.</b> 로그인도 없어요. 휴대폰 브라우저 기본 알림 기능이라, 끄고 싶으면 아래 버튼이나 휴대폰 설정에서 바로 끌 수 있어요.</span></div>
       <div class="row2" id="subOn" hidden>
         <button class="btn sub" id="btnSave">선택 저장</button>
         <button class="btn sub" id="btnTest">확인 알림 보내기</button>
@@ -163,7 +171,7 @@
     <div class="guide on" id="g-android">
       <ol class="steps">
         <li><b>크롬</b>이나 <b>삼성 인터넷</b>으로 이 페이지를 열어요.<br><span class="muted">카카오톡·네이버 앱 안에서 열었다면 오른쪽 위 <span class="kbd">⋮</span> → <span class="kbd">다른 브라우저로 열기</span>를 눌러주세요.</span></li>
-        <li>위의 <b>🔔 알림 받기</b> 버튼을 누르고, 뜨는 창에서 <b>허용</b>을 눌러요.</li>
+        <li>위의 <b>🔔 가입 없이 알림 받기</b> 버튼을 누르고, 뜨는 창에서 <b>허용</b>을 눌러요.</li>
         <li>바로 <b>"세부인 알림이 켜졌어요 ✅"</b> 확인 알림이 오면 끝이에요.</li>
       </ol>
       <div class="tip"><b>확인 알림이 안 온다면</b>
@@ -182,7 +190,7 @@
         <li>화면 아래(또는 주소창 옆)의 <b>공유 버튼</b> <span class="kbd">□↑</span>을 눌러요.</li>
         <li>목록을 내려 <b>홈 화면에 추가</b>를 누르고, 오른쪽 위 <b>추가</b>를 눌러요.</li>
         <li>홈 화면에 생긴 <b>세부인 아이콘</b>을 눌러 열어요. 이 알림 페이지가 바로 열려요.</li>
-        <li><b>🔔 알림 받기</b> → <b>허용</b>을 누르면 확인 알림이 와요.</li>
+        <li><b>🔔 가입 없이 알림 받기</b> → <b>허용</b>을 누르면 확인 알림이 와요.</li>
       </ol>
       <div class="tip"><b>확인 알림이 안 온다면</b>
         <ul class="dots">
@@ -196,7 +204,7 @@
 
   <section class="card">
     <h2>자주 묻는 질문</h2>
-    <details><summary>돈이 들거나 가입해야 하나요?</summary><p>아니요. 무료이고 가입도 없어요. 휴대폰 브라우저의 기본 알림 기능을 쓰기 때문에 앱을 깔 필요도 없어요.</p></details>
+    <details open><summary>가입하거나 개인정보를 입력해야 하나요?</summary><p>아니요. 회원가입·로그인이 없고, 이름·이메일·전화번호 같은 개인정보도 전혀 묻지 않아요. 무료이고, 휴대폰 브라우저의 기본 알림 기능을 쓰기 때문에 앱을 깔 필요도 없어요.</p></details>
     <details><summary>어떤 정보가 저장되나요?</summary><p>알림을 보낼 기기 주소(브라우저가 만든 푸시 주소)와 고른 알림 종류만 저장해요. 이름·이메일·전화번호는 받지 않고, 알림을 끄면 바로 지워져요. 자세한 내용은 <a href="/privacy.html" style="color:var(--indigo);font-weight:700">개인정보처리방침</a>에 있어요.</p></details>
     <details><summary>실거래 알림은 언제 오나요?</summary><p>국토교통부는 신고된 거래를 다음 날 공개해요. 세부인은 매일 아침 새로 공개된 세종 아파트 매매 거래를 모아서 7~8시쯤 보내드려요. 새로 공개된 거래가 없는 날은 보내지 않아요.</p></details>
     <details><summary>알림을 끄고 싶어요</summary><p>이 페이지에서 <b>이 기기에서 알림 끄기</b>를 누르거나, 휴대폰 설정에서 브라우저(아이폰은 세부인)의 알림을 끄면 돼요.</p></details>
