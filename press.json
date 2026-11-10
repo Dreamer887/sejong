@@ -1,8 +1,15 @@
 {
- "updated": "2026-11-05T11:30:00+09:00",
+ "updated": "2026-11-10T09:12:00+09:00",
  "source": "정책브리핑 보도자료 (korea.kr)",
  "note": "행복청=행정중심복합도시건설청 보도자료 전부, 세종=다른 부처의 세종 관련 자료, 정책=전국 부동산 제도·통계. 최근 60일. 예약 작업 「세종 보도자료 수집」이 하루 두 번 갱신",
  "items": [
+  {
+   "date": "2026-11-06",
+   "cat": "정책",
+   "org": "국토교통부·금융위원회",
+   "title": "[참고] 현재 유포되고 있는 부동산 대책 관련 게시글의 보도에 유의하여 주시기 바랍니다.",
+   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156788229"
+  },
   {
    "date": "2026-11-05",
    "cat": "행복청",
@@ -184,41 +191,6 @@
    "org": "행정중심복합도시건설청",
    "title": "일본 도쿄대 학생들, 한국의 행정기능 이전 경험 배운다",
    "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156782346"
-  },
-  {
-   "date": "2026-09-10",
-   "cat": "행복청",
-   "org": "행정중심복합도시건설청",
-   "title": "행복도시 국립박물관단지 '문화 랜드마크' 도약",
-   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156781250"
-  },
-  {
-   "date": "2026-09-08",
-   "cat": "행복청",
-   "org": "행정중심복합도시건설청",
-   "title": "행복청, '27년 정부안 5,689억원 반영",
-   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156780674"
-  },
-  {
-   "date": "2026-09-08",
-   "cat": "행복청",
-   "org": "행정중심복합도시건설청",
-   "title": "국민자문단 '모두랑', 부산 찾아 국가상징구역 방향 모색",
-   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156780675"
-  },
-  {
-   "date": "2026-09-08",
-   "cat": "행복청",
-   "org": "행정중심복합도시건설청",
-   "title": "행복청, 「2차 중앙행정기관 이전」 총력 지원",
-   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156780679"
-  },
-  {
-   "date": "2026-09-08",
-   "cat": "행복청",
-   "org": "행정중심복합도시건설청",
-   "title": "행정중심복합도시건설청, 정부세종청사 중앙동에 둥지",
-   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156780678"
   }
  ]
 }
