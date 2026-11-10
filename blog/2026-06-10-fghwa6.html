@@ -69,6 +69,14 @@
   .backlink:hover{text-decoration:underline}
   footer{margin-top:40px;color:#aab2c5;font-size:13px;text-align:center}
 </style>
+<style id="navfix">/* 상단 메뉴: 글자 줄바꿈 방지 */
+.topnav .brand{flex:none}
+.topnav .brand span{white-space:nowrap}
+.topnav .navlinks{min-width:0}
+.topnav .navlinks a{white-space:nowrap;flex:none;padding:8px 12px}
+@media(max-width:1080px){.topnav .navlinks a{padding:8px 10px}.topnav .navlinks a.navalert .navtag{display:none}}
+@media(max-width:900px){.topnav{flex-wrap:wrap;justify-content:center}.topnav .navlinks{flex-wrap:wrap;justify-content:center;border-radius:24px}}
+</style>
 </head>
 <body>
 <div class="wrap">

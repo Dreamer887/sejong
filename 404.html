@@ -151,6 +151,14 @@
   .nf .go a{font-size:14px;font-weight:700;text-decoration:none;padding:10px 18px;border-radius:99px;border:1px solid var(--line);color:var(--ink);background:#fff}
   .nf .go a.pri{background:linear-gradient(135deg,#5b6cff,#a06bff);color:#fff;border-color:transparent}
 </style>
+<style id="navfix">/* 상단 메뉴: 글자 줄바꿈 방지 */
+.topnav .brand{flex:none}
+.topnav .brand span{white-space:nowrap}
+.topnav .navlinks{min-width:0}
+.topnav .navlinks a{white-space:nowrap;flex:none;padding:8px 12px}
+@media(max-width:1080px){.topnav .navlinks a{padding:8px 10px}.topnav .navlinks a.navalert .navtag{display:none}}
+@media(max-width:900px){.topnav{flex-wrap:wrap;justify-content:center}.topnav .navlinks{flex-wrap:wrap;justify-content:center;border-radius:24px}}
+</style>
 </head>
 <body>
 <div class="wrap">

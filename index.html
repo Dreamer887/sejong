@@ -334,6 +334,14 @@ footer{color:#aab2c5}
   .hot-chips .hchip.sjbase .sjtag{margin-left:5px;font-size:10px;font-weight:800;background:#5b6cff;color:#fff;border-radius:5px;padding:1px 6px;line-height:1.5;font-style:normal}
   .hot-chips .hchip.sjbase:not(.on){opacity:.42}
 </style>
+<style id="navfix">/* 상단 메뉴: 글자 줄바꿈 방지 */
+.topnav .brand{flex:none}
+.topnav .brand span{white-space:nowrap}
+.topnav .navlinks{min-width:0}
+.topnav .navlinks a{white-space:nowrap;flex:none;padding:8px 12px}
+@media(max-width:1080px){.topnav .navlinks a{padding:8px 10px}.topnav .navlinks a.navalert .navtag{display:none}}
+@media(max-width:900px){.topnav{flex-wrap:wrap;justify-content:center}.topnav .navlinks{flex-wrap:wrap;justify-content:center;border-radius:24px}}
+</style>
 </head>
 <body>
 <div class="wrap">
