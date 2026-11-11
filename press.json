@@ -1,8 +1,29 @@
 {
- "updated": "2026-11-10T09:12:00+09:00",
+ "updated": "2026-11-12T08:53:00+09:00",
  "source": "정책브리핑 보도자료 (korea.kr)",
  "note": "행복청=행정중심복합도시건설청 보도자료 전부, 세종=다른 부처의 세종 관련 자료, 정책=전국 부동산 제도·통계. 최근 60일. 예약 작업 「세종 보도자료 수집」이 하루 두 번 갱신",
  "items": [
+  {
+   "date": "2026-11-10",
+   "cat": "정책",
+   "org": "국토교통부",
+   "title": "부정청약 관계부처 합동점검 결과",
+   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156788524"
+  },
+  {
+   "date": "2026-11-10",
+   "cat": "정책",
+   "org": "국무조정실",
+   "title": "[보도자료] 제22차 부동산 불법행위 대응협의회",
+   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156788544"
+  },
+  {
+   "date": "2026-11-10",
+   "cat": "정책",
+   "org": "국토교통부",
+   "title": "[참고] 행복주택 공실 해소를 위해 적극 노력해 나가겠습니다.",
+   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156788610"
+  },
   {
    "date": "2026-11-06",
    "cat": "정책",
