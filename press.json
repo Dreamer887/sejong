@@ -1,8 +1,36 @@
 {
- "updated": "2026-11-12T08:53:00+09:00",
+ "updated": "2026-11-17T08:58:00+09:00",
  "source": "정책브리핑 보도자료 (korea.kr)",
  "note": "행복청=행정중심복합도시건설청 보도자료 전부, 세종=다른 부처의 세종 관련 자료, 정책=전국 부동산 제도·통계. 최근 60일. 예약 작업 「세종 보도자료 수집」이 하루 두 번 갱신",
  "items": [
+  {
+   "date": "2026-11-13",
+   "cat": "정책",
+   "org": "국무조정실",
+   "title": "[보도자료] 제3차 주택공급 정례브리핑, '내 집 어디에 있나'",
+   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156789157"
+  },
+  {
+   "date": "2026-11-13",
+   "cat": "정책",
+   "org": "국토교통부·금융위원회",
+   "title": "서울 가격상승폭 둔화·매물 증가…수도권 내년 1분기까지 4만 호 이상 입주",
+   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156789153"
+  },
+  {
+   "date": "2026-11-12",
+   "cat": "정책",
+   "org": "금융위원회",
+   "title": "2026년 10월 가계대출 동향(잠정)",
+   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156788858"
+  },
+  {
+   "date": "2026-11-12",
+   "cat": "정책",
+   "org": "국토교통부",
+   "title": "공공재개발 사업수수료 3%→1% 한시 인하",
+   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156788890"
+  },
   {
    "date": "2026-11-10",
    "cat": "정책",
@@ -198,20 +226,6 @@
    "org": "행정중심복합도시건설청",
    "title": "국민이 꿈꾸는 국가상징구역 숏폼 영상으로 표현해 주세요",
    "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156782603"
-  },
-  {
-   "date": "2026-09-17",
-   "cat": "행복청",
-   "org": "행정중심복합도시건설청",
-   "title": "세종공동캠퍼스 개교 2주년, 대학 간 협력으로 새로운 도약 준비",
-   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156782345"
-  },
-  {
-   "date": "2026-09-17",
-   "cat": "행복청",
-   "org": "행정중심복합도시건설청",
-   "title": "일본 도쿄대 학생들, 한국의 행정기능 이전 경험 배운다",
-   "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156782346"
   }
  ]
 }
