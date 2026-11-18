@@ -58,7 +58,7 @@ function homePage() {
     .filter(p => !["실거래 동향", "맛집"].includes(String(p && p.tag || "")))
     .sort((a, b) => (b.dateISO || "").localeCompare(a.dateISO || ""))
     .slice(0, 6);
-  const html = posts.map(p => '<a class="bt-card" href="./blog/' + encodeURIComponent(p.id) + '"><span class="bt-tag ' + tc(p.tag) + '">' + esc(p.tag || "분석") + "</span><h3>" + esc(p.title) + "</h3><p>" + esc((p.lede || "").slice(0, 70)) + '</p><div class="bt-date">' + esc(p.dateText || "") + "</div></a>").join("");
+  const html = posts.map(p => '<a class="bt-card" href="./blog/' + encodeURIComponent(p.id.replace(/\.html$/, "")) + '"><span class="bt-tag ' + tc(p.tag) + '">' + esc(p.tag || "분석") + "</span><h3>" + esc(p.title) + "</h3><p>" + esc((p.lede || "").slice(0, 70)) + '</p><div class="bt-date">' + esc(p.dateText || "") + "</div></a>").join("");
   writeFileSync(join(ROOT, file), fill(read(file), "btGrid", html));
   console.log("index.html ✓", posts.length, "개 글");
 }
@@ -66,13 +66,13 @@ function homePage() {
 // ---- 분석글: 하단 '함께 읽으면 좋은 글' + 본문 용어 내부 링크 ----
 // 다시 돌려도 같은 결과가 나오도록, 매번 이전에 넣은 것을 걷어내고 새로 넣는다.
 const GLOSSARY = [   // [본문에서 찾을 말, 연결할 주소] — 글마다 대상별 첫 번째 한 곳만 링크
-  [/J-PIR/, "./2026-06-10-ppn7m0.html"],
-  [/(?<![A-Za-z-])PIR(?![A-Za-z])/, "./2026-06-10-ppn7m0.html"],
-  [/전세가율/, "./2026-06-10-fghwa6.html"],
-  [/매수 적기/, "./2026-06-10-fghwa6.html"],
+  [/J-PIR/, "./2026-06-10-ppn7m0"],
+  [/(?<![A-Za-z-])PIR(?![A-Za-z])/, "./2026-06-10-ppn7m0"],
+  [/전세가율/, "./2026-06-10-fghwa6"],
+  [/매수 적기/, "./2026-06-10-fghwa6"],
   [/단지 정보/, "/complex"],
-  [/관심도 순위|검색량 순위/, "./2026-10-13-e0ms50.html"],
-  [/BRT/, "./2026-06-14-tl6vg1.html"],
+  [/관심도 순위|검색량 순위/, "./2026-10-13-e0ms50"],
+  [/BRT/, "./2026-06-14-tl6vg1"],
 ];
 const REL_CSS = `<style>.rel{margin:22px 0 0;background:#fff;border:1px solid #e4e8f0;border-radius:20px;padding:24px 26px}
 .rel h2{font-size:17px;font-weight:800;margin:0 0 14px;color:#16203a}
@@ -129,7 +129,7 @@ function blogPosts() {
       if (/class="a-(source|cap)"/.test(attr) || /<a[\s>]/.test(inner)) return m;
       const parts = inner.split(/(<[^>]+>)/);
       for (const [re, href] of GLOSSARY) {
-        if (used.has(href) || href === "./" + p.id) continue;
+        if (used.has(href) || href === "./" + p.id.replace(/\.html$/, "")) continue;
         for (let i = 0; i < parts.length; i += 2) {
           const mm = parts[i].match(re); if (!mm) continue;
           parts[i] = parts[i].slice(0, mm.index) + `<a class="autolink" href="${href}">${mm[0]}</a>` + parts[i].slice(mm.index + mm[0].length);
@@ -142,7 +142,7 @@ function blogPosts() {
     const food = p.tag === "맛집";
     const rel = posts.filter(q => q.id !== p.id && (q.tag === "맛집") === food).map(q => [q, sim(p, q)]).sort((x, y) => y[1] - x[1] || (y[0].dateISO || "").localeCompare(x[0].dateISO || "")).slice(0, 3).map(x => x[0]);
     const block = `<!--auto:related--><section class="rel" aria-labelledby="rel-h">${REL_CSS}<h2 id="rel-h">함께 읽으면 좋은 글</h2><ul>` +
-      rel.map(q => `<li><a href="./${encodeURIComponent(q.id)}"><span class="rt">${esc(q.tag || "분석")}</span><b>${esc(q.title)}</b><small>${esc(q.dateText || "")}</small></a></li>`).join("") +
+      rel.map(q => `<li><a href="./${encodeURIComponent(q.id.replace(/\.html$/, ""))}"><span class="rt">${esc(q.tag || "분석")}</span><b>${esc(q.title)}</b><small>${esc(q.dateText || "")}</small></a></li>`).join("") +
       `</ul><a class="all" href="${food ? "../matjip/" : "./"}">${food ? "맛집 후기 전체 보기 →" : "분석 글 전체 보기 →"}</a></section><!--/auto:related-->`;
     if (!src.includes("</article>")) continue;
     let near = "";

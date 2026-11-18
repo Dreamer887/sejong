@@ -26,6 +26,7 @@ function b64dec(b64){
 function esc(s){
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
+function slug(id){ return String(id||"").replace(/\.html$/, ""); }  // Cloudflare가 .html을 떼고 308으로 넘기므로 공개 주소는 확장자 없이
 function validId(id){ return typeof id==="string" && /^\d{4}-\d{2}-\d{2}-[a-z0-9]{6}\.html$/.test(id); }
 function isFood(f){ return String(f&&f.tag||"")==="맛집"; }
 function cleanPlace(pl){
@@ -71,7 +72,7 @@ function bodyToHtml(text){
   return out.join("\n");
 }
 function buildPostHtml(f, BASE){
-  const url = BASE+"/blog/"+f.id;
+  const url = BASE+"/blog/"+slug(f.id);
   const lede = f.lede ? '<div class="a-lede"><div class="a-cap">들어가며</div>'+richLines(f.lede)+'</div>' : "";
   const summary = f.summary ? '<div class="a-summary"><b>한 줄 요약</b>'+richLines(f.summary)+'</div>' : "";
   const food = isFood(f);
@@ -200,7 +201,7 @@ function renderCards(posts, food){
   return "\n" + sorted.map(function(f){
     const th = food ? cleanImgs(f.thumbs) : [];
     const img = th.length ? '\n      <div class="pc-img n'+(th.length>=4?4:1)+'">'+(th.length>=4?th:th.slice(0,1)).map(function(u){return '<img src="'+esc(u)+'" alt="" loading="lazy">';}).join("")+'</div><div class="pc-body">' : "";
-    return '    <a class="postcard'+(th.length?' hasimg':'')+'" data-id="'+esc(f.id)+'" href="'+pre+esc(f.id)+'">'+img+'\n      <span class="tag '+tagCls(f.tag)+'">'+esc(f.tag)+'</span>\n      <h2>'+esc(f.title)+'</h2>\n      '+(food&&f.place&&f.place.address?'<p class="pcplace">📍 '+esc(f.place.name||"")+' · '+esc(f.place.dong||shortAddr(f.place.address))+'</p>\n      ':'')+'<p class="excerpt">'+esc((f.lede||"").slice(0,95))+'</p>\n      <span class="meta">'+esc(f.dateText)+' · '+esc(f.tag)+'</span>'+(th.length?'</div>':'')+'\n    </a>';}).join("\n") + "\n  ";
+    return '    <a class="postcard'+(th.length?' hasimg':'')+'" data-id="'+esc(f.id)+'" href="'+pre+esc(slug(f.id))+'">'+img+'\n      <span class="tag '+tagCls(f.tag)+'">'+esc(f.tag)+'</span>\n      <h2>'+esc(f.title)+'</h2>\n      '+(food&&f.place&&f.place.address?'<p class="pcplace">📍 '+esc(f.place.name||"")+' · '+esc(f.place.dong||shortAddr(f.place.address))+'</p>\n      ':'')+'<p class="excerpt">'+esc((f.lede||"").slice(0,95))+'</p>\n      <span class="meta">'+esc(f.dateText)+' · '+esc(f.tag)+'</span>'+(th.length?'</div>':'')+'\n    </a>';}).join("\n") + "\n  ";
 }
 function shortAddr(a){ const m=String(a||"").match(/세종[^\s]*\s+(.+?)(\s+\d|$)/); return m?m[1]:String(a||""); }
 async function gh(C, path, opts){
@@ -257,7 +258,7 @@ function buildSitemap(posts, BASE){
   urls.push({loc:BASE+"/bus-reach", lastmod: "2026-10-19"});
   urls.push({loc:BASE+"/about", lastmod: "2026-10-19"});
   urls.push({loc:BASE+"/alerts", lastmod: "2026-10-26"});
-  sorted.forEach(function(f){ urls.push({loc:BASE+"/blog/"+f.id, lastmod: f.dateISO||today}); });
+  sorted.forEach(function(f){ urls.push({loc:BASE+"/blog/"+slug(f.id), lastmod: f.dateISO||today}); });
   const body = urls.map(function(u){
     return "  <url>\n    <loc>"+esc(u.loc)+"</loc>\n    <lastmod>"+esc(u.lastmod)+"</lastmod>\n  </url>";
   }).join("\n");
@@ -327,14 +328,14 @@ export async function onRequestPost(context){
       let next=posts.map(function(p){return p.id===f.id?entry:p;});
       if(!next.some(function(p){return p.id===f.id;})) next.push(entry);
       await writePostsAndIndex(C, next, sha);
-      return json({ok:true, url:C.BASE+"/blog/"+f.id, id:f.id});
+      return json({ok:true, url:C.BASE+"/blog/"+slug(f.id), id:f.id});
     }
     const rand=Math.random().toString(36).slice(2,8);
     entry.id=f.dateISO+"-"+rand+".html";
     await putFile(C, "blog/"+entry.id, buildPostHtml(entry, C.BASE), "post: "+f.title);
     posts.unshift(entry);
     await writePostsAndIndex(C, posts, sha);
-    return json({ok:true, url:C.BASE+"/blog/"+entry.id, id:entry.id});
+    return json({ok:true, url:C.BASE+"/blog/"+slug(entry.id), id:entry.id});
   }catch(err){
     return json({error:String(err&&err.message||err)}, 500);
   }

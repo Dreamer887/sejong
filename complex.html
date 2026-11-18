@@ -421,7 +421,7 @@ function foodHTML(d) {
   return `<section>
     <h3>주변 맛집</h3>
     <p class="sub">세부인이 직접 다녀온 곳 중 단지에서 직선 1km 안에 있는 가게예요.</p>
-    <div class="foods">${rows.map(([p, m]) => `<a class="food${p.thumbs && p.thumbs[0] ? " hasth" : ""}" href="/blog/${enc(p.id)}">${p.thumbs && p.thumbs[0] ? `<img class="fth" src="${esc(p.thumbs[0])}" alt="" loading="lazy">` : ""}<span class="fn">${esc(p.place.name || p.title)}</span><span class="fd">${dist(m)}</span><span class="ft">${esc(p.title)}</span></a>`).join("")}</div>
+    <div class="foods">${rows.map(([p, m]) => `<a class="food${p.thumbs && p.thumbs[0] ? " hasth" : ""}" href="/blog/${enc(p.id.replace(/\.html$/, ""))}">${p.thumbs && p.thumbs[0] ? `<img class="fth" src="${esc(p.thumbs[0])}" alt="" loading="lazy">` : ""}<span class="fn">${esc(p.place.name || p.title)}</span><span class="fd">${dist(m)}</span><span class="ft">${esc(p.title)}</span></a>`).join("")}</div>
     <div class="more"><a href="/matjip/">세종 동네 맛집 전체 보기 →</a></div>
   </section>`;
 }
